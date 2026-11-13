@@ -157,3 +157,69 @@ Rejected alternatives:
 - SME vs mainboard: [IPOMarket](https://www.ipomarket.in/news/mainboard-vs-sme-ipo-differences), [NSE Emerge brochure](https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE%20Emerge%20Brochure_1.pdf), [Moneylife](https://www.moneylife.in/article/sebi-proposes-sweeping-overhaul-of-sme-ipo-framework/81956.html), [Kotak SME IPO guide](https://www.kotaksecurities.com/investing-guide/ipos/how-to-apply-sme-ipo).
 - Data sources: [NSE terms of use](https://www.nseindia.com/nse-terms-of-use), [ipoalerts](https://ipoalerts.in/ipo-data-api), [Upstox get IPOs (status values reference)](https://upstox.com/developer/api-documentation/get-ipos).
 - Admin UX: [TanStack Router validate search params](https://tanstack.com/router/latest/docs/framework/react/how-to/validate-search-params), [search params guide](https://tanstack.com/router/latest/docs/guide/search-params).
+
+## 7. Planning decisions (Phase 0 of `/speckit-plan`, 2026-11-13)
+
+The approved spec (defaults D-01…D-10) closed every question in §5. The plan had no `NEEDS CLARIFICATION` left; the items below are the technical choices made while planning. Each lists the decision, why, and what was rejected. IDs `R-xx` are referenced from `plan.md`.
+
+### R-01 Lifecycle step handler: single forward step, no chain
+
+- **Decision**: one handler shape for the four kinds `ipo.open`, `ipo.close`, `ipo.allotment`, `ipo.list`. It locks the IPO row, recomputes the step instant from the *current* date, and moves the status to the step's target only when (a) the date is set, (b) the instant is `<= now`, (c) the step is not suppressed by an override (R-02), and (d) the current status ranks lower than the target. Otherwise it is a no-op (no audit, no signal). It never moves backwards and never walks intermediate steps.
+- **Why**: FR-032 and US4.6 are met because 002 claims due jobs in `run_at, id` order and the four instants are strictly increasing whenever the dates are valid (open 10:00 ≤ close date, close 17:00 > open 10:00 on the same day, close < allotment < listing). Status jumps (for example UPCOMING → CLOSED after a backward override, US6.2) are already legal for overrides, so listeners must handle non-adjacent transitions anyway.
+- **Rejected**: a "reconcile from dates" chain that walks every intermediate step. It would re-fire steps suppressed by an override (violates FR-036) unless it also tracked per-step suppression, which doubles the state for no spec gain. Residual edge: if an earlier step fails and is retried after a later step has run, the status jumps in one audited transition. This is documented for listeners.
+
+### R-02 Override suppression of past steps (FR-036) via `armed_at`
+
+- **Decision**: every `Schedule` call puts `armed_at` (the service clock at scheduling time) into the job payload next to `ipo_id`. A manual override sets `ipos.last_override_at = now`. The handler is a no-op when `last_override_at IS NOT NULL AND armed_at <= last_override_at AND instant <= last_override_at`. A later date change re-schedules the step with a fresh `armed_at`, which re-arms it (US6.3), even if the new instant is also in the past.
+- **Why**: race-free. If an override commits while a step job is already claimed and waiting on the row lock, the handler still sees the override and does nothing. Cancelling jobs at override time cannot do that: 002's `Cancel` on a running job only sets `cancel_requested`, and the in-flight handler cannot see it.
+- **Deviation note**: 002's contract says payloads hold "ids only" so that handlers read current business data. `armed_at` is scheduling metadata, not copied business data. The handler still reads all dates and the status from the row.
+- **Rejected**: per-step `*_armed_at` columns on `ipos` (four more columns for the same information); cancelling past steps on override (racy, see above).
+
+### R-03 Signals to dependent features are in-process, in-transaction listeners
+
+- **Decision**: `internal/ipos` exports three listener interfaces (`DatesChangedListener`, `EligibilityChangedListener`, `StatusChangedListener`). Dependents (010/011, 012, 013, 018, 019) register at wiring time in `cmd/divya`. They are called synchronously with the caller's transaction in `ctx`, in registration order. Any error or panic rolls back the whole change. Recorded as ADR 0008.
+- **Why**: FR-024, FR-037 and FR-042 require "within the same all-or-nothing change". Dependency direction stays acyclic: dependents import `ipos`, never the reverse (depguard).
+- **Rejected**: outbox events. They are delivered after commit, so they are not all-or-nothing with the dependent's reaction, and 002 reserves the outbox for user-facing messages with quiet hours. Also rejected: `ipos` calling dependents directly (import cycle); dependents polling `ipos` (stale, untestable "same change").
+
+### R-04 Idempotency
+
+- **Decision**:
+  - **Create** stores the `Idempotency-Key` in `ipos.create_idempotency_key`, with a unique partial index on `(org_id, create_idempotency_key)`. `INSERT … ON CONFLICT DO NOTHING`. On conflict the existing IPO is returned (200, current state).
+  - **Other mutations** first lock the IPO row (`FOR UPDATE`), then look for an `audit_log` row with the same `(org_id, entity='ipo', entity_id, action)` and `after->>'idempotency_key' = key`. If one exists, they return the current IPO (or 204 for delete) and write nothing. The query is module-owned (`queries/ipos.sql`, reading the platform `audit_log`).
+- **Why**: the unique index makes concurrent duplicate creates safe. Taking the row lock before the lookup makes concurrent duplicate edits safe. This follows the same "replay via audit" idea as 002 Phase B, without depending on its query landing first.
+- **Rejected**: a generic idempotency table that stores responses (more schema and more code, and replaying stored bodies is not needed here); relying on optimistic versions alone (a retried request would get a false 409 "stale version").
+- **Accepted limit**: reusing a key with a different body is not detected. Keys are per request (UUID), and replay returns the current state.
+
+### R-05 Segment input without a schema enum
+
+- **Decision**: `segments` is a JSON array of strings, with `minItems: 1`, `maxItems: 4` and `uniqueItems`, and the known values documented in the description. The service maps them: `NSE_MAINBOARD`/`BSE_MAINBOARD` are accepted; `NSE_EMERGE`/`BSE_SME` give `ipo.sme_not_allowed`; anything else gives `ipo.invalid_segment`. Storage is `board = 'MAINBOARD'` plus `exchanges ⊆ {NSE, BSE}`, with CHECK constraints (FR-011).
+- **Why**: FR-010 and FR-061 require a dedicated, stable "invalid segment" code. A schema enum would make Huma answer `validation_failed` before the service ever runs. The same mapping also serves 026's importer, which receives arbitrary provider strings.
+- **Rejected**: a schema enum (wrong code for unknown values; it would also make adding SME values to the enum a breaking change). Rewriting Huma validation errors per field was rejected as a hack.
+
+### R-06 Update is a full replacement (PUT) with optimistic version
+
+- **Decision**: `PUT /v1/admin/ipos/{ipoId}` carries every editable catalogue fact. All keys are required and values are nullable; `null` clears a value. The body carries `version`. Flag, publish, status and delete are separate operations because each has its own rules, signals and audit action. A PUT that changes nothing returns 200 with no audit row and no version bump.
+- **Why**: required-but-nullable keys make clearing explicit (no "omitted means cleared" accidents). It also avoids a hand-written JSON merge-patch layer and keeps the generated TS type exact.
+- **Rejected**: PATCH with merge-patch (needs tri-state optional types in Go); Huma autopatch (hides semantics, and the flag/publish side effects need their own operations anyway).
+
+### R-07 Date-order validation uses the transitive closure over the dates that are set
+
+- **Decision**: FR-040 relations (`open ≤ close < allotment ≤ refund ≤ listing`, `allotment ≤ demat_credit ≤ listing`, `allotment < listing`) are closed transitively. Every pair of *set* dates related in the closure is checked, so open + listing without close still requires `open < listing`. The error names both fields of every violated pair. The DB has CHECKs for the direct pairs only (NULL-tolerant, defence in depth).
+- **Why**: "Considering only the dates that are set" would otherwise accept open after listing whenever close is blank.
+
+### R-08 Indian formatting of amounts in problem details and warnings
+
+- **Decision**: a new stdlib-only platform package `internal/platform/inr` with `Format(paise int64) string` (`₹14,700`, `₹1,48,500.50`). No rounding: paise are shown when non-zero.
+- **Why**: FR-061 and constitution VII. Settlement and reports (016+) will need the same formatter in Go.
+- **Rejected**: formatting only in the UI. The spec requires messages with Indian amounts, and UIs still get `params` with raw paise for their own formatting.
+
+### R-09 Quotas and other descriptive fields stay out
+
+- **Decision**: no quota (basis-point) columns, ISIN, face value or company text in 008. The spec's Non-goals exclude "quotas, company financials and other descriptive fields beyond FR-002". §1.1 above is kept as reference for 009/026, which can add columns with an expand-only migration (quotas as `smallint` basis points, never floats).
+- **Why**: the approved spec is binding.
+
+### R-10 Hard delete of never-published drafts
+
+- **Decision**: `DELETE` removes the row. A trigger rejects deleting any row with `first_published_at IS NOT NULL` (D-08 defence in depth). The audit `before` keeps the full snapshot. All lifecycle jobs are cancelled with `CancelSubject("ipo:<id>")`.
+- **Why**: drafts are never eligible, so no deal or task can reference them. A soft-delete column would put `deleted_at IS NULL` in every query for no benefit.
+- **Rejected**: soft delete (more surface, no spec need).

@@ -1,0 +1,349 @@
+# Expected additive OpenAPI 3.1 diff produced by apps/api/internal/ipos/handler.go (008).
+# The generated document (go run ./cmd/divya openapi) is the source of truth; this file is the review contract.
+# Security schemes, ErrorModel.code and the 401/403 behaviour come from 003 (authz.Install, httpx.InstallErrors).
+openapi: 3.1.0
+info: { title: Divya API (008 IPO catalogue diff), version: "008" }
+tags:
+  - name: IPOs
+paths:
+  /v1/admin/ipos:
+    post:
+      operationId: ipos-create
+      tags: [IPOs]
+      summary: Create an IPO draft (mainboard only)
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/IPODraft" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "200": { description: Idempotent replay (current state), content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }   # validation_failed, ipo.sme_not_allowed, ipo.invalid_segment, ipo.invalid_value, ipo.date_order
+    get:
+      operationId: ipos-admin-list
+      tags: [IPOs]
+      summary: List all IPOs of the org (drafts and published)
+      security: [{ bearer: [admin] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/IPOStatus" } }
+        - { name: published, in: query, schema: { type: boolean } }
+        - { name: flag, in: query, schema: { type: string, enum: [APPLY, DO_NOT_APPLY, NONE] } }
+        - { name: month, in: query, description: "Open-date month (IST civil), YYYY-MM", schema: { type: string, pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$" } }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Cursor" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AdminIPOPage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /v1/admin/ipos/date-suggestions:
+    get:
+      operationId: ipos-suggest-dates
+      tags: [IPOs]
+      summary: Suggest allotment/refund/credit/listing dates from a close date (weekdays only; nothing is saved)
+      security: [{ bearer: [admin] }]
+      parameters:
+        - { name: close_date, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/DateSuggestion" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /v1/admin/ipos/{ipoId}:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    get:
+      operationId: ipos-admin-get
+      tags: [IPOs]
+      security: [{ bearer: [admin] }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AdminIPO" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+    put:
+      operationId: ipos-update
+      tags: [IPOs]
+      summary: Replace the catalogue facts of an IPO (all keys required, null clears)
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/IPODraft"
+                - type: object
+                  required: [version, nse_symbol, issue_size_paise, price_band_floor_paise, price_band_cap_paise, issue_price_paise, lot_size, dates, registrar, lead_managers, offer_document_url]
+                  properties: { version: { type: integer, format: int32, minimum: 1 } }
+      responses:
+        "200": { description: Updated, unchanged or replay, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }   # ipo.stale_version, listener code
+        "422": { $ref: "#/components/responses/Problem" }   # + ipo.publish_incomplete when published
+        "500": { $ref: "#/components/responses/Problem" }
+    delete:
+      operationId: ipos-delete
+      tags: [IPOs]
+      summary: Delete a never-published draft
+      security: [{ bearer: [admin] }]
+      parameters:
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+        - { name: version, in: query, required: true, schema: { type: integer, format: int32, minimum: 1 } }
+      responses:
+        "204": { description: Deleted (or replay) }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }   # ipo.published_not_deletable, ipo.stale_version
+  /v1/admin/ipos/{ipoId}/flag:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    put:
+      operationId: ipos-set-flag
+      tags: [IPOs]
+      summary: Set or change APPLY / DO NOT APPLY and the client-visible note
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, apply_flag, flag_note]
+              properties:
+                version: { type: integer, format: int32, minimum: 1 }
+                apply_flag: { oneOf: [{ $ref: "#/components/schemas/ApplyFlag" }, { type: "null" }] }
+                flag_note: { type: [string, "null"], minLength: 1, maxLength: 500, description: "Shown to clients (D-10)" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }   # ipo.invalid_value (note without flag), ipo.publish_incomplete (clear on published)
+        "500": { $ref: "#/components/responses/Problem" }
+  /v1/admin/ipos/{ipoId}/publish:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    post:
+      operationId: ipos-publish
+      tags: [IPOs]
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VersionBody" } } } }
+      responses:
+        "200": { description: Published, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }   # ipo.no_change, ipo.stale_version, listener code
+        "422": { $ref: "#/components/responses/Problem" }   # ipo.publish_incomplete
+        "500": { $ref: "#/components/responses/Problem" }
+  /v1/admin/ipos/{ipoId}/unpublish:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    post:
+      operationId: ipos-unpublish
+      tags: [IPOs]
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VersionBody" } } } }
+      responses:
+        "200": { description: Unpublished, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "500": { $ref: "#/components/responses/Problem" }
+  /v1/admin/ipos/{ipoId}/status:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    post:
+      operationId: ipos-override-status
+      tags: [IPOs]
+      summary: Manually set the lifecycle status (forward or backward) with a reason
+      security: [{ bearer: [admin] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, status, reason]
+              properties:
+                version: { type: integer, format: int32, minimum: 1 }
+                status: { $ref: "#/components/schemas/IPOStatus" }
+                reason: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        "200": { description: Changed, content: { application/json: { schema: { $ref: "#/components/schemas/IPOMutationResult" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }   # ipo.no_change, ipo.stale_version, listener code
+        "422": { $ref: "#/components/responses/Problem" }   # validation_failed (missing/blank reason)
+        "500": { $ref: "#/components/responses/Problem" }
+  /v1/ipos:
+    get:
+      operationId: ipos-list
+      tags: [IPOs]
+      summary: List published IPOs (signed-in users)
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/IPOStatus" } }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Cursor" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ClientIPOPage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /v1/ipos/{ipoId}:
+    parameters: [{ $ref: "#/components/parameters/IpoId" }]
+    get:
+      operationId: ipos-get
+      tags: [IPOs]
+      summary: Fetch a published IPO (drafts and unknown ids are both 404)
+      security: [{ bearer: [] }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ClientIPO" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+components:
+  parameters:
+    IpoId: { name: ipoId, in: path, required: true, schema: { type: string, format: uuid } }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, minLength: 8, maxLength: 200, pattern: "^[A-Za-z0-9._:-]+$" }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+    Cursor: { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+  responses:
+    Problem: { description: RFC 9457 problem (003 ErrorModel with code), content: { application/problem+json: { schema: { $ref: "#/components/schemas/ErrorModel" } } } }
+  schemas:
+    IPOStatus: { type: string, enum: [UPCOMING, OPEN, CLOSED, ALLOTMENT_OUT, LISTED, SETTLED] }
+    ApplyFlag: { type: string, enum: [APPLY, DO_NOT_APPLY] }
+    StatusSource: { type: string, enum: [schedule, admin, settlement] }
+    VersionBody: { type: object, required: [version], properties: { version: { type: integer, format: int32, minimum: 1 } } }
+    IPODates:
+      type: object
+      required: [open_date, close_date, allotment_date, refund_date, demat_credit_date, listing_date]
+      properties:
+        open_date: { type: [string, "null"], format: date }
+        close_date: { type: [string, "null"], format: date }
+        allotment_date: { type: [string, "null"], format: date }
+        refund_date: { type: [string, "null"], format: date }
+        demat_credit_date: { type: [string, "null"], format: date }
+        listing_date: { type: [string, "null"], format: date }
+    IPODraft:
+      description: Catalogue facts. On create only name and segments are required; on PUT every key is required and null clears.
+      type: object
+      required: [name, segments]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        segments:
+          type: array
+          minItems: 1
+          maxItems: 4
+          uniqueItems: true
+          items: { type: string, maxLength: 32 }
+          description: "NSE_MAINBOARD and/or BSE_MAINBOARD. NSE_EMERGE / BSE_SME → ipo.sme_not_allowed; other values → ipo.invalid_segment (research R-05)."
+        nse_symbol: { type: [string, "null"], pattern: "^[A-Z0-9&-]{1,20}$" }
+        issue_size_paise: { type: [integer, "null"], format: int64, minimum: 1, maximum: 1000000000000000 }
+        price_band_floor_paise: { type: [integer, "null"], format: int64, minimum: 1, maximum: 1000000000 }
+        price_band_cap_paise: { type: [integer, "null"], format: int64, minimum: 1, maximum: 1000000000 }
+        issue_price_paise: { type: [integer, "null"], format: int64, minimum: 1, maximum: 1000000000 }
+        lot_size: { type: [integer, "null"], format: int32, minimum: 1, maximum: 1000000 }
+        dates: { $ref: "#/components/schemas/IPODates" }
+        registrar: { type: [string, "null"], minLength: 1, maxLength: 200 }
+        lead_managers: { type: array, maxItems: 20, items: { type: string, minLength: 1, maxLength: 200 } }
+        offer_document_url: { type: [string, "null"], format: uri, maxLength: 2000, pattern: "^https://" }
+    IPOFacts:
+      description: Fields shared by the admin and client views.
+      type: object
+      required: [id, name, segments, issue_size_paise, price_band_floor_paise, price_band_cap_paise, issue_price_paise, lot_size, min_application_paise, dates, nse_symbol, registrar, lead_managers, offer_document_url, status, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        segments: { type: array, items: { type: string, enum: [NSE_MAINBOARD, BSE_MAINBOARD] } }
+        nse_symbol: { type: [string, "null"] }
+        issue_size_paise: { type: [integer, "null"], format: int64 }
+        price_band_floor_paise: { type: [integer, "null"], format: int64 }
+        price_band_cap_paise: { type: [integer, "null"], format: int64 }
+        issue_price_paise: { type: [integer, "null"], format: int64 }
+        lot_size: { type: [integer, "null"], format: int32 }
+        min_application_paise: { type: [integer, "null"], format: int64, description: "lot × final price, else lot × band cap (FR-004)" }
+        dates: { $ref: "#/components/schemas/IPODates" }
+        registrar: { type: [string, "null"] }
+        lead_managers: { type: array, items: { type: string } }
+        offer_document_url: { type: [string, "null"] }
+        status: { $ref: "#/components/schemas/IPOStatus" }
+        updated_at: { type: string, format: date-time }
+    ClientIPO:
+      description: Published IPO as clients see it. Never contains source, source_ref, last_synced_at, status_source, override reasons, audit history or version (FR-051).
+      allOf:
+        - $ref: "#/components/schemas/IPOFacts"
+        - type: object
+          required: [apply_flag, flag_note]
+          properties:
+            apply_flag: { $ref: "#/components/schemas/ApplyFlag" }
+            flag_note: { type: [string, "null"] }
+    AdminIPO:
+      allOf:
+        - $ref: "#/components/schemas/IPOFacts"
+        - type: object
+          required: [apply_flag, flag_note, eligible, published, ever_published, status_source, status_changed_at, source, source_ref, last_synced_at, version, created_at]
+          properties:
+            apply_flag: { oneOf: [{ $ref: "#/components/schemas/ApplyFlag" }, { type: "null" }] }
+            flag_note: { type: [string, "null"] }
+            eligible: { type: boolean, description: "published && APPLY (FR-023)" }
+            published: { type: boolean }
+            ever_published: { type: boolean }
+            status_source: { $ref: "#/components/schemas/StatusSource" }
+            status_changed_at: { type: string, format: date-time }
+            source: { type: string, examples: [manual] }
+            source_ref: { type: [string, "null"] }
+            last_synced_at: { type: [string, "null"], format: date-time }
+            version: { type: integer, format: int32 }
+            created_at: { type: string, format: date-time }
+    Warning:
+      type: object
+      required: [code, fields, detail, params]
+      properties:
+        code: { type: string, examples: [ipo.min_application_out_of_range] }
+        fields: { type: array, items: { type: string } }
+        detail: { type: string }
+        params: { type: object, additionalProperties: { type: integer, format: int64 } }
+    IPOMutationResult:
+      type: object
+      required: [ipo, warnings]
+      properties:
+        ipo: { $ref: "#/components/schemas/AdminIPO" }
+        warnings: { type: array, items: { $ref: "#/components/schemas/Warning" } }
+    AdminIPOPage:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AdminIPO" } }
+        next_cursor: { type: [string, "null"] }
+    ClientIPOPage:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ClientIPO" } }
+        next_cursor: { type: [string, "null"] }
+    DateSuggestion:
+      type: object
+      required: [close_date, allotment_date, refund_date, demat_credit_date, listing_date, notice_code, notice]
+      properties:
+        close_date: { type: string, format: date }
+        allotment_date: { type: string, format: date }
+        refund_date: { type: string, format: date }
+        demat_credit_date: { type: string, format: date }
+        listing_date: { type: string, format: date }
+        notice_code: { type: string, examples: [ipo.weekdays_only] }
+        notice: { type: string, examples: ["weekdays only; check exchange holidays"] }
+    ErrorModel:
+      description: Defined by Huma + 003 (code field). Shown here for reference only; 008 adds no fields.
+      type: object
