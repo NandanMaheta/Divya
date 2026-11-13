@@ -102,7 +102,7 @@
     "T008": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
@@ -111,7 +111,10 @@
       ],
       "title": "Unit and rapid tests for QuietHours (Contains/Defer boundaries 21",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/istdate/quiet_test.go"
+      ]
     },
     "T009": {
       "owner": "backend-dev",

@@ -59,7 +59,7 @@
   - Rules: BR-SET-08, GS-04 | Refs: TestAddWeekdays_BR_SET_08_Properties
   - Files (1, ~110 lines): `apps/api/internal/platform/istdate/istdate_prop_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/istdate/...`
-- [ ] T008 [P] **test-engineer**: Unit and rapid tests for QuietHours (Contains/Defer boundaries 21:29, 21:30 inclusive, 02:00, 07:59, 08:00 exclusive, non-wrapping window; Defer minimal and idempotent) and NextDailyAt.
+- [x] T008 [P] **test-engineer**: Unit and rapid tests for QuietHours (Contains/Defer boundaries 21:29, 21:30 inclusive, 02:00, 07:59, 08:00 exclusive, non-wrapping window; Defer minimal and idempotent) and NextDailyAt.
   - Depends on: T001
   - Rules: BR-TASK-03 | Refs: US8.1-8.4; TestQuietHours_BR_TASK_03_*
   - Files (1, ~150 lines): `apps/api/internal/platform/istdate/quiet_test.go`
