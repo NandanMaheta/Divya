@@ -54,7 +54,7 @@
   - Rules: BR-SET-08, GS-04 | Refs: US4; FR-033; names TestDueDate_GS_04_*, TestPaymentDue_BR_SET_08_*, TestAddWeekdays_BR_SET_08_*, TestDateOf_BR_SET_08_ServerZoneIndependent
   - Files (1, ~170 lines): `apps/api/internal/platform/istdate/istdate_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/istdate/...`
-- [ ] T007 [P] **test-engineer**: Rapid property tests for AddWeekdays and PaymentDue (result is a weekday, exactly n weekdays in (d, result], composition, span bound, monotonic, PaymentDue always 23:59 IST on Mon or Tue-Fri).
+- [x] T007 [P] **test-engineer**: Rapid property tests for AddWeekdays and PaymentDue (result is a weekday, exactly n weekdays in (d, result], composition, span bound, monotonic, PaymentDue always 23:59 IST on Mon or Tue-Fri).
   - Depends on: T001
   - Rules: BR-SET-08, GS-04 | Refs: TestAddWeekdays_BR_SET_08_Properties
   - Files (1, ~110 lines): `apps/api/internal/platform/istdate/istdate_prop_test.go`

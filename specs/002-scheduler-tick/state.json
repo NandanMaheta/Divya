@@ -84,7 +84,7 @@
     "T007": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
@@ -94,7 +94,10 @@
       ],
       "title": "Rapid property tests for AddWeekdays and PaymentDue (result is a weekday, exactly n weekda",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/istdate/istdate_prop_test.go"
+      ]
     },
     "T008": {
       "owner": "test-engineer",
