@@ -1,0 +1,1027 @@
+{
+  "feature": "002-scheduler-tick",
+  "branch": "feat/002-scheduler-tick",
+  "worktree": "/home/user/divya-002",
+  "phase": "tasks",
+  "tasks": {
+    "T001": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go mod verify && go list -m github.com/coreos/go-oidc/v3 github.com/google/uuid pgregory.net/rapid && go build ./...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Add approved dependencies",
+      "expect": "green",
+      "parallel": false
+    },
+    "T002": {
+      "owner": "test-engineer",
+      "done_command": "bash scripts/check-lint-boundaries.sh",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Write the deliberate-violation check",
+      "expect": "red",
+      "parallel": true
+    },
+    "T003": {
+      "owner": "backend-dev",
+      "done_command": "bash scripts/check-lint-boundaries.sh",
+      "status": "todo",
+      "depends_on": [
+        "T002"
+      ],
+      "rules": [],
+      "title": "Extend apps/api/.golangci.yml",
+      "expect": "green",
+      "parallel": false
+    },
+    "T004": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/clock/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Tests for clock",
+      "expect": "red",
+      "parallel": true
+    },
+    "T005": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/clock/...",
+      "status": "todo",
+      "depends_on": [
+        "T004",
+        "T003"
+      ],
+      "rules": [],
+      "title": "Implement clock.Func, Real, Fake (mutex guarded).",
+      "expect": "green",
+      "parallel": false
+    },
+    "T006": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [
+        "BR-SET-08",
+        "GS-04"
+      ],
+      "title": "Table tests for istdate",
+      "expect": "red",
+      "parallel": true
+    },
+    "T007": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
+      "status": "todo",
+      "depends_on": [
+        "T001"
+      ],
+      "rules": [
+        "BR-SET-08",
+        "GS-04"
+      ],
+      "title": "Rapid property tests for AddWeekdays and PaymentDue (result is a weekday, exactly n weekda",
+      "expect": "red",
+      "parallel": true
+    },
+    "T008": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
+      "status": "todo",
+      "depends_on": [
+        "T001"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Unit and rapid tests for QuietHours (Contains/Defer boundaries 21",
+      "expect": "red",
+      "parallel": true
+    },
+    "T009": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'GS_04|BR_SET_08|AddWeekdays|Date' ./internal/platform/istdate/...",
+      "status": "todo",
+      "depends_on": [
+        "T006",
+        "T007"
+      ],
+      "rules": [
+        "BR-SET-08",
+        "GS-04"
+      ],
+      "title": "Implement istdate.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T010": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
+      "status": "todo",
+      "depends_on": [
+        "T008",
+        "T009"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Implement quiet.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T011": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/retry/...",
+      "status": "todo",
+      "depends_on": [
+        "T001"
+      ],
+      "rules": [],
+      "title": "Tests for retry",
+      "expect": "red",
+      "parallel": true
+    },
+    "T012": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/retry/...",
+      "status": "todo",
+      "depends_on": [
+        "T011"
+      ],
+      "rules": [],
+      "title": "Implement retry.Backoff and retry.ErrorText.",
+      "expect": "green",
+      "parallel": false
+    },
+    "T013": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/config/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Config tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T014": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/config/...",
+      "status": "todo",
+      "depends_on": [
+        "T013"
+      ],
+      "rules": [],
+      "title": "Implement config Tick settings and validation (Load() error when TICK_AUTH=dev in staging/",
+      "expect": "green",
+      "parallel": false
+    },
+    "T015": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Tests for tickauth contract",
+      "expect": "red",
+      "parallel": true
+    },
+    "T016": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
+      "status": "todo",
+      "depends_on": [
+        "T001"
+      ],
+      "rules": [],
+      "title": "Offline OIDC tests with httptest JWKS and locally minted RS256 tokens",
+      "expect": "red",
+      "parallel": true
+    },
+    "T017": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'Dev|Disabled|Contract' ./internal/platform/tickauth/...",
+      "status": "todo",
+      "depends_on": [
+        "T015"
+      ],
+      "rules": [],
+      "title": "Implement tickauth.go (Authenticator, ErrUnauthenticated, ErrForbidden, Disabled) and dev.",
+      "expect": "green",
+      "parallel": false
+    },
+    "T018": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
+      "status": "todo",
+      "depends_on": [
+        "T016",
+        "T017",
+        "T005"
+      ],
+      "rules": [],
+      "title": "Implement oidc.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T019": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/httpx/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Tests for httpx",
+      "expect": "red",
+      "parallel": true
+    },
+    "T020": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/platform/httpx/...",
+      "status": "todo",
+      "depends_on": [
+        "T019"
+      ],
+      "rules": [],
+      "title": "Implement statusRecorder.Unwrap and httpx.ExtendWriteDeadline(huma.Context, d); global Wri",
+      "expect": "green",
+      "parallel": false
+    },
+    "T021": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run Migration00002 ./internal/platform/db/...",
+      "status": "todo",
+      "depends_on": [
+        "T001"
+      ],
+      "rules": [],
+      "title": "Migration test",
+      "expect": "red",
+      "parallel": false
+    },
+    "T022": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./... && go test -race ./internal/platform/db/...",
+      "status": "todo",
+      "depends_on": [
+        "T021"
+      ],
+      "rules": [],
+      "title": "Migration 00002_scheduler_outbox.sql (goose Up/Down; scheduled_jobs, outbox_messages, quie",
+      "expect": "green",
+      "parallel": false
+    },
+    "T023": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run Tx ./internal/platform/db/...",
+      "status": "todo",
+      "depends_on": [
+        "T022"
+      ],
+      "rules": [],
+      "title": "Tests for TxRunner",
+      "expect": "red",
+      "parallel": false
+    },
+    "T024": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run Tx ./internal/platform/db/...",
+      "status": "todo",
+      "depends_on": [
+        "T023"
+      ],
+      "rules": [],
+      "title": "Implement db/tx.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T025": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race ./internal/platform/audit/...",
+      "status": "todo",
+      "depends_on": [
+        "T022"
+      ],
+      "rules": [],
+      "title": "Tests for audit.Write",
+      "expect": "red",
+      "parallel": true
+    },
+    "T026": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go test -race ./internal/platform/audit/...",
+      "status": "todo",
+      "depends_on": [
+        "T025",
+        "T024"
+      ],
+      "rules": [],
+      "title": "Add InsertAuditLog to queries/platform.sql and implement audit.Actor, Entry, Write.",
+      "expect": "green",
+      "parallel": false
+    },
+    "T027": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./...",
+      "status": "todo",
+      "depends_on": [
+        "T022"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "queries/scheduler.sql (scheduling and execution)",
+      "expect": "green",
+      "parallel": false
+    },
+    "T028": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./...",
+      "status": "todo",
+      "depends_on": [
+        "T027"
+      ],
+      "rules": [],
+      "title": "queries/scheduler_admin.sql",
+      "expect": "green",
+      "parallel": false
+    },
+    "T029": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./...",
+      "status": "todo",
+      "depends_on": [
+        "T028"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "queries/outbox.sql",
+      "expect": "green",
+      "parallel": false
+    },
+    "T030": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./...",
+      "status": "todo",
+      "depends_on": [
+        "T029"
+      ],
+      "rules": [],
+      "title": "queries/outbox_admin.sql",
+      "expect": "green",
+      "parallel": false
+    },
+    "T031": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && gofmt -l internal/outbox/outboxtest/ | (! grep .)",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "outboxtest.Sender test double",
+      "expect": "red",
+      "parallel": true
+    },
+    "T032": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T031",
+        "T022"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Outbox record/withdraw tests",
+      "expect": "red",
+      "parallel": false
+    },
+    "T033": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay' ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T031",
+        "T022"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Outbox relay tests",
+      "expect": "red",
+      "parallel": false
+    },
+    "T034": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T022"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Quiet-hours tests with fake clock",
+      "expect": "red",
+      "parallel": true
+    },
+    "T035": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T034",
+        "T010",
+        "T026",
+        "T029"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Implement outbox/quiet.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T036": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T032",
+        "T035",
+        "T024",
+        "T005"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Implement outbox service.go and store.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T037": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay|TestQuietHours' ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T033",
+        "T036",
+        "T012",
+        "T030"
+      ],
+      "rules": [
+        "BR-TASK-03"
+      ],
+      "title": "Implement outbox/relay.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T038": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run Admin ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T022"
+      ],
+      "rules": [],
+      "title": "Outbox admin tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T039": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./internal/outbox/...",
+      "status": "todo",
+      "depends_on": [
+        "T038",
+        "T037"
+      ],
+      "rules": [],
+      "title": "Implement outbox/admin.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T040": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && gofmt -l internal/scheduler/schedulertest/ | (! grep .)",
+      "status": "todo",
+      "depends_on": [
+        "T031"
+      ],
+      "rules": [],
+      "title": "schedulertest harness",
+      "expect": "red",
+      "parallel": false
+    },
+    "T041": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Schedule API tests",
+      "expect": "red",
+      "parallel": false
+    },
+    "T042": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestTick_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Tick tests (happy path)",
+      "expect": "red",
+      "parallel": true
+    },
+    "T043": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestTickFailure_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Tick failure tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T044": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestLease_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [],
+      "title": "Lease and crash tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T045": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go build ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T036",
+        "T024"
+      ],
+      "rules": [],
+      "title": "Implement scheduler registry.go and service.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T046": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T041",
+        "T045",
+        "T027"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Implement scheduler store.go and schedule.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T047": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'TestTickFailure_|TestLease_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T043",
+        "T044",
+        "T046",
+        "T012"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Implement scheduler run.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T048": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'TestTick_|TestTickFailure_|TestLease_|TestSchedule_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T042",
+        "T047",
+        "T037",
+        "T028"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Implement scheduler tick.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T049": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestAlert_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [],
+      "title": "Dead-alert tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T050": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run 'TestAlert_|TestTick_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T049",
+        "T048",
+        "T039"
+      ],
+      "rules": [],
+      "title": "Implement scheduler alert.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T051": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestRetention_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [],
+      "title": "Retention tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T052": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestRetention_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T051",
+        "T048"
+      ],
+      "rules": [],
+      "title": "Implement scheduler retention.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T053": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T040",
+        "T022"
+      ],
+      "rules": [],
+      "title": "Scheduler admin and status tests",
+      "expect": "red",
+      "parallel": true
+    },
+    "T054": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T053",
+        "T048"
+      ],
+      "rules": [],
+      "title": "Implement scheduler admin.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T055": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestHandler_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T017"
+      ],
+      "rules": [],
+      "title": "Tick handler tests with humatest",
+      "expect": "red",
+      "parallel": true
+    },
+    "T056": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestHandler_ ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T055",
+        "T018",
+        "T020",
+        "T048"
+      ],
+      "rules": [],
+      "title": "Implement scheduler handler.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T057": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/divya/...",
+      "status": "todo",
+      "depends_on": [],
+      "rules": [],
+      "title": "Contract test in cmd/divya",
+      "expect": "red",
+      "parallel": true
+    },
+    "T058": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go build ./... && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml",
+      "status": "todo",
+      "depends_on": [
+        "T057",
+        "T056",
+        "T052",
+        "T014",
+        "T018",
+        "T005",
+        "T020"
+      ],
+      "rules": [],
+      "title": "Wire cmd/divya/main.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T059": {
+      "owner": "backend-dev",
+      "done_command": "grep -q 'TICK_AUDIENCE=${{ vars.TICK_AUDIENCE }}' .github/workflows/deploy.yml && grep -q 'TICK_SERVICE_ACCOUNT=${{ vars.TICK_SERVICE_ACCOUNT }}' .github/workflows/deploy.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))\"",
+      "status": "todo",
+      "depends_on": [
+        "T014"
+      ],
+      "rules": [],
+      "title": "deploy.yml",
+      "expect": "green",
+      "parallel": true
+    },
+    "T060": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && golangci-lint run ./... && cd .. && bash scripts/check-lint-boundaries.sh",
+      "status": "todo",
+      "depends_on": [
+        "T058",
+        "T003"
+      ],
+      "rules": [],
+      "title": "Re-run boundary and lint gates with scheduler/outbox present",
+      "expect": "green",
+      "parallel": false
+    },
+    "T061": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestLifecycle_BR_IPO_03_BR_SET_08_GS_04_TwoWeeks -v ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T048",
+        "T050",
+        "T052"
+      ],
+      "rules": [
+        "BR-IPO-03",
+        "BR-TASK-03",
+        "BR-SET-08",
+        "GS-04"
+      ],
+      "title": "Time-travel lifecycle test",
+      "expect": "green",
+      "parallel": true
+    },
+    "T062": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run 'TestCatchUp_' ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T048",
+        "T050",
+        "T052"
+      ],
+      "rules": [
+        "BR-IPO-03",
+        "BR-TASK-03"
+      ],
+      "title": "Catch-up tests",
+      "expect": "green",
+      "parallel": true
+    },
+    "T063": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestTick_Concurrent -count=20 ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T048",
+        "T050",
+        "T052"
+      ],
+      "rules": [],
+      "title": "Overlapping-tick concurrency test",
+      "expect": "green",
+      "parallel": true
+    },
+    "T064": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties -rapid.checks=50 ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T048",
+        "T050",
+        "T052"
+      ],
+      "rules": [
+        "BR-IPO-03"
+      ],
+      "title": "Rapid state-machine model test of the scheduler against an in-memory model (schedule/resch",
+      "expect": "green",
+      "parallel": true
+    },
+    "T065": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestSoak_SC_001 ./internal/scheduler/...",
+      "status": "todo",
+      "depends_on": [
+        "T048",
+        "T050",
+        "T052"
+      ],
+      "rules": [
+        "BR-IPO-03",
+        "BR-TASK-03"
+      ],
+      "title": "Short soak test TestSoak_SC_001",
+      "expect": "green",
+      "parallel": true
+    },
+    "T066": {
+      "owner": "backend-dev",
+      "done_command": "grep -q 'DIVYA_SOAK=full' .github/workflows/nightly.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))\"",
+      "status": "todo",
+      "depends_on": [
+        "T065"
+      ],
+      "rules": [],
+      "title": "nightly.yml",
+      "expect": "green",
+      "parallel": true
+    },
+    "T067": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go doc ./internal/scheduler >/dev/null && go doc ./internal/outbox >/dev/null && cd .. && grep -n '^| 002 ' docs/product/modules.md",
+      "status": "todo",
+      "depends_on": [
+        "T058"
+      ],
+      "rules": [],
+      "title": "Docs and status",
+      "expect": "green",
+      "parallel": true
+    },
+    "T068": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go mod tidy && git diff --exit-code go.mod go.sum && go test -race ./... && go test -short ./... && golangci-lint run ./... && sqlc vet && cd .. && bash scripts/check-br-traceability.sh",
+      "status": "todo",
+      "depends_on": [
+        "T058",
+        "T060",
+        "T061",
+        "T062",
+        "T063",
+        "T064",
+        "T065",
+        "T059",
+        "T066",
+        "T067"
+      ],
+      "rules": [
+        "BR-IPO-03",
+        "BR-TASK-03",
+        "BR-SET-08",
+        "GS-04"
+      ],
+      "title": "Final gate",
+      "expect": "green",
+      "parallel": false
+    },
+    "T069": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestAdminHTTP_ ./internal/scheduler/...",
+      "status": "blocked",
+      "depends_on": [
+        "T068",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Admin handler tests for scheduler (humatest)",
+      "expect": "red",
+      "parallel": true
+    },
+    "T070": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestAdminHTTP_ ./internal/outbox/...",
+      "status": "blocked",
+      "depends_on": [
+        "T068",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Admin handler tests for outbox (humatest)",
+      "expect": "red",
+      "parallel": true
+    },
+    "T071": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && sqlc vet && sqlc generate && go test -race ./internal/platform/audit/...",
+      "status": "blocked",
+      "depends_on": [
+        "T068",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Add FindAuditByIdempotencyKey query and audit lookup for Idempotency-Key replay.",
+      "expect": "green",
+      "parallel": false
+    },
+    "T072": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestAdminHTTP_ ./internal/scheduler/...",
+      "status": "blocked",
+      "depends_on": [
+        "T069",
+        "T071",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Implement scheduler/admin_handler.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T073": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race -run TestAdminHTTP_ ./internal/outbox/...",
+      "status": "blocked",
+      "depends_on": [
+        "T070",
+        "T071",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Implement outbox/admin_handler.go",
+      "expect": "green",
+      "parallel": false
+    },
+    "T074": {
+      "owner": "test-engineer",
+      "done_command": "cd apps/api && go test -race -run TestOpenAPI_AdminOperations ./cmd/divya/...",
+      "status": "blocked",
+      "depends_on": [
+        "T068",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Contract test",
+      "expect": "red",
+      "parallel": true
+    },
+    "T075": {
+      "owner": "backend-dev",
+      "done_command": "cd apps/api && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml && cd .. && pnpm --filter @divya/api-client generate && pnpm turbo run typecheck",
+      "status": "blocked",
+      "depends_on": [
+        "T072",
+        "T073",
+        "T074",
+        "003-merged"
+      ],
+      "rules": [],
+      "title": "Wire RegisterAdmin for both modules after 003 middleware, regenerate packages/api-client/o",
+      "expect": "green",
+      "parallel": false
+    }
+  }
+}
