@@ -114,7 +114,7 @@
   - Rules: none (mechanism) | Refs: FR-002; SC-004
   - Files (1, ~120 lines): `apps/api/internal/platform/tickauth/oidc.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/tickauth/...`
-- [ ] T019 [P] **test-engineer**: Tests for httpx: statusRecorder.Unwrap keeps http.ResponseController working, ExtendWriteDeadline moves the response deadline on a real httptest server.
+- [x] T019 [P] **test-engineer**: Tests for httpx: statusRecorder.Unwrap keeps http.ResponseController working, ExtendWriteDeadline moves the response deadline on a real httptest server.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan: Tick handler 90 s deadline
   - Files (1, ~80 lines): `apps/api/internal/platform/httpx/httpx_test.go`

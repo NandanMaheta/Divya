@@ -257,12 +257,15 @@
     "T019": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/httpx/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for httpx",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/httpx/httpx_test.go"
+      ]
     },
     "T020": {
       "owner": "backend-dev",
