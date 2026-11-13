@@ -79,7 +79,7 @@
   - Rules: none (mechanism) | Refs: FR-017, FR-018; constitution VI
   - Files (2, ~140 lines): `apps/api/internal/platform/retry/backoff_test.go`, `apps/api/internal/platform/retry/errtext_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/retry/...`
-- [ ] T012 **backend-dev**: Implement retry.Backoff and retry.ErrorText.
+- [x] T012 **backend-dev**: Implement retry.Backoff and retry.ErrorText.
   - Depends on: T011
   - Rules: none (mechanism) | Refs: FR-017, FR-018
   - Files (2, ~90 lines): `apps/api/internal/platform/retry/backoff.go`, `apps/api/internal/platform/retry/errtext.go`

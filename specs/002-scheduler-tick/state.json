@@ -166,7 +166,7 @@
     "T012": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/retry/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T011"
       ],
