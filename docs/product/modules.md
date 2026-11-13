@@ -7,7 +7,7 @@ Rule IDs refer to `docs/product/business-rules.md`. Parallel tracks are marked; 
 | #   | Feature                                                                                                   | Module           | Rules                         | Depends on | Track | Status         |
 | --- | --------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------- | ---------- | ----- | -------------- |
 | 001 | Platform: orgs, audit log, health, CI, deploy skeleton                                                    | M0 Platform      | —                             | —          | core  | done (Stage 0) |
-| 002 | Scheduler tick + `scheduled_jobs` + outbox (fake-clock testable)                                          | M9 Scheduler     | BR-IPO-03, BR-TASK-03         | 001        | core  | todo           |
+| 002 | Scheduler tick + `scheduled_jobs` + outbox (fake-clock testable)                                          | M9 Scheduler     | BR-IPO-03, BR-TASK-03, BR-SET-08 | 001     | core  | building          |
 | 003 | Auth core: users, Argon2id passwords, sessions, refresh rotation, device binding, admin TOTP              | M1 Auth          | BR-CLI-04                     | 001        | core  | todo           |
 | 004 | OTP delivery: email OTP (Brevo/Resend), SMS verification via Firebase, rate limits                        | M1 Auth          | BR-CLI-04, BR-CLI-05          | 003        | core  | todo           |
 | 005 | Registration + approval queue (generic approvals module)                                                  | M2 Clients       | BR-CLI-01, BR-CLI-04          | 003, 004   | core  | todo           |
