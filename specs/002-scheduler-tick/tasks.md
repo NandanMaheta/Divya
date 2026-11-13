@@ -49,7 +49,7 @@
   - Rules: none (mechanism) | Refs: FR-032
   - Files (2, ~60 lines): `apps/api/internal/platform/clock/clock.go`, `apps/api/internal/platform/clock/fake.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/clock/...`
-- [ ] T006 [P] **test-engineer**: Table tests for istdate: Date/DateOf/At, AddWeekdays and PaymentDue cases US4.1-10 (Fri 13 Nov 2026 to Tue 17 Nov 23:59 IST, Thu 12 Nov to Mon 16 Nov, year end, month end, holiday not skipped, Sat/Sun to Tue, 19:00 UTC to next IST date, 09:15 IST = 03:45 UTC), all repeated with time.Local forced to America/New_York.
+- [x] T006 [P] **test-engineer**: Table tests for istdate: Date/DateOf/At, AddWeekdays and PaymentDue cases US4.1-10 (Fri 13 Nov 2026 to Tue 17 Nov 23:59 IST, Thu 12 Nov to Mon 16 Nov, year end, month end, holiday not skipped, Sat/Sun to Tue, 19:00 UTC to next IST date, 09:15 IST = 03:45 UTC), all repeated with time.Local forced to America/New_York.
   - Depends on: none
   - Rules: BR-SET-08, GS-04 | Refs: US4; FR-033; names TestDueDate_GS_04_*, TestPaymentDue_BR_SET_08_*, TestAddWeekdays_BR_SET_08_*, TestDateOf_BR_SET_08_ServerZoneIndependent
   - Files (1, ~170 lines): `apps/api/internal/platform/istdate/istdate_test.go`

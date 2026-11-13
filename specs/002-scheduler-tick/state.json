@@ -68,7 +68,7 @@
     "T006": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [
         "BR-SET-08",
@@ -76,7 +76,10 @@
       ],
       "title": "Table tests for istdate",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/istdate/istdate_test.go"
+      ]
     },
     "T007": {
       "owner": "test-engineer",
