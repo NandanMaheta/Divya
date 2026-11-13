@@ -13,7 +13,7 @@ Rule IDs refer to `docs/product/business-rules.md`. Parallel tracks are marked; 
 | 005 | Registration + approval queue (generic approvals module)                                                  | M2 Clients       | BR-CLI-01, BR-CLI-04          | 003, 004   | core  | todo           |
 | 006 | Family accounts (≤10, name + PAN, encrypted PAN + blind index) with approvals                             | M2 Clients       | BR-CLI-02, BR-CLI-03          | 005        | core  | todo           |
 | 007 | Contact-detail changes with OTP + approval                                                                | M2 Clients       | BR-CLI-05                     | 005        | core  | todo           |
-| 008 | IPO catalogue: CRUD, mainboard only, APPLY/DO NOT APPLY, lifecycle by dates                               | M3 IPOs          | BR-IPO-01, -02, -03           | 002        | ipo   | todo           |
+| 008 | IPO catalogue: CRUD, mainboard only, APPLY/DO NOT APPLY, lifecycle by dates                               | M3 IPOs          | BR-IPO-01, -02, -03           | 002        | ipo   | spec approved           |
 | 009 | GMP / expected profit with history; subscription snapshot fields                                          | M3 IPOs          | BR-IPO-04                     | 008        | ipo   | todo           |
 | 010 | Deals: default profit-share %, per-IPO override, deal snapshot per application                            | M4 Deals         | BR-DEAL-01, -05               | 006, 008   | money | todo           |
 | 011 | Fixed-price live quotes: audience, validity windows, freeze on submit, approval                           | M4 Deals         | BR-DEAL-02, -03, -04          | 010        | money | todo           |

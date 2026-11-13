@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-13
 
-**Status**: Draft, awaiting owner approval
+**Status**: Approved by owner (2026-11-13)
 
 **Input**: User description: "Feature 008 IPO catalogue: CRUD, mainboard only, APPLY/DO NOT APPLY, lifecycle by dates (BR-IPO-01, BR-IPO-02, BR-IPO-03)."
 
@@ -393,3 +393,7 @@ Summary for approval (10 lines):
 8. A date change moves the lifecycle steps and tells tasks, reminders and due dates (012/013/018) in the same change; status and APPLY changes are signalled too.
 9. Only hard checks: mainboard and date order. Soft warning only: minimum application outside ₹10,000–₹20,000. T+1/T+2/T+3 date suggestions skip weekends only.
 10. Everything is audited. No owner questions are open; please confirm defaults D-01 to D-10 or change any.
+
+## Owner approval
+
+- **Approved**: 2026-11-13 by the owner (gate A), with defaults D-01…D-10 as proposed.
