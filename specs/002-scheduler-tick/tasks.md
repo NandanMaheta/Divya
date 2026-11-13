@@ -69,7 +69,7 @@
   - Rules: BR-SET-08, GS-04 | Refs: FR-033; D1, D2
   - Files (1, ~130 lines): `apps/api/internal/platform/istdate/istdate.go`
   - Done command (green): `cd apps/api && go test -race -run 'GS_04|BR_SET_08|AddWeekdays|Date' ./internal/platform/istdate/...`
-- [ ] T010 **backend-dev**: Implement quiet.go: WallClock, QuietHours, DefaultQuietHours (21:30-08:00), Contains, Defer, NextDailyAt.
+- [x] T010 **backend-dev**: Implement quiet.go: WallClock, QuietHours, DefaultQuietHours (21:30-08:00), Contains, Defer, NextDailyAt.
   - Depends on: T008, T009
   - Rules: BR-TASK-03 | Refs: FR-031; D3
   - Files (1, ~90 lines): `apps/api/internal/platform/istdate/quiet.go`

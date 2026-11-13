@@ -135,7 +135,7 @@
     "T010": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/istdate/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T008",
         "T009"
