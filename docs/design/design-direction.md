@@ -10,13 +10,13 @@ Sources: constitution principle VII, `docs/product/business-rules.md`, `docs/pro
 
 Divya means "divine, radiant". We take the warmth, not the ornament. Clients send real money because of what this app tells them, so the app has to feel like a careful family accountant: calm, exact and kind.
 
-| We are | We are not |
-| --- | --- |
-| Calm: one clear next step per screen, no alarms unless something is truly late | Urgent-by-default, red badges everywhere |
-| Trustworthy: every amount shows how it was worked out | A black box that just says "Pay ₹17,460" |
-| Plain-spoken: "You pay", "We pay you", "Mark applied" | Finance jargon such as "net receivable", "P&L", "consideration" |
-| Warm: ivory paper, a deep jamun purple, a touch of diya gold on festival days | A neon "AI dashboard": gradients, glassmorphism, charts for their own sake |
-| Big and legible: amounts are the largest thing on screen | Dense tables on the phone |
+| We are                                                                         | We are not                                                                 |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Calm: one clear next step per screen, no alarms unless something is truly late | Urgent-by-default, red badges everywhere                                   |
+| Trustworthy: every amount shows how it was worked out                          | A black box that just says "Pay ₹17,460"                                   |
+| Plain-spoken: "You pay", "We pay you", "Mark applied"                          | Finance jargon such as "net receivable", "P&L", "consideration"            |
+| Warm: ivory paper, a deep jamun purple, a touch of diya gold on festival days  | A neon "AI dashboard": gradients, glassmorphism, charts for their own sake |
+| Big and legible: amounts are the largest thing on screen                       | Dense tables on the phone                                                  |
 
 **Visual idea: "ledger paper and lamplight."** Warm off-white surfaces like a good notebook. Ink-dark warm text. A single deep purple brand colour (jamun) for actions and identity. Gold (diya) is reserved for the logo mark and festival moments and never carries meaning. Status colours are the only bright colours on screen, so a glance at Home tells you what needs you.
 
@@ -30,45 +30,45 @@ Divya means "divine, radiant". We take the warmth, not the ornament. Clients sen
 
 Colour tokens are **semantic**: the same name is used in light and dark mode, and only the value changes. Code never checks the mode to choose a colour; it asks for the role.
 
-| Role (token) | Use |
-| --- | --- |
-| `brand.600` | Primary button fill, links, active tab, brand text |
-| `onBrand` | Text and icons on `brand.600` |
-| `brand.500` | Focus ring (2 px, 2 px offset), pressed/hover tint |
-| `brand.50` | Selected row, selected chip, hover background (admin) |
-| `brand.900` | Text on `brand.50` |
-| `gold` | Logo mark, festival banner hairline and motif. Decorative only. |
+| Role (token)                      | Use                                                                                                                  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `brand.600`                       | Primary button fill, links, active tab, brand text                                                                   |
+| `onBrand`                         | Text and icons on `brand.600`                                                                                        |
+| `brand.500`                       | Focus ring (2 px, 2 px offset), pressed/hover tint                                                                   |
+| `brand.50`                        | Selected row, selected chip, hover background (admin)                                                                |
+| `brand.900`                       | Text on `brand.50`                                                                                                   |
+| `gold`                            | Logo mark, festival banner hairline and motif. Decorative only.                                                      |
 | `ink.900` / `ink.600` / `ink.400` | Primary / secondary / tertiary text. All three pass 4.5:1 on every surface, so none of them is "too light for text". |
-| `surface.muted` | App canvas (page background) |
-| `surface.base` | Cards, panels, sheets, admin sidebar |
-| `surface.sunken` | Inputs, table headers, the breakdown "well" inside a card |
-| `surface.dark` | Always-dark areas (splash). Same value in both modes. |
-| `line.subtle` | Card borders and dividers (decorative, no contrast requirement) |
-| `line.strong` | Input borders, checkbox outlines, any border that shows where a control is (≥ 3:1) |
-| `tone.<name>` | Status text and icons |
-| `toneSoft.<name>` | Status chip and banner backgrounds |
-| `scrim` | Behind modals and bottom sheets |
+| `surface.muted`                   | App canvas (page background)                                                                                         |
+| `surface.base`                    | Cards, panels, sheets, admin sidebar                                                                                 |
+| `surface.sunken`                  | Inputs, table headers, the breakdown "well" inside a card                                                            |
+| `surface.dark`                    | Always-dark areas (splash). Same value in both modes.                                                                |
+| `line.subtle`                     | Card borders and dividers (decorative, no contrast requirement)                                                      |
+| `line.strong`                     | Input borders, checkbox outlines, any border that shows where a control is (≥ 3:1)                                   |
+| `tone.<name>`                     | Status text and icons                                                                                                |
+| `toneSoft.<name>`                 | Status chip and banner backgrounds                                                                                   |
+| `scrim`                           | Behind modals and bottom sheets                                                                                      |
 
 ### 2.2 Palette
 
-| Token | Light | Dark |
-| --- | --- | --- |
-| brand.50 | `#F5EFFA` | `#2A1A3A` |
-| brand.500 | `#6E3AA0` | `#B48CE0` |
-| brand.600 | `#5B2A86` | `#C4A3E8` |
-| brand.900 | `#2E1245` | `#E9DCF7` |
-| onBrand | `#FFFFFF` | `#2E1245` |
-| gold | `#B07A1E` | `#D9A441` |
-| ink.900 | `#1C1917` | `#F5F2EE` |
-| ink.600 | `#57534E` | `#C9C3BC` |
-| ink.400 | `#6F6863` | `#A39C94` |
-| surface.base | `#FFFFFF` | `#1F1C19` |
-| surface.muted | `#FAF8F5` | `#141210` |
-| surface.sunken | `#F2EFEA` | `#2A2622` |
-| surface.dark | `#141210` | `#141210` |
-| line.subtle | `#E4E0DA` | `#34302B` |
-| line.strong | `#8A837C` | `#7A736C` |
-| scrim | `rgba(20,18,16,.5)` | `rgba(0,0,0,.6)` |
+| Token          | Light               | Dark             |
+| -------------- | ------------------- | ---------------- |
+| brand.50       | `#F5EFFA`           | `#2A1A3A`        |
+| brand.500      | `#6E3AA0`           | `#B48CE0`        |
+| brand.600      | `#5B2A86`           | `#C4A3E8`        |
+| brand.900      | `#2E1245`           | `#E9DCF7`        |
+| onBrand        | `#FFFFFF`           | `#2E1245`        |
+| gold           | `#B07A1E`           | `#D9A441`        |
+| ink.900        | `#1C1917`           | `#F5F2EE`        |
+| ink.600        | `#57534E`           | `#C9C3BC`        |
+| ink.400        | `#6F6863`           | `#A39C94`        |
+| surface.base   | `#FFFFFF`           | `#1F1C19`        |
+| surface.muted  | `#FAF8F5`           | `#141210`        |
+| surface.sunken | `#F2EFEA`           | `#2A2622`        |
+| surface.dark   | `#141210`           | `#141210`        |
+| line.subtle    | `#E4E0DA`           | `#34302B`        |
+| line.strong    | `#8A837C`           | `#7A736C`        |
+| scrim          | `rgba(20,18,16,.5)` | `rgba(0,0,0,.6)` |
 
 Neutrals are warm stone greys (a slight red-yellow cast) so the app feels like paper, not a spreadsheet. Dark mode uses warm near-black, never pure `#000`, which reduces glare and OLED smearing.
 
@@ -76,13 +76,13 @@ Neutrals are warm stone greys (a slight red-yellow cast) so the app feels like p
 
 The vocabulary is fixed in `@divya/domain` `statusTone` and used identically in both apps:
 
-| Status | Tone | Icon (Lucide) | Light fg / soft | Dark fg / soft |
-| --- | --- | --- | --- | --- |
-| To do | amber | `circle-dot` | `#A14F00` / `#FDF1DC` | `#F2B755` / `#3A2A10` |
-| Waiting (applied, pending approval, payment claimed) | blue | `hourglass` | `#1D5FC2` / `#E6EFFC` | `#8DB8F5` / `#14263F` |
-| Done, allotted, settled | green | `circle-check` | `#1A7034` / `#E3F4E8` | `#7FCF95` / `#123321` |
-| Missed, overdue | red | `circle-alert` | `#B42318` / `#FCE8E6` | `#F59A90` / `#3D1714` |
-| Not allotted, not needed | grey | `circle-minus` | `#5C5853` / `#EFEDEA` | `#A39C94` / `#2A2622` |
+| Status                                               | Tone  | Icon (Lucide)  | Light fg / soft       | Dark fg / soft        |
+| ---------------------------------------------------- | ----- | -------------- | --------------------- | --------------------- |
+| To do                                                | amber | `circle-dot`   | `#A14F00` / `#FDF1DC` | `#F2B755` / `#3A2A10` |
+| Waiting (applied, pending approval, payment claimed) | blue  | `hourglass`    | `#1D5FC2` / `#E6EFFC` | `#8DB8F5` / `#14263F` |
+| Done, allotted, settled                              | green | `circle-check` | `#1A7034` / `#E3F4E8` | `#7FCF95` / `#123321` |
+| Missed, overdue                                      | red   | `circle-alert` | `#B42318` / `#FCE8E6` | `#F59A90` / `#3D1714` |
+| Not allotted, not needed                             | grey  | `circle-minus` | `#5C5853` / `#EFEDEA` | `#A39C94` / `#2A2622` |
 
 Rules:
 
@@ -97,61 +97,61 @@ Ratios computed from the WCAG relative-luminance formula, rounded down to 2 deci
 
 **Light mode, text on surfaces**
 
-| Foreground | on base `#FFFFFF` | on muted `#FAF8F5` | on sunken `#F2EFEA` |
-| --- | --- | --- | --- |
-| ink.900 `#1C1917` | 17.49 | 16.50 | 15.25 |
-| ink.600 `#57534E` | 7.63 | 7.20 | 6.65 |
-| ink.400 `#6F6863` | 5.47 | 5.16 | 4.77 |
-| brand.600 `#5B2A86` | 9.90 | 9.34 | 8.64 |
-| tone.amber `#A14F00` | 5.78 | 5.45 | 5.04 |
-| tone.blue `#1D5FC2` | 6.05 | 5.71 | 5.28 |
-| tone.green `#1A7034` | 6.16 | 5.81 | 5.37 |
-| tone.red `#B42318` | 6.57 | 6.20 | 5.73 |
-| tone.grey `#5C5853` | 7.06 | 6.66 | 6.15 |
+| Foreground           | on base `#FFFFFF` | on muted `#FAF8F5` | on sunken `#F2EFEA` |
+| -------------------- | ----------------- | ------------------ | ------------------- |
+| ink.900 `#1C1917`    | 17.49             | 16.50              | 15.25               |
+| ink.600 `#57534E`    | 7.63              | 7.20               | 6.65                |
+| ink.400 `#6F6863`    | 5.47              | 5.16               | 4.77                |
+| brand.600 `#5B2A86`  | 9.90              | 9.34               | 8.64                |
+| tone.amber `#A14F00` | 5.78              | 5.45               | 5.04                |
+| tone.blue `#1D5FC2`  | 6.05              | 5.71               | 5.28                |
+| tone.green `#1A7034` | 6.16              | 5.81               | 5.37                |
+| tone.red `#B42318`   | 6.57              | 6.20               | 5.73                |
+| tone.grey `#5C5853`  | 7.06              | 6.66               | 6.15                |
 
 **Light mode, pairs**
 
-| Pair | Ratio |
-| --- | --- |
-| onBrand `#FFFFFF` on brand.600 (primary button) | 9.90 |
-| brand.900 on brand.50 (selected) | 14.44 |
-| brand.600 on brand.50 | 8.78 |
-| ink.900 on brand.50 (admin hover row) | 15.50 |
-| amber on amber-soft | 5.17 |
-| blue on blue-soft | 5.22 |
-| green on green-soft | 5.39 |
-| red on red-soft | 5.58 |
-| grey on grey-soft | 6.04 |
-| brand.500 focus ring on base (non-text) | 7.57 |
-| line.strong on base / muted (non-text) | 3.74 / 3.53 |
-| gold on base (decorative; would pass non-text anyway) | 3.72 |
+| Pair                                                                  | Ratio              |
+| --------------------------------------------------------------------- | ------------------ |
+| onBrand `#FFFFFF` on brand.600 (primary button)                       | 9.90               |
+| brand.900 on brand.50 (selected)                                      | 14.44              |
+| brand.600 on brand.50                                                 | 8.78               |
+| ink.900 on brand.50 (admin hover row)                                 | 15.50              |
+| amber on amber-soft                                                   | 5.17               |
+| blue on blue-soft                                                     | 5.22               |
+| green on green-soft                                                   | 5.39               |
+| red on red-soft                                                       | 5.58               |
+| grey on grey-soft                                                     | 6.04               |
+| brand.500 focus ring on base (non-text)                               | 7.57               |
+| line.strong on base / muted / sunken (non-text; inputs sit on sunken) | 3.74 / 3.53 / 3.26 |
+| gold on base (decorative; would pass non-text anyway)                 | 3.72               |
 
 **Dark mode, text on surfaces**
 
-| Foreground | on base `#1F1C19` | on muted `#141210` | on sunken `#2A2622` |
-| --- | --- | --- | --- |
-| ink.900 `#F5F2EE` | 15.19 | 16.75 | 13.45 |
-| ink.600 `#C9C3BC` | 9.70 | 10.69 | 8.59 |
-| ink.400 `#A39C94` | 6.25 | 6.89 | 5.53 |
-| brand.600 `#C4A3E8` | 7.87 | 8.68 | 6.97 |
-| tone.amber `#F2B755` | 9.43 | 10.39 | – |
-| tone.blue `#8DB8F5` | 8.32 | 9.17 | – |
-| tone.green `#7FCF95` | 9.09 | 10.02 | – |
-| tone.red `#F59A90` | 8.00 | 8.82 | – |
-| tone.grey `#A39C94` | 6.25 | 6.89 | 5.53 |
+| Foreground           | on base `#1F1C19` | on muted `#141210` | on sunken `#2A2622` |
+| -------------------- | ----------------- | ------------------ | ------------------- |
+| ink.900 `#F5F2EE`    | 15.19             | 16.75              | 13.45               |
+| ink.600 `#C9C3BC`    | 9.70              | 10.69              | 8.59                |
+| ink.400 `#A39C94`    | 6.25              | 6.89               | 5.53                |
+| brand.600 `#C4A3E8`  | 7.87              | 8.68               | 6.97                |
+| tone.amber `#F2B755` | 9.43              | 10.39              | 8.35                |
+| tone.blue `#8DB8F5`  | 8.32              | 9.17               | 7.36                |
+| tone.green `#7FCF95` | 9.09              | 10.02              | 8.04                |
+| tone.red `#F59A90`   | 8.00              | 8.82               | 7.08                |
+| tone.grey `#A39C94`  | 6.25              | 6.89               | 5.53                |
 
 **Dark mode, pairs**
 
-| Pair | Ratio |
-| --- | --- |
-| onBrand `#2E1245` on brand.600 (primary button) | 7.57 |
-| brand.900 on brand.50 | 12.27 |
-| brand.600 on brand.50 | 7.46 |
-| ink.900 on brand.50 | 14.39 |
-| amber / blue / green / red / grey on own soft | 7.69 / 7.48 / 7.40 / 7.44 / 5.53 |
-| brand.500 focus ring on base (non-text) | 6.27 |
-| line.strong on base / muted (non-text) | 3.63 / 4.00 |
-| gold on base | 7.54 |
+| Pair                                            | Ratio                            |
+| ----------------------------------------------- | -------------------------------- |
+| onBrand `#2E1245` on brand.600 (primary button) | 7.57                             |
+| brand.900 on brand.50                           | 12.27                            |
+| brand.600 on brand.50                           | 7.46                             |
+| ink.900 on brand.50                             | 14.39                            |
+| amber / blue / green / red / grey on own soft   | 7.69 / 7.48 / 7.40 / 7.44 / 5.53 |
+| brand.500 focus ring on base (non-text)         | 6.27                             |
+| line.strong on base / muted / sunken (non-text) | 3.63 / 4.00 / 3.21               |
+| gold on base                                    | 7.54                             |
 
 Follow-up for engineering: add a unit test in `packages/tokens` that recomputes these ratios from `colors` / `darkColors` and fails under the thresholds, so a future palette tweak cannot silently break AA.
 
@@ -179,17 +179,17 @@ Follow-up for engineering: add a unit test in `packages/tokens` that recomputes 
 
 Sizes are at 100% system text size. On the client every style scales with dynamic type (Android font scale, iOS Text Size via the browser for the PWA). Do not set `allowFontScaling={false}`. Only the `amount` style caps growth at `maxFontSizeMultiplier = 1.6` (`amountMaxFontScale`) so a ₹1,48,500 total does not break mid-number; everything else scales freely and layouts must wrap.
 
-| Token | Size / line | Weight | Use |
-| --- | --- | --- | --- |
-| amount | 40 / 48 | 700 | The one hero number on a card: "To pay ₹86,580" |
-| display | 32 / 40 | 700 | Screen-level totals, greeting on Home |
-| title | 24 / 32 | 600 | Screen titles |
-| heading | 20 / 28 | 600 | Card titles ("Apply for Jio Financial") |
-| bodyLg | 18 / 26 | 400 | **Default client body text.** Our audience reads better at 18. |
-| body | 16 / 24 | 400 | Secondary client text; default admin text |
-| label | 16 / 22 | 600 | Buttons, chips, tab labels |
-| bodySm | 14 / 20 | 400 | Admin tables; never for client sentences |
-| caption | 13 / 18 | 500 | Timestamps ("Updated 2:15 pm"), helper text. Minimum size anywhere. |
+| Token   | Size / line | Weight | Use                                                                 |
+| ------- | ----------- | ------ | ------------------------------------------------------------------- |
+| amount  | 40 / 48     | 700    | The one hero number on a card: "To pay ₹86,580"                     |
+| display | 32 / 40     | 700    | Screen-level totals, greeting on Home                               |
+| title   | 24 / 32     | 600    | Screen titles                                                       |
+| heading | 20 / 28     | 600    | Card titles ("Apply for Jio Financial")                             |
+| bodyLg  | 18 / 26     | 400    | **Default client body text.** Our audience reads better at 18.      |
+| body    | 16 / 24     | 400    | Secondary client text; default admin text                           |
+| label   | 16 / 22     | 600    | Buttons, chips, tab labels                                          |
+| bodySm  | 14 / 20     | 400    | Admin tables; never for client sentences                            |
+| caption | 13 / 18     | 500    | Timestamps ("Updated 2:15 pm"), helper text. Minimum size anywhere. |
 
 - Hindi and Gujarati: multiply line height by `indicLineHeightScale` (1.2) so matras and conjuncts are not clipped. Allow 30–40% text expansion in every layout.
 - Sentence case everywhere ("Mark applied", not "Mark Applied"). No all-caps paragraphs; caps only for the two IPO flags "APPLY" / "DO NOT APPLY" as badges, with letter-spacing 0.5.
@@ -219,13 +219,13 @@ Sizes are at 100% system text size. On the client every style scales with dynami
 
 Calm, quick, purposeful. All values are in `motion` and map directly to Reanimated (`withTiming(v, { duration, easing: Easing.bezier(...motion.easing.standard) })`, `withSpring(v, motion.spring)`) and to CSS variables.
 
-| Use | Duration | Easing |
-| --- | --- | --- |
-| Press feedback (opacity 1 → 0.85, scale 0.98) | 120 | standard |
-| Chip/status change cross-fade | 200 | standard |
-| Card enter, sheet open | 320 | enter / spring |
-| Sheet close, toast leave | 200 | exit |
-| "Marked applied" tick draw | 320 | standard, then the row settles into place with `spring` |
+| Use                                           | Duration | Easing                                                  |
+| --------------------------------------------- | -------- | ------------------------------------------------------- |
+| Press feedback (opacity 1 → 0.85, scale 0.98) | 120      | standard                                                |
+| Chip/status change cross-fade                 | 200      | standard                                                |
+| Card enter, sheet open                        | 320      | enter / spring                                          |
+| Sheet close, toast leave                      | 200      | exit                                                    |
+| "Marked applied" tick draw                    | 320      | standard, then the row settles into place with `spring` |
 
 - No looping animation, parallax, confetti or shimmer sweeps. Loading skeletons pulse opacity 0.6 ↔ 1 at 1.2 s, and stop with reduce motion.
 - Reduce motion (OS setting): durations become 0; state changes still happen instantly.
@@ -236,22 +236,22 @@ Calm, quick, purposeful. All values are in `motion` and map directly to Reanimat
 
 ## 7. Numbers, money, dates
 
-| Topic | Rule | Example |
-| --- | --- | --- |
-| Currency | Always via `formatRupees` from `@divya/domain`; Indian grouping; `₹` with no space | ₹1,48,500 · ₹86,580 · ₹500 |
-| Paise | Hidden. Amounts are whole rupees (BR-SET-07 rounds to the rupee). Show paise (`showPaise: true`) only in the admin ledger/audit views or if the operator changes rounding to paise. | ₹17,460 |
-| Direction | Words, not signs. A balance is "You pay ₹X" or "We pay you ₹X", never "−₹X". | "We pay you ₹1,500" |
-| Deductions in a breakdown | Minus sign U+2212 with a label, aligned right, tabular | "− Your share  ₹900" |
-| Estimates | Prefix "About" and a blue "Estimate" chip until the listing price is in (BR-SET-09) | "About ₹17,100 · Estimate" |
-| Abbreviation | Never abbreviate an amount someone must pay. Admin charts may use "₹1.5 L", "₹2.3 Cr" on axes only. | |
-| Shares and lots | "1 lot (14 shares)", "Sell 14 shares" | |
-| Percent | No decimals unless needed | 30% |
-| Dates | Day + date + short month; year only if not this year | Fri, 14 Nov · 3 Apr 2027 |
-| Times | 12-hour, lower-case am/pm, IST implied on the client, "IST" shown on admin | 10:00 am – 5:00 pm |
-| Relative time | Under 24 h use relative, else absolute | "Closes in 2 h 15 min", "Due Tue, 18 Nov, 11:59 pm" |
-| Financial year | Apr–Mar, labelled "FY 2026–27" and quarters "Q3 (Oct–Dec)" | |
-| PAN | Always masked as in the constitution | ABCDE••••F |
-| UPI ID | Monospace not required; shown in full with a Copy button | divya@okhdfc |
+| Topic                     | Rule                                                                                                                                                                                | Example                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Currency                  | Always via `formatRupees` from `@divya/domain`; Indian grouping; `₹` with no space                                                                                                  | ₹1,48,500 · ₹86,580 · ₹500                          |
+| Paise                     | Hidden. Amounts are whole rupees (BR-SET-07 rounds to the rupee). Show paise (`showPaise: true`) only in the admin ledger/audit views or if the operator changes rounding to paise. | ₹17,460                                             |
+| Direction                 | Words, not signs. A balance is "You pay ₹X" or "We pay you ₹X", never "−₹X".                                                                                                        | "We pay you ₹1,500"                                 |
+| Deductions in a breakdown | Minus sign U+2212 with a label, aligned right, tabular                                                                                                                              | "− Your share  ₹900"                                |
+| Estimates                 | Prefix "About" and a blue "Estimate" chip until the listing price is in (BR-SET-09)                                                                                                 | "About ₹17,100 · Estimate"                          |
+| Abbreviation              | Never abbreviate an amount someone must pay. Admin charts may use "₹1.5 L", "₹2.3 Cr" on axes only.                                                                                 |                                                     |
+| Shares and lots           | "1 lot (14 shares)", "Sell 14 shares"                                                                                                                                               |                                                     |
+| Percent                   | No decimals unless needed                                                                                                                                                           | 30%                                                 |
+| Dates                     | Day + date + short month; year only if not this year                                                                                                                                | Fri, 14 Nov · 3 Apr 2027                            |
+| Times                     | 12-hour, lower-case am/pm, IST implied on the client, "IST" shown on admin                                                                                                          | 10:00 am – 5:00 pm                                  |
+| Relative time             | Under 24 h use relative, else absolute                                                                                                                                              | "Closes in 2 h 15 min", "Due Tue, 18 Nov, 11:59 pm" |
+| Financial year            | Apr–Mar, labelled "FY 2026–27" and quarters "Q3 (Oct–Dec)"                                                                                                                          |                                                     |
+| PAN                       | Always masked as in the constitution                                                                                                                                                | ABCDE••••F                                          |
+| UPI ID                    | Monospace not required; shown in full with a Copy button                                                                                                                            | divya@okhdfc                                        |
 
 Large numbers: the hero amount of a card uses `amount` (40) and is the visually heaviest element; supporting amounts use `heading` or `bodyLg` with tabular figures and right alignment.
 
@@ -261,15 +261,15 @@ Large numbers: the hero amount of a card uses `amount` (40) and is the visually 
 
 Constitution VII requires loading, empty, error and offline on every screen.
 
-| State | Pattern | Copy shape |
-| --- | --- | --- |
-| Loading (first load) | Skeleton blocks in the exact shape of the content (cards, chips, rows) on `surface.sunken`. No full-screen spinner. Content keeps its place; nothing jumps. | Screen reader: "Loading tasks" |
-| Loading (refresh) | Pull to refresh on client; thin progress bar under the header on admin. Old data stays visible. | |
-| Empty | Small line illustration (gold + brand), one sentence on what this is and why it's empty, one action if there is one. Empty is good news here, say so. | "No tasks right now. We'll remind you when an IPO opens." |
-| Error | Inline card in the content area, `tone.red` icon, plain message (what happened + what to do), **Try again** button. Never a raw code; a short reference ID in caption for support. | "We couldn't load your payments. Check your internet and try again." |
-| Offline | Persistent slim banner under the header on `surface.sunken` with a `wifi-off` icon. Cached data stays visible with "Last updated 2:15 pm". Actions that change money or tasks (Mark applied, Submit deal, Payment done) are disabled with a reason, or queued if the feature spec allows (offline queueing is a spec decision, not assumed here). | "You're offline. Showing what we saved at 2:15 pm." |
-| Success | Inline confirmation in place (row turns green, chip changes) plus a short toast with Undo where the rules allow undo. No modal for success. | "Marked applied for Rajesh." |
-| Pending approval | Blue "Waiting" chip with the exact thing being waited for. | "Waiting for approval" |
+| State                | Pattern                                                                                                                                                                                                                                                                                                                                           | Copy shape                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Loading (first load) | Skeleton blocks in the exact shape of the content (cards, chips, rows) on `surface.sunken`. No full-screen spinner. Content keeps its place; nothing jumps.                                                                                                                                                                                       | Screen reader: "Loading tasks"                                       |
+| Loading (refresh)    | Pull to refresh on client; thin progress bar under the header on admin. Old data stays visible.                                                                                                                                                                                                                                                   |                                                                      |
+| Empty                | Small line illustration (gold + brand), one sentence on what this is and why it's empty, one action if there is one. Empty is good news here, say so.                                                                                                                                                                                             | "No tasks right now. We'll remind you when an IPO opens."            |
+| Error                | Inline card in the content area, `tone.red` icon, plain message (what happened + what to do), **Try again** button. Never a raw code; a short reference ID in caption for support.                                                                                                                                                                | "We couldn't load your payments. Check your internet and try again." |
+| Offline              | Persistent slim banner under the header on `surface.sunken` with a `wifi-off` icon. Cached data stays visible with "Last updated 2:15 pm". Actions that change money or tasks (Mark applied, Submit deal, Payment done) are disabled with a reason, or queued if the feature spec allows (offline queueing is a spec decision, not assumed here). | "You're offline. Showing what we saved at 2:15 pm."                  |
+| Success              | Inline confirmation in place (row turns green, chip changes) plus a short toast with Undo where the rules allow undo. No modal for success.                                                                                                                                                                                                       | "Marked applied for Rajesh."                                         |
+| Pending approval     | Blue "Waiting" chip with the exact thing being waited for.                                                                                                                                                                                                                                                                                        | "Waiting for approval"                                               |
 
 Toasts: bottom, above the tab bar, 4 s, `role="status"`/`accessibilityLiveRegion="polite"`; errors stay until dismissed.
 
@@ -277,15 +277,15 @@ Toasts: bottom, above the tab bar, 4 s, `role="status"`/`accessibilityLiveRegion
 
 ## 9. Platform notes (Android app vs iPhone PWA)
 
-| Topic | Android (Expo app) | iPhone (PWA on Home Screen) |
-| --- | --- | --- |
-| Navigation | Bottom tabs: Home, Tasks, IPOs, Payments, More. System back button closes sheets first. | Same tabs; no system back, so every pushed screen has a visible back chevron with label. Respect safe-area insets (notch and home indicator). |
-| Copy UPI ID | `expo-clipboard`, haptic tick, toast "Copied" | `navigator.clipboard`; works only after a tap (it is). Toast "Copied". |
-| Open UPI app | `upi://pay?...` intent opens the chooser | `upi://` links open installed UPI apps on iOS inconsistently: show **Pay via UPI** plus visible UPI ID + amount with Copy buttons as the reliable fallback. |
-| Push | FCM channels "Tasks (urgent)", "Updates", "Greetings". One-time autostart guide on Xiaomi/Vivo/Oppo/Realme. | Web Push only after Add to Home Screen; Inbox and email fallback cover misses. Show an "Add to Home Screen" guide if opened in Safari. |
-| Biometric unlock | Fingerprint/face via system prompt | WebAuthn where available, else PIN |
-| Dynamic type | System font scale | Safari text size; use rem units in web styles |
-| Haptics | Yes | No |
+| Topic            | Android (Expo app)                                                                                          | iPhone (PWA on Home Screen)                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Navigation       | Bottom tabs: Home, Tasks, IPOs, Payments, More. System back button closes sheets first.                     | Same tabs; no system back, so every pushed screen has a visible back chevron with label. Respect safe-area insets (notch and home indicator).               |
+| Copy UPI ID      | `expo-clipboard`, haptic tick, toast "Copied"                                                               | `navigator.clipboard`; works only after a tap (it is). Toast "Copied".                                                                                      |
+| Open UPI app     | `upi://pay?...` intent opens the chooser                                                                    | `upi://` links open installed UPI apps on iOS inconsistently: show **Pay via UPI** plus visible UPI ID + amount with Copy buttons as the reliable fallback. |
+| Push             | FCM channels "Tasks (urgent)", "Updates", "Greetings". One-time autostart guide on Xiaomi/Vivo/Oppo/Realme. | Web Push only after Add to Home Screen; Inbox and email fallback cover misses. Show an "Add to Home Screen" guide if opened in Safari.                      |
+| Biometric unlock | Fingerprint/face via system prompt                                                                          | WebAuthn where available, else PIN                                                                                                                          |
+| Dynamic type     | System font scale                                                                                           | Safari text size; use rem units in web styles                                                                                                               |
+| Haptics          | Yes                                                                                                         | No                                                                                                                                                          |
 
 ---
 
@@ -299,3 +299,41 @@ Toasts: bottom, above the tab bar, 4 s, `role="status"`/`accessibilityLiveRegion
 - Focus order follows reading order; modals and sheets trap focus and return it on close; admin tables are fully keyboard operable (arrow keys in grid, Space to select, Shift+Space range).
 - 200% text: no truncation of amounts, names or buttons; rows wrap instead.
 - Language: set `lang` per screen locale so screen readers pick the right voice for Hindi/Gujarati.
+
+---
+
+## 11. Shared components
+
+Screen specs refer to these by name. Each is built once per app (`apps/client/src/components`, `apps/admin/src/components`) and consumes tokens only.
+
+| Component         | What it is                                                                                                      | Key rules                                                                                                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `StatusChip`      | Pill: tone icon + word on `toneSoft`, text in `tone`                                                            | Takes a `StatusKey` from `@divya/domain`, never a colour. `label` 16/600 on the client, `bodySm` 14/600 on admin. Reads "Status: To do".                             |
+| `Amount`          | Formatted rupees via `formatRupees`, tabular figures                                                            | Sizes: `amount`, `heading`, `bodyLg`. Accessibility label "Rupees 86,580". Never truncates; wraps the label above instead.                                           |
+| `DirectionAmount` | `Amount` with a word: "You pay" / "We pay you" / "Nothing to pay"                                               | Direction is words, never a sign or colour alone.                                                                                                                    |
+| `Countdown`       | "Closes in 2 h 15 min" in `tone.amber` bold; absolute time underneath in `caption`                              | Updates per minute; not a live region. Turns into a red `StatusChip` "Missed"/"Overdue" only when the deadline has passed.                                           |
+| `BreakdownCard`   | Per-account settlement card: rows Investment, + Profit (or − Loss), − Your share, − Brokerage, rule, **To pay** | Rows in `bodyLg`, result in `amount`. Labels left, amounts right. Estimate state shows "About" + blue "Estimate" chip (BR-SET-09). See `screens/client-payments.md`. |
+| `TaskCard`        | One apply task for one family account                                                                           | See `screens/client-tasks.md`.                                                                                                                                       |
+| `DoNowCard`       | The single most urgent thing, on Home                                                                           | `radius.xl`, `surface.base`, 4 px left rule in the item's tone. One primary button.                                                                                  |
+| `CopyField`       | Value + "Copy" button (48 dp)                                                                                   | Toast "Copied"; Android haptic. Button label includes the thing: "Copy UPI ID".                                                                                      |
+| `AccountName`     | "Rajesh · PAN ••••4F"                                                                                           | Masked per constitution VI; the main member's own account shows "You".                                                                                               |
+| `StateBlock`      | Shared empty / error card                                                                                       | Illustration (optional), one sentence, one action. Error variant has the `circle-alert` icon and **Try again**.                                                      |
+| `OfflineBanner`   | Slim bar under the header: `wifi-off` + "You're offline. Showing what we saved at 2:15 pm."                     | `surface.sunken`, `ink.900` text. `accessibilityLiveRegion="polite"` when it appears.                                                                                |
+| `StickyActionBar` | Bottom bar above the tab bar holding the screen's primary action                                                | Elevation 2; safe-area inset on iPhone.                                                                                                                              |
+| `ConfirmSheet`    | Bottom sheet (client) or dialog (admin) for actions that lock something or move money                           | Title is the action as a question, buttons are verbs ("Mark applied" / "Not yet"). Never "OK / Cancel".                                                              |
+
+---
+
+## 12. Screen specs and copy (Stage 1)
+
+| File                           | Screen                                   |
+| ------------------------------ | ---------------------------------------- |
+| `screens/client-home.md`       | Client Home with the Do-now card         |
+| `screens/client-tasks.md`      | Client Tasks (apply tasks, Mark applied) |
+| `screens/client-deal-pick.md`  | Client deal choice per family account    |
+| `screens/client-payments.md`   | Client Payments with breakdown cards     |
+| `screens/admin-today.md`       | Admin Home ("Today")                     |
+| `screens/admin-tasks-board.md` | Admin Tasks board                        |
+| `copy/deals-explainer.md`      | Final "How deals work" copy              |
+
+Questions for the owner raised by these specs are collected in the "Open questions" section of each screen file. They are presentation-adjacent but touch business behaviour, so the screens show a default and the feature spec must confirm it before build.
