@@ -6,7 +6,8 @@ divya admin create --email <email> --name <name> [--mobile <mobile>] [--org-name
 
 | Aspect | Contract |
 |---|---|
-| Config | Only `DATABASE_URL` (and optional `APP_ENV`). JWT and PII keys are not needed. |
+| Config | Only `DATABASE_URL` (and optional `APP_ENV`), via `config.LoadDB()`. JWT, PII and blind-index keys and 002's `TICK_*` settings are not read. |
+| Time | `clock.Real` (002) in production; tests inject `clock.Fake` for `email_verified_at`, `created_at` and the audit `At`. |
 | Password input | If stdin is a TTY: the prompt `Password:` and then `Repeat password:`, with no echo (`golang.org/x/term`). Otherwise: exactly one line read from stdin (trailing newline removed). The password is never accepted as a flag or an environment variable. |
 | Org | No org exists: create one named `--org-name` (default `Divya`). Exactly one org exists: use it (`--org-name` is ignored). More than one: `--org-id` is required, otherwise `bootstrap.org_ambiguous`. |
 | Concurrency | `pg_advisory_xact_lock` on a fixed key. Two concurrent runs on an empty database: exactly one succeeds and the other gets `bootstrap.admin_exists`. |

@@ -1,6 +1,7 @@
 # Intended OpenAPI 3.1 additions for feature 003 (design contract).
 # The generated document (`go run ./cmd/divya openapi` -> packages/api-client/openapi.yaml) is authoritative;
 # this file states what the Go code must produce. Schema names follow Go type names in internal/auth.
+# 002's POST /internal/tick is a Hidden operation: it never appears here; it declares authz.SelfAuthenticated() (plan C-8).
 openapi: 3.1.0
 info: { title: Divya API, version: dev }
 components:
@@ -177,7 +178,7 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MfaVerifyRequest" } } } }
       responses:
         "200": { description: OK, headers: { Set-Cookie: { $ref: "#/components/headers/SetRefreshCookie" } }, content: { application/json: { schema: { $ref: "#/components/schemas/SessionTokens" } } } }
-        default: { description: "401 auth.unauthenticated (challenge) | 401 auth.invalid_credentials (code, locked) | 422 | 429" }
+        default: { description: "401 auth.unauthenticated (challenge) | 401 auth.invalid_credentials (code, locked) | 403 auth.csrf_rejected (web) | 422 | 429" }
   /v1/auth/mfa/enrolment:
     post:
       operationId: auth-mfa-enrolment-start
@@ -195,7 +196,7 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TotpCodeRequest" } } } }
       responses:
         "200": { description: OK, headers: { Set-Cookie: { $ref: "#/components/headers/SetRefreshCookie" } }, content: { application/json: { schema: { $ref: "#/components/schemas/EnrolmentResult" } } } }
-        default: { description: "401 auth.unauthenticated, auth.invalid_credentials | 409 auth.mfa_no_pending_secret | 422" }
+        default: { description: "401 auth.unauthenticated, auth.invalid_credentials | 403 auth.csrf_rejected (web) | 409 auth.mfa_no_pending_secret | 422" }
   /v1/auth/refresh:
     post:
       operationId: auth-refresh

@@ -1,13 +1,14 @@
 # Data model: 003 Auth core
 
-Migration: `apps/api/migrations/00003_auth.sql` (goose; version 00003 per plan P-18). It only adds objects (expand-only) and is backward compatible with the previous app version, which does not read these tables. **Auth schema: owner approval and a security review are required** (constitution workflow 5 and 7).
+Migration: `apps/api/migrations/00003_auth.sql` (goose; version 00003 per plan P-18 / C-1: 002 owns `00002_scheduler_outbox.sql` and merges first). It only adds objects (expand-only) and is backward compatible with the previous app version, which does not read these tables. **Auth schema: owner approval and a security review are required** (constitution workflow 5 and 7).
 
 Conventions (`.claude/rules/sql.md`):
 
 - `uuidv7()` primary keys and `timestamptz`.
 - `org_id uuid NOT NULL REFERENCES orgs(id)` on every table.
 - CHECK constraints for enums and states, and foreign keys everywhere.
-- All times are written from the injected clock through `@now` parameters. Column defaults exist only as a safety net.
+- All times are written from the injected clock (002's `clock.Func`) through `@now` parameters. Column defaults exist only as a safety net.
+- Go types come from 002's sqlc override: `uuid` columns map to `github.com/google/uuid.UUID` (nullable: `uuid.NullUUID`).
 - No plaintext secrets: `*_hash bytea` holds SHA-256 or HMAC digests, `*_enc bytea` holds the AES-GCM envelope (`internal/platform/crypto`).
 - Email and mobile are readable by owner decision (ADR 0007).
 
@@ -21,7 +22,9 @@ orgs (001) 1──* users 1──* device_sessions 1──* refresh_tokens
                   │  1──* mfa_recovery_codes
                   │  1──* mfa_challenges
 orgs 1──* auth_throttles            (keyed by HMAC subject; no FK to users on purpose)
-orgs 1──* audit_log (001, unchanged; entity='user', entity_id=users.id)
+orgs 1──* audit_log (001, unchanged columns; written via 002's audit.Write; entity='user', entity_id=users.id)
+
+Refresh-token family = one device_sessions row: all refresh_tokens of a session form its family.
 ```
 
 ## 1. `users` (spec entity: User; FR-001…FR-004, D-02…D-04, D-16…D-19)
@@ -89,7 +92,7 @@ Indexes:
 - `device_sessions_live_device_key UNIQUE (user_id, device_id) WHERE ended_at IS NULL` (D-11)
 - `device_sessions_user_live_idx (user_id) WHERE ended_at IS NULL` (lists, end-all)
 
-**Expiry is computed, not stored.** A session is live iff `ended_at IS NULL AND @now < idle_expires_at AND @now < absolute_expires_at` (boundaries inclusive of expiry, spec Edge Cases). Expired sessions are not ended by a write. That would need a job (P-20) and an audit entry for every expiry. `'expired'` is in the CHECK list for a future housekeeping job.
+**Expiry is computed, not stored.** A session is live iff `ended_at IS NULL AND @now < idle_expires_at AND @now < absolute_expires_at` (boundaries inclusive of expiry, spec Edge Cases). Expired sessions are not ended by a write. That would need a job and an audit entry for every expiry. `'expired'` is reserved in the CHECK list; the 003 housekeeping job (P-20) does not end sessions.
 
 The per-request principal query (P-02):
 
@@ -107,7 +110,7 @@ WHERE s.id = @session_id;
 |---|---|---|
 | id | uuid | PK |
 | org_id | uuid | NOT NULL FK orgs |
-| session_id | uuid | NOT NULL FK device_sessions |
+| session_id | uuid | NOT NULL FK device_sessions: the **family id** (plan P-03) |
 | token_hash | bytea | NOT NULL CHECK `octet_length(token_hash) = 32` (SHA-256 of the raw `drt_…` string) |
 | issued_at | timestamptz | NOT NULL |
 | used_at | timestamptz | NULL |
@@ -116,7 +119,8 @@ WHERE s.id = @session_id;
 Indexes:
 
 - `refresh_tokens_hash_key UNIQUE (token_hash)`
-- `refresh_tokens_one_live_key UNIQUE (session_id) WHERE used_at IS NULL`: at most one unused credential per session.
+- `refresh_tokens_one_live_key UNIQUE (session_id) WHERE used_at IS NULL`: at most one unused credential per family.
+- `refresh_tokens_session_idx (session_id)`: ending a family and the housekeeping purge.
 
 A refresh credential has no expiry of its own: it lives exactly as long as its session.
 
@@ -170,6 +174,8 @@ Indexes:
 | expires_at | timestamptz | NOT NULL = created_at + 5 min. Valid iff `@now < expires_at` |
 | consumed_at | timestamptz | NULL: set when the session is created (single use) |
 
+Index: `mfa_challenges_expires_idx (expires_at)` for the housekeeping purge.
+
 ## 7. `auth_throttles` (spec: Failed-attempt record; FR-045, FR-046, D-08)
 
 | Column | Type | Constraints / notes |
@@ -183,13 +189,15 @@ Indexes:
 
 - The primary key is `(org_id, scope, subject)`.
 - There is no FK to users, on purpose: unknown identifiers need rows too.
-- Rows are deleted on successful sign-in, on password reset (user subject), and later by the purge follow-up.
+- Rows are deleted on successful sign-in, on password reset (user subject), and by the `auth.housekeeping` job once stale: `updated_at <= @now - 15m AND (locked_until IS NULL OR locked_until <= @now)` (plan P-20). Lockout correctness never depends on the purge. The table stays tiny, so no extra index.
 
-## 8. `audit_log` (001, unchanged)
+## 8. `audit_log` (001, unchanged columns)
 
-New query file `queries/audit.sql`: `InsertAuditEntry(org_id, actor_id, actor_kind, entity, entity_id, action, before, after, created_at)`. It is used only through `internal/platform/audit`, which requires a transaction on the context. Existing guarantees stay: append-only (`forbid_mutation` trigger) and `actor_kind IN ('admin','client','system')`.
+Written only through 002's `internal/platform/audit` (`audit.Write`, which requires a transaction in the context and uses 002's `InsertAuditLog` in `queries/platform.sql`). 003 makes one additive change (plan C-4): `audit.Entry.At` is passed as `created_at` (`COALESCE(sqlc.narg('created_at'), now())`, so 002's calls without `At` keep the column default), and `uuid.Nil` for `EntityID` or `Actor.ID` is stored as NULL. Existing guarantees stay: append-only (`forbid_mutation` trigger) and `actor_kind IN ('admin','client','system')`.
 
-### Audit action catalogue (US-11; one entry per event; `entity='user'`)
+### Audit action catalogue (US-11; one entry per event; `entity='user'` unless stated)
+
+One operation can record more than one event, and each event gets exactly one entry in the same transaction: enrolment confirm writes `auth.mfa.enrolled` and `auth.sign_in.succeeded` (`mfa_method=enrolment`); sign-in with a recovery code writes `auth.mfa.recovery_code_used` and `auth.sign_in.succeeded` (`mfa_method=recovery_code`); the 5th failure writes `auth.sign_in.failed` and `auth.lockout.started`; disabling writes `auth.user.status_changed` (its `after` lists the ended session ids).
 
 | action | actor_kind | entity_id | `before` | `after` (typed struct; never secrets) |
 |---|---|---|---|---|
@@ -213,9 +221,10 @@ New query file `queries/audit.sql`: `InsertAuditEntry(org_id, actor_id, actor_ki
 | auth.mfa.recovery_code_used | admin | user | – | remaining, context (`sign_in` or `replace`) |
 | auth.user.created | system / admin (caller) | user | – | role, status, email, mobile (the user's own contact data, ADR 0007; never for unknown identifiers) |
 | auth.user.email_verified / auth.user.mobile_verified | system / admin (caller) | user | status | status |
-| auth.user.status_changed | system / admin (caller) | user | status | status |
+| auth.user.status_changed | system / admin (caller) | user | status | status, ended_session_ids[] (on disable) |
 | auth.user.contact_replaced | system / admin (caller) | user | {email or mobile} | {email or mobile} |
 | auth.admin.bootstrapped | system | user | – | email, org_id |
+| auth.housekeeping.purged | system | NULL (`entity='auth'`) | – | throttles, challenges, refresh_tokens (counts); written only when a count is non-zero (plan P-20) |
 
 ## Lock order (deadlock avoidance)
 
@@ -229,11 +238,19 @@ Every transaction that takes several locks takes them in this order:
 6. `mfa_challenges`
 7. `auth_throttles`
 
-The bootstrap advisory lock comes before everything. Failure paths lock only `auth_throttles`.
+The bootstrap advisory lock comes before everything. Failure paths lock only `auth_throttles`. The housekeeping job runs one single-table `DELETE` at a time (throttles, then challenges, then refresh tokens of long-dead families) and never waits on `users` or `device_sessions`, so it cannot form a lock cycle with a refresh.
 
 ## sqlc
 
-All statements live in `apps/api/queries/auth.sql` and `queries/audit.sql`, and are generated into `internal/platform/db/dbgen`. There is no string-built SQL. Every time comparison takes `@now`, and no behavioural query uses `now()`. After each edit, run `sqlc generate && sqlc vet`.
+All 003 statements live in `apps/api/queries/auth.sql` (plus the `created_at` parameter added to 002's `InsertAuditLog` in `queries/platform.sql`) and are generated into `internal/platform/db/dbgen` with 002's uuid override. There is no string-built SQL. Every time comparison takes `@now`, and no behavioural query uses `now()`. After each edit, run `sqlc generate && sqlc vet`.
+
+## Housekeeping queries (`auth.housekeeping`, plan P-20)
+
+Each takes `@org_id`, `@now` and a row cap (1,000):
+
+- `PurgeStaleThrottles`: rule in section 7.
+- `PurgeExpiredChallenges`: `expires_at <= @now`.
+- `PurgeDeadFamilyTokens`: `refresh_tokens` whose session has `ended_at <= @now - 30 days` or `absolute_expires_at <= @now - 30 days`. `device_sessions` rows themselves are kept (device history for the admin, small).
 
 ## Down migration
 

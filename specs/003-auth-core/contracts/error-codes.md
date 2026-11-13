@@ -19,7 +19,7 @@ The UI wording comes from `packages/domain/src/auth-error-codes.ts` (English fir
 | unsupported_media_type | 415 | Body content type is not JSON |
 | rate_limited | 429 | Per-IP limiter on public credential operations |
 | internal | 500 | Unexpected error (no details) |
-| platform.security_undeclared | 500 | An operation registered without `Security` (never reachable in a passing build) |
+| platform.security_undeclared | 500 | An operation (documented or hidden) registered without `Security`. Documented operations are caught at startup by `authz.AssertDeclared`; this response is the fail-closed backstop |
 
 ## Auth (003)
 
@@ -30,7 +30,7 @@ The UI wording comes from `packages/domain/src/auth-error-codes.ts` (English fir
 | auth.unauthenticated | 401 | Missing, invalid, expired or tampered access token; revoked or expired session; user not active; refresh token or challenge used as an access token; invalid, expired, used or wrong-purpose challenge. Sent with `WWW-Authenticate: Bearer`. | FR-031, FR-035, US-2 |
 | auth.forbidden | 403 | The caller's role is not allowed by the operation's declared roles | FR-032, US-2 s3, US-8 s7 |
 | auth.refresh_rejected | 401 | Every refresh failure: unknown, used (reuse), device mismatch, transport mismatch, expired, session ended, user not active. One code, so reuse detection is not revealed. | FR-040…043, US-3 |
-| auth.csrf_rejected | 403 | Cookie refresh or web sign-in with a missing, `null` or non-allowlisted Origin, or without `X-Divya-CSRF: 1` | Plan P-04 |
+| auth.csrf_rejected | 403 | Cookie refresh, or an operation that sets the refresh cookie (`client_type=web` sign-in, mfa-verify, enrolment-confirm), with a missing, `null` or non-allowlisted Origin, without `X-Divya-CSRF: 1`, or with a non-JSON content type | Plan P-04 |
 | auth.reauth_failed | 403 | Wrong current password, TOTP code or recovery code on change-password, recovery-code regeneration or authenticator replacement; also returned while the account is locked | D-08, FR-070, US-7 s2 |
 | auth.password_too_short | 422 | Fewer than 10 characters (after NFC) | D-07, US-7 s3 |
 | auth.password_too_long | 422 | More than 256 characters | D-07, US-7 s6 |
