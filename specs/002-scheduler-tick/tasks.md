@@ -104,7 +104,7 @@
   - Rules: none (mechanism) | Refs: FR-002; US2.1-2.4; SC-004
   - Files (1, ~190 lines): `apps/api/internal/platform/tickauth/oidc_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/tickauth/...`
-- [ ] T017 **backend-dev**: Implement tickauth.go (Authenticator, ErrUnauthenticated, ErrForbidden, Disabled) and dev.go (NewDev).
+- [x] T017 **backend-dev**: Implement tickauth.go (Authenticator, ErrUnauthenticated, ErrForbidden, Disabled) and dev.go (NewDev).
   - Depends on: T015
   - Rules: none (mechanism) | Refs: FR-002, FR-003
   - Files (2, ~80 lines): `apps/api/internal/platform/tickauth/tickauth.go`, `apps/api/internal/platform/tickauth/dev.go`
