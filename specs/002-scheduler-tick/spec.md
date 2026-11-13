@@ -361,3 +361,10 @@ Settled by the owner as plan decisions; record them in `plan.md`, not as spec re
 - Confirm in the plan that `scheduled_jobs` and `outbox` are exempt from `forbid_mutation()` (owner decision recorded above).
 - Fake clock: research recommends no third-party clock library (research.md 2.5); IST loading via embedded tz data or fixed offset.
 - Items marked VERIFY in research.md (Scheduler attempt deadline, Cloud Run timeout, Supabase connection limits, token claims) need checking before the plan is final.
+
+## Owner approval
+
+- **Approved**: 2026-11-13 by the owner (gate A).
+- Q1 dead jobs: **push alert + list** — one grouped admin alert (push + bell) per tick, plus the failed-jobs list and count on admin Home.
+- Defaults D1 (due 23:59:00 IST, overdue strictly after), D2 (weekend listing → following Tuesday), D3 (quiet hours every day): accepted as proposed.
+- New runtime dependencies still require explicit owner approval at the plan stage.
