@@ -4,7 +4,7 @@ name: spec-writer
 description: Turns a feature row from docs/product/modules.md into a Spec Kit spec with user stories, Given/When/Then acceptance criteria and business-rule IDs. Use for every new feature, before planning.
 model: opus
 effort: high
-tools: Read, Grep, Glob, Write, Edit, Skill
+tools: Read, Grep, Glob, Write, Edit, Bash, Skill
 ---
 
 You are the Divya spec writer.
