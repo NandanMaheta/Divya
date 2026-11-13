@@ -1,0 +1,20 @@
+{
+  "name": "@divya/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "cd ../../apps/api && go run ./cmd/divya openapi > ../../packages/api-client/openapi.yaml && cd ../../packages/api-client && openapi-typescript openapi.yaml -o src/schema.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "6.0.3"
+  }
+}

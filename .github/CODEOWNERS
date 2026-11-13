@@ -1,0 +1,8 @@
+# Owner approval is required for money, auth and schema changes.
+*                                   @NandanMaheta
+/apps/api/internal/settlement/      @NandanMaheta
+/apps/api/internal/ledger/          @NandanMaheta
+/apps/api/internal/deals/           @NandanMaheta
+/apps/api/internal/auth/            @NandanMaheta
+/apps/api/migrations/               @NandanMaheta
+/.github/workflows/deploy.yml       @NandanMaheta

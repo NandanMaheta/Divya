@@ -1,0 +1,62 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - contextcheck
+    - depguard
+    - errorlint
+    - exhaustive
+    - gocritic
+    - gosec
+    - misspell
+    - nilerr
+    - noctx
+    - prealloc
+    - revive
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - wrapcheck
+  settings:
+    depguard:
+      rules:
+        # Modular monolith boundaries: platform code must not depend on business modules.
+        platform-is-a-leaf:
+          files: ["**/internal/platform/**"]
+          deny:
+            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/health"
+              desc: platform packages must not import business modules
+        no-legacy-libs:
+          deny:
+            - pkg: "github.com/pkg/errors"
+              desc: use the standard library errors package
+            - pkg: "github.com/lib/pq"
+              desc: use pgx v5
+            - pkg: "gorm.io/gorm"
+              desc: use sqlc-generated queries
+    wrapcheck:
+      # Our own packages already wrap with context; only third-party errors must be wrapped.
+      ignore-package-globs:
+        - github.com/NandanMaheta/divya/*
+      ignore-sigs:
+        - huma.Error
+        - .Errorf(
+        - errors.New(
+    revive:
+      rules:
+        - name: exported
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gosec, wrapcheck, noctx]
+      - path: cmd/
+        linters: [wrapcheck]
+formatters:
+  enable: [gofmt, goimports]
+  settings:
+    goimports:
+      local-prefixes: [github.com/NandanMaheta/divya]

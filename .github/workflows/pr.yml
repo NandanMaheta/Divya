@@ -1,0 +1,105 @@
+name: PR checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.f.outputs.api }}
+      worker: ${{ steps.f.outputs.worker }}
+      js: ${{ steps.f.outputs.js }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: f
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api: ['apps/api/**']
+            worker: ['apps/worker/**']
+            js: ['apps/admin/**', 'apps/client/**', 'packages/**', 'package.json', 'pnpm-lock.yaml']
+
+  api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps/api } }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with: { go-version-file: apps/api/go.mod, cache-dependency-path: apps/api/go.sum }
+      - uses: golangci/golangci-lint-action@v8
+        with: { version: v2.15.0, working-directory: apps/api }
+      - name: sqlc vet + generated code is current
+        run: |
+          go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+          sqlc vet && sqlc generate && git diff --exit-code
+      - name: Unit + integration tests (testcontainers, PostgreSQL 18)
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - name: OpenAPI spec is current
+        run: go run ./cmd/divya openapi > /tmp/openapi.yaml && diff -u ../../packages/api-client/openapi.yaml /tmp/openapi.yaml
+      - name: Breaking API changes (vs main)
+        if: github.event_name == 'pull_request'
+        uses: oasdiff/oasdiff-action/breaking@main
+        with:
+          base: https://raw.githubusercontent.com/${{ github.repository }}/main/packages/api-client/openapi.yaml
+          revision: packages/api-client/openapi.yaml
+          fail-on: ERR
+
+  worker:
+    needs: changes
+    if: needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps/worker } }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run pyright
+      - run: uv run pytest -q
+
+  js:
+    needs: changes
+    if: needs.changes.outputs.js == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm turbo run typecheck test build
+      - name: Client web (PWA) export
+        run: pnpm --filter @divya/client build:web
+
+  traceability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: scripts/check-br-traceability.sh
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+
+  commits:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }

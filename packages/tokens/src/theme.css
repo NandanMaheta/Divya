@@ -1,0 +1,21 @@
+/* Tailwind v4 theme generated from tokens/src/index.ts (keep in sync). */
+@theme {
+  --color-brand-50: #fff7ed;
+  --color-brand-500: #c2410c;
+  --color-brand-600: #9a3412;
+  --color-brand-900: #431407;
+  --color-ink-900: #111827;
+  --color-ink-600: #4b5563;
+  --color-ink-400: #9ca3af;
+  --color-surface-base: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-surface-dark: #0b0f17;
+  --color-tone-amber: #d97706;
+  --color-tone-blue: #2563eb;
+  --color-tone-green: #16a34a;
+  --color-tone-red: #dc2626;
+  --color-tone-grey: #6b7280;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}

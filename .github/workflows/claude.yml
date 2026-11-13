@@ -1,0 +1,32 @@
+name: Claude
+on:
+  issue_comment: { types: [created] }
+  pull_request_review_comment: { types: [created] }
+  pull_request: { types: [opened, ready_for_review] }
+  issues: { types: [labeled] }
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+jobs:
+  claude:
+    # @claude mentions, advisory review on new PRs, and label-driven agent runs.
+    if: >
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issues' && (github.event.label.name == 'agent:fix' || github.event.label.name == 'agent:build'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ github.event_name == 'pull_request' && 'Review this PR with the code-review approach: correctness against the linked spec and docs/product/business-rules.md, money safety, tests, architecture. Comment findings; do not push.' || '' }}
+            ${{ github.event.label.name == 'agent:fix' && 'Fix this bug with /speckit-bug-assess then /speckit-bug-fix: reproduce with a failing test first, then fix, then open a PR.' || '' }}
+            ${{ github.event.label.name == 'agent:build' && 'Run /ship-feature for the feature number in this issue, stopping at owner gates.' || '' }}
+          claude_args: --max-turns 60

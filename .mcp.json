@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "context7": { "type": "http", "url": "https://mcp.context7.com/mcp" },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--headless"]
+    },
+    "maestro": { "type": "stdio", "command": "maestro", "args": ["mcp"] }
+  }
+}

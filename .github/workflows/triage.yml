@@ -1,0 +1,20 @@
+name: Weekly ops and daily triage
+on:
+  schedule:
+    - cron: "30 3 * * *" # 09:00 IST daily triage
+    - cron: "30 4 * * 1" # 10:00 IST Monday ops digest
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ github.event.schedule == '30 4 * * 1' && 'Act as the ops agent (.claude/agents/ops.md) and open the weekly digest issue.' || 'Act as the triage agent (.claude/agents/triage.md) for new error reports.' }}
+          claude_args: --max-turns 30

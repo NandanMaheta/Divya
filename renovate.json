@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Asia/Kolkata",
+  "schedule": ["before 9am on monday"],
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["expo", "react-native", "/^expo-/", "/^@expo//"],
+      "groupName": "expo sdk",
+      "enabled": false
+    },
+    { "matchUpdateTypes": ["patch"], "automerge": true }
+  ]
+}

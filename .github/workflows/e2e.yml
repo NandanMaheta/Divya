@@ -1,0 +1,38 @@
+name: E2E
+on:
+  pull_request:
+    paths: ["apps/**", "packages/**"]
+  schedule:
+    - cron: "30 20 * * *" # 02:00 IST nightly full run
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  admin-playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright (admin + client PWA)
+        run: |
+          if ls apps/admin/e2e/*.spec.ts >/dev/null 2>&1; then
+            pnpm --filter @divya/admin exec playwright test --trace off
+          else
+            echo "No Playwright specs yet (added from feature 022)."
+          fi
+  android-maestro:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'preview')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Maestro flows on an Android emulator
+        run: |
+          if ls apps/client/.maestro/*.yaml >/dev/null 2>&1; then
+            echo "Build the APK and run flows here (enabled in feature 024)."
+          else
+            echo "No Maestro flows yet (added from feature 024)."
+          fi

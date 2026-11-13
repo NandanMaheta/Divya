@@ -1,0 +1,63 @@
+<!-- Source of truth for behaviour. Every rule ID must appear in at least one test name
+     (scripts/check-br-traceability.sh enforces this). Change rules only with owner approval. -->
+# Divya business rules
+
+Agents derive specs from this table, and every rule ID must appear in at least one test name (CI checks this). Notation:
+
+- **I** = issue price × shares (investment)
+- **G** = (NSE listing price − issue price) × shares (listing profit; negative on a loss)
+- **F** = fixed amount, **B** = brokerage, **p** = profit-share %
+
+| ID                                      | Rule                                                                                                                                                                                                                         |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IPO**                                 |                                                                                                                                                                                                                              |
+| BR-IPO-01                               | Only mainboard IPOs exist in the system (SME rejected at the API).                                                                                                                                                           |
+| BR-IPO-02                               | Every IPO has an admin flag: APPLY or DO NOT APPLY, plus an optional note. Only APPLY IPOs get deals and tasks.                                                                                                              |
+| BR-IPO-03                               | Lifecycle UPCOMING → OPEN → CLOSED → ALLOTMENT_OUT → LISTED → SETTLED is time-driven by IPO dates; the admin can override. A date change reschedules every dependent job.                                                    |
+| BR-IPO-04                               | Expected profit = admin GMP × lot size. Every GMP change is stored with time and author; clients see the latest value plus its "updated at" time.                                                                            |
+| **Clients and family accounts**         |                                                                                                                                                                                                                              |
+| BR-CLI-01                               | A main member has name, PAN, mobile and email (all required, PAN unique).                                                                                                                                                    |
+| BR-CLI-02                               | A main member can manage up to 10 family accounts (name + PAN). The main member's own PAN is also an account.                                                                                                                |
+| BR-CLI-03                               | Adding, editing or deleting a family account creates an approval request. It takes effect only after admin approval, and the admin is notified either way.                                                                   |
+| BR-CLI-04                               | New registrations need email OTP + mobile OTP verification, then admin approval, before login is allowed.                                                                                                                    |
+| BR-CLI-05                               | Changing email or mobile needs an OTP to the new contact plus admin approval. The old contact is notified.                                                                                                                   |
+| **Deals**                               |                                                                                                                                                                                                                              |
+| BR-DEAL-01                              | The default deal for every account is profit share at the client's default p (20–40%), overridable per IPO by the admin.                                                                                                     |
+| BR-DEAL-02                              | A fixed offer is a quote: price F, audience (all, group or chosen clients) and validity window. Quotes may differ per client and change over time.                                                                           |
+| BR-DEAL-03                              | When a client submits a fixed pick, the quote valid at that instant is frozen (price + timestamp) and goes to admin approval. A rejected pick reverts to profit share.                                                       |
+| BR-DEAL-04                              | A deal can be changed by the client only until that account is marked APPLIED. After that only the admin can change it, with an audit entry.                                                                                 |
+| BR-DEAL-05                              | A deal snapshot is stored per application. Later changes to defaults never alter past applications.                                                                                                                          |
+| **Tasks**                               |                                                                                                                                                                                                                              |
+| BR-TASK-01                              | One "apply" task per account per APPLY IPO, always 1 lot, with the UPI ID and apply window(s) set by the admin.                                                                                                              |
+| BR-TASK-02                              | A task not marked APPLIED by the end of its window becomes MISSED. If the admin defined a later window, it reopens there; after IPO close it is final.                                                                       |
+| BR-TASK-03                              | Reminders follow intensity levels (gentle, standard every 2 h, urgent every 1 h), respect quiet hours, are grouped per client, and stop as soon as the task completes.                                                       |
+| **Settlement**                          |                                                                                                                                                                                                                              |
+| BR-SET-01                               | Profit share, not allotted: 0 either way.                                                                                                                                                                                    |
+| BR-SET-02                               | Profit share, allotted, G > 0: client pays I + G − p·G.                                                                                                                                                                      |
+| BR-SET-03                               | Profit share, allotted, G ≤ 0: client pays I + G.                                                                                                                                                                            |
+| BR-SET-04                               | Fixed, not allotted: operator pays the client F.                                                                                                                                                                             |
+| BR-SET-05                               | Fixed, allotted, G > 0: client pays I + G − F − B. B defaults to ₹40 and can be set in Settings and per IPO.                                                                                                                 |
+| BR-SET-06                               | Fixed, allotted, G ≤ 0: client pays I + G − F (no B). If the result is negative, the operator pays the absolute value.                                                                                                       |
+| BR-SET-07                               | Amounts are integer paise, rounded half-up to the rupee (configurable). One running balance per main member, across all their accounts and IPOs.                                                                             |
+| BR-SET-08                               | Due date = listing day + 2 weekdays (skip Saturday/Sunday), at 23:59 IST.                                                                                                                                                    |
+| BR-SET-09                               | Before listing, show estimates using the current GMP; entering the listing price makes the amounts final and notifies clients.                                                                                               |
+| BR-SET-10                               | Corrections (listing price, allotment) post reversal and replacement ledger entries. Ledger rows are never updated or deleted.                                                                                               |
+| BR-SET-11                               | Earnings for reports:<br>• client earned = F (fixed) or p·max(G, 0) (profit share)<br>• operator earned = G − F − B (fixed, profit), G − F (fixed, loss), −F (fixed, not allotted), G − p·max(G, 0) (profit share, allotted) |
+| **Payments**                            |                                                                                                                                                                                                                              |
+| BR-PAY-01                               | Client marks "Payment done" (optional UTR or screenshot) → admin confirms → SETTLED.                                                                                                                                         |
+| BR-PAY-02                               | When the operator owes money, the admin marks it paid with a UTR and the client confirms receipt.                                                                                                                            |
+| BR-PAY-03                               | Overdue (after the due time) escalates reminders and raises an admin warning.                                                                                                                                                |
+| **Golden scenarios (must always pass)** |                                                                                                                                                                                                                              |
+| GS-01                                   | Person A, 5 accounts allotted, I = 15,000, G = 3,000 each; 3 fixed at F = 500, B = 40; 2 profit share at 30% → owes **₹86,580**.                                                                                             |
+| GS-02                                   | Same, none allotted → operator owes **₹1,500**.                                                                                                                                                                              |
+| GS-03                                   | Fixed at a loss: I = 15,000, G = −3,000, F = 500 → client pays **₹11,500**.                                                                                                                                                  |
+| GS-04                                   | Listing on Friday → due **Tuesday** 23:59; Thursday → **Monday**.                                                                                                                                                            |
+
+**Defaults the agents will use** (flagged in specs for your one-time confirmation):
+
+- A registrar rejection is recorded by the admin as NOT_ALLOTTED.
+- A fixed pick still pending approval at the time of applying stays pending; its frozen price stands.
+- Partial payments reduce the balance.
+- An account deleted while it has open tasks is blocked until those settle.
+
+---
