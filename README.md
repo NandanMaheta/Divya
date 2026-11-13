@@ -1,6 +1,6 @@
-# Divya
+# Swastik
 
-**Divya is a private operations platform for managing IPO applications across many family accounts.** One operator lists upcoming mainboard IPOs, decides which to apply for, offers each client a deal (profit share or fixed amount), reminds every account to apply on time, records allotments and the listing price, and settles the money — with a complete history and financial-year reports for everyone involved.
+**Swastik is a private operations platform for managing IPO applications across many family accounts.** One operator lists upcoming mainboard IPOs, decides which to apply for, offers each client a deal (profit share or fixed amount), reminds every account to apply on time, records allotments and the listing price, and settles the money — with a complete history and financial-year reports for everyone involved.
 
 It replaces a manual process of WhatsApp messages, spreadsheets and mental arithmetic with:
 
@@ -75,15 +75,15 @@ infra/        Docker Compose for local Postgres; infrastructure-as-code (later)
 Prerequisites: Go 1.27, Node 22 + pnpm 10, Python 3.13 + uv, Docker.
 
 ```bash
-git clone https://github.com/NandanMaheta/Divya.git divya && cd divya
+git clone https://github.com/NandanMaheta/Swastik.git swastik && cd swastik
 git switch stage                       # stage is the working branch
 make setup                             # pnpm install, go mod download, uv sync
 make db-up                             # PostgreSQL 18 in Docker
 cp .env.example .env                   # local settings only; never commit real secrets
 make migrate
 make api                               # API on http://localhost:8080 (docs at /docs)
-pnpm --filter @divya/admin dev         # admin panel on http://localhost:5173
-pnpm --filter @divya/client start      # client app (press w for web, a for Android)
+pnpm --filter @swastik/admin dev         # admin panel on http://localhost:5173
+pnpm --filter @swastik/client start      # client app (press w for web, a for Android)
 ```
 
 Checks before pushing:

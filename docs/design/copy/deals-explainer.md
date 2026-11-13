@@ -81,7 +81,7 @@ Two weekdays after the listing day, by 11:59 pm. Saturday and Sunday are skipped
 ## Writing notes and localisation
 
 - Words used everywhere, never swapped for synonyms: **profit share**, **fixed deal**, **allotted / not allotted**, **listing**, **you pay**, **we pay you**, **your share**, **brokerage**, **Applied**.
-- "We" is the operator (Divya). "You" is the main member; the copy is per account, so "the account" not "your account" when it may be a family member's.
+- "We" is the operator (Swastik). "You" is the main member; the copy is per account, so "the account" not "your account" when it may be a family member's.
 - Keep the arithmetic lines as digits with the ₹ sign and Indian grouping in every language; do not spell numbers out. Hindi and Gujarati use the same Latin digits (matching `formatRupees`).
 - The minus sign is U+2212 with spaces either side.
 - Translators: "listing" means the first day the shares trade on NSE; "allotted" means the account received shares. Gujarati and Hindi text runs about 30–40% longer; the sheet scrolls, so no limits, but keep each bullet one sentence.

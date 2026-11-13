@@ -12,13 +12,13 @@ db-down:
 	docker compose -f infra/docker/compose.yaml down
 
 migrate:          ## Apply DB migrations locally
-	cd apps/api && go run ./cmd/divya migrate up
+	cd apps/api && go run ./cmd/swastik migrate up
 
 api:              ## Run the Go API
-	cd apps/api && go run ./cmd/divya serve
+	cd apps/api && go run ./cmd/swastik serve
 
 worker:           ## Run the Python worker
-	cd apps/worker && uv run fastapi dev src/divya_worker/main.py
+	cd apps/worker && uv run fastapi dev src/swastik_worker/main.py
 
 test:             ## Run every test suite
 	cd apps/api && go test -race ./...

@@ -7,13 +7,13 @@ COPY . .
 ARG VERSION=dev
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go build -trimpath \
-    -ldflags="-s -w -X github.com/NandanMaheta/divya/apps/api/internal/platform/httpx.Version=${VERSION}" \
-    -o /out/divya ./cmd/divya
+    -ldflags="-s -w -X github.com/NandanMaheta/swastik/apps/api/internal/platform/httpx.Version=${VERSION}" \
+    -o /out/swastik ./cmd/swastik
 
 # Distroless: no shell, no package manager, runs as non-root.
 FROM gcr.io/distroless/static-debian12:nonroot
-COPY --from=build /out/divya /divya
+COPY --from=build /out/swastik /swastik
 USER nonroot:nonroot
 EXPOSE 8080
-ENTRYPOINT ["/divya"]
+ENTRYPOINT ["/swastik"]
 CMD ["serve"]

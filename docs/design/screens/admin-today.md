@@ -10,7 +10,7 @@ The operator's morning page: **what needs me today, in order of urgency**, with 
 
 ```
 ┌────────────┬──────────────────────────────────────────────────────────────────────────┐
-│ Divya      │ Today · Fri, 14 Nov 2026                     Updated 9:42 am IST  🔔 4  │  header 64, surface.base
+│ Swastik      │ Today · Fri, 14 Nov 2026                     Updated 9:42 am IST  🔔 4  │  header 64, surface.base
 │            ├──────────────────────────────────────────────────────────────────────────┤
 │ ▸ Today    │ ┌─────────────┐┌─────────────┐┌─────────────┐┌─────────────┐┌──────────┐ │  attention strip: 5 tiles
 │   Approvals│ │⚠ Overdue    ││⏳ Approvals ││◉ Allotments ││◉ Listing    ││◉ You owe │ │  icon + label (bodySm 600)

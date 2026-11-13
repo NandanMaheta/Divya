@@ -10,13 +10,13 @@ Answer one question in under three seconds: **"Do I need to do anything right no
 
 ```
 ┌──────────────────────────────────────┐
-│ Divya                         🔔 2   │  header: wordmark (brand.600), bell with unread count
+│ Swastik                         🔔 2   │  header: wordmark (brand.600), bell with unread count
 ├──────────────────────────────────────┤
 │ Good morning, Ramesh                 │  display 32/700, ink.900
 │ Fri, 14 Nov                          │  bodyLg, ink.600
 │                                      │
 │ ┌──────────────────────────────────┐ │  festival banner (only on scheduled days)
-│ │ ✦ Happy Diwali from Divya        │ │  surface.base, gold hairline + motif, ink.900 text
+│ │ ✦ Happy Diwali from Swastik        │ │  surface.base, gold hairline + motif, ink.900 text
 │ └──────────────────────────────────┘ │
 │                                      │
 │ DO NOW                               │  caption 13/500, ink.600 (the only caps label)
@@ -119,12 +119,12 @@ Tiles hide when they have nothing to say for a new client (no IPO history yet); 
 
 ## Android vs iPhone PWA
 
-|               | Android                                                                                                      | iPhone PWA                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Header        | Status bar tinted `surface.muted`, dark/light icons per scheme                                               | `apple-mobile-web-app-status-bar-style` = `default`; top safe-area padding                                                                                                      |
-| Back          | System back on Home asks nothing; it leaves the app (standard)                                               | No back on Home                                                                                                                                                                 |
-| Push prompt   | Asked after first login, on the Do-now context ("Get reminders when an IPO opens?")                          | If opened in Safari (not installed): a dismissible card above Do-now: "Add Divya to your Home Screen to get reminders" → guide sheet. Push permission asked only after install. |
-| Battery guide | One-time card on Xiaomi/Vivo/Oppo/Realme: "Allow Divya to run in the background so reminders arrive" → guide | n/a                                                                                                                                                                             |
+|               | Android                                                                                                        | iPhone PWA                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Header        | Status bar tinted `surface.muted`, dark/light icons per scheme                                                 | `apple-mobile-web-app-status-bar-style` = `default`; top safe-area padding                                                                                                        |
+| Back          | System back on Home asks nothing; it leaves the app (standard)                                                 | No back on Home                                                                                                                                                                   |
+| Push prompt   | Asked after first login, on the Do-now context ("Get reminders when an IPO opens?")                            | If opened in Safari (not installed): a dismissible card above Do-now: "Add Swastik to your Home Screen to get reminders" → guide sheet. Push permission asked only after install. |
+| Battery guide | One-time card on Xiaomi/Vivo/Oppo/Realme: "Allow Swastik to run in the background so reminders arrive" → guide | n/a                                                                                                                                                                               |
 
 ## Open questions (owner)
 

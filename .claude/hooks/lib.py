@@ -1,4 +1,4 @@
-"""Shared helpers for Divya Claude Code hooks (stdlib only)."""
+"""Shared helpers for Swastik Claude Code hooks (stdlib only)."""
 
 import json
 import os
@@ -29,7 +29,7 @@ def run(cmd: list[str], cwd: Path) -> tuple[int, str]:
 
 def repo_root(start: str | Path | None) -> Path:
     """Root of the git worktree containing `start` (the agent's cwd or the edited file);
-    falls back to the project dir. Feature work happens in worktrees like ../divya-002."""
+    falls back to the project dir. Feature work happens in worktrees like ../swastik-002."""
     if start:
         p = Path(start)
         probe = p if p.is_dir() else p.parent

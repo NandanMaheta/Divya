@@ -1,7 +1,7 @@
 ---
 
 name: ship-module
-description: Runs /ship-feature for every feature of a Divya module (or the next N ready features) in dependency order, batching owner approvals. Use when asked to build a whole module such as "M7" or "the next features".
+description: Runs /ship-feature for every feature of a Swastik module (or the next N ready features) in dependency order, batching owner approvals. Use when asked to build a whole module such as "M7" or "the next features".
 ---
 
 # Ship a module

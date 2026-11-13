@@ -12,8 +12,8 @@ import (
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	"github.com/NandanMaheta/divya/apps/api/internal/platform/db"
-	"github.com/NandanMaheta/divya/apps/api/migrations"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db"
+	"github.com/NandanMaheta/swastik/apps/api/migrations"
 )
 
 // Image is the PostgreSQL version used in tests; keep it equal to production.
@@ -29,9 +29,9 @@ func New(t *testing.T) *pgxpool.Pool {
 	defer cancel()
 
 	ctr, err := tcpostgres.Run(ctx, Image,
-		tcpostgres.WithDatabase("divya"),
-		tcpostgres.WithUsername("divya"),
-		tcpostgres.WithPassword("divya"),
+		tcpostgres.WithDatabase("swastik"),
+		tcpostgres.WithUsername("swastik"),
+		tcpostgres.WithPassword("swastik"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").WithOccurrence(2),
 		),

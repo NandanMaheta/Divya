@@ -1,7 +1,7 @@
 ---
 
 name: money-safety
-description: Checklist for any code that computes, stores, posts or displays money in Divya (settlement, ledger, payments, reports). Use before writing or reviewing such code.
+description: Checklist for any code that computes, stores, posts or displays money in Swastik (settlement, ledger, payments, reports). Use before writing or reviewing such code.
 ---
 
 # Money safety checklist
@@ -14,4 +14,4 @@ description: Checklist for any code that computes, stores, posts or displays mon
 - [ ] Settlement reads the application's deal **snapshot**, never current defaults.
 - [ ] Property tests: balance invariants, reversal symmetry, idempotent recomputation (running settlement twice changes nothing).
 - [ ] Golden scenarios GS-01…GS-04 pass.
-- [ ] Display only through `formatRupees` (`@divya/domain`).
+- [ ] Display only through `formatRupees` (`@swastik/domain`).

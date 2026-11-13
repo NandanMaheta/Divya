@@ -20,7 +20,7 @@ jobs:
       - name: Playwright (admin + client PWA)
         run: |
           if ls apps/admin/e2e/*.spec.ts >/dev/null 2>&1; then
-            pnpm --filter @divya/admin exec playwright test --trace off
+            pnpm --filter @swastik/admin exec playwright test --trace off
           else
             echo "No Playwright specs yet (added from feature 022)."
           fi

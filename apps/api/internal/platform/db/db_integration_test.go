@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/NandanMaheta/divya/apps/api/internal/platform/dbtest"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/dbtest"
 )
 
 func TestMigrationsAndAuditLogIsAppendOnly(t *testing.T) {
@@ -12,7 +12,7 @@ func TestMigrationsAndAuditLogIsAppendOnly(t *testing.T) {
 	ctx := context.Background()
 
 	var orgID string
-	if err := pool.QueryRow(ctx, `INSERT INTO orgs (name) VALUES ('Divya') RETURNING id`).Scan(&orgID); err != nil {
+	if err := pool.QueryRow(ctx, `INSERT INTO orgs (name) VALUES ('Swastik') RETURNING id`).Scan(&orgID); err != nil {
 		t.Fatalf("insert org: %v", err)
 	}
 	var auditID string

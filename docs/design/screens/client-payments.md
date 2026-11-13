@@ -25,7 +25,7 @@ All amounts come from the API (settlement engine). The client app never computes
 │ │ ┌──────────────────────────────┐ │ │
 │ │ │       I've paid ...          │ │ │  secondary (outlined)
 │ │ └──────────────────────────────┘ │ │
-│ │ UPI ID  divya@okhdfc     [Copy]  │ │  CopyField
+│ │ UPI ID  swastik@okhdfc     [Copy]  │ │  CopyField
 │ │ Amount  ₹86,580          [Copy]  │ │  CopyField (copies digits only: 86580)
 │ └──────────────────────────────────┘ │
 │                                      │
@@ -103,7 +103,7 @@ GS-01 group total: 3 × ₹17,460 + 2 × ₹17,100 = **₹86,580** (shown in the
    - Amount (prefilled with the balance; editable for partial payments, numeric keypad, Indian grouping as you type)
    - UTR / reference (optional, 12 digits hint)
    - Screenshot (optional; picker)
-   - Button **Send to Divya**. Result: chip turns blue "Waiting for us to confirm"; toast "Thanks. We'll confirm when it reaches our bank."
+   - Button **Send to Swastik**. Result: chip turns blue "Waiting for us to confirm"; toast "Thanks. We'll confirm when it reaches our bank."
 3. **Yes, I received it** (BR-PAY-02): one tap, confirm sheet "Confirm you received ₹1,500?" **Yes, received** · **Not yet**. Result: green "Settled".
 4. **I haven't received it**: opens Message us with the payment reference prefilled.
 5. Tap a BreakdownCard header to expand/collapse. Default: expanded when ≤ 2 accounts, else collapsed with the result row visible.
@@ -121,14 +121,14 @@ GS-01 group total: 3 × ₹17,460 + 2 × ₹17,100 = **₹86,580** (shown in the
 
 ## Copy
 
-| Element                                          | Copy                                                                                            |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Directions                                       | "You pay" · "We pay you" · "You paid" · "We paid you" · "All settled" · "Nothing to pay"        |
-| Due                                              | "Due Tue, 18 Nov, 11:59 pm" · "Due today, 11:59 pm" · "Overdue since Tue, 18 Nov"               |
-| Buttons                                          | "Pay via UPI" · "I've paid" · "Send to Divya" · "Yes, I received it" · "I haven't received it"  |
-| Breakdown labels                                 | "Investment" · "+ Profit" / "− Loss" · "− Your share" · "− Brokerage" · "To pay" / "We pay you" |
-| Estimate caption                                 | "Based on today's expected profit, updated {time}. Final after listing."                        |
-| Final notice (after listing, top of screen once) | "Jio Financial listed at ₹{price}. Your amounts are now final."                                 |
+| Element                                          | Copy                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Directions                                       | "You pay" · "We pay you" · "You paid" · "We paid you" · "All settled" · "Nothing to pay"         |
+| Due                                              | "Due Tue, 18 Nov, 11:59 pm" · "Due today, 11:59 pm" · "Overdue since Tue, 18 Nov"                |
+| Buttons                                          | "Pay via UPI" · "I've paid" · "Send to Swastik" · "Yes, I received it" · "I haven't received it" |
+| Breakdown labels                                 | "Investment" · "+ Profit" / "− Loss" · "− Your share" · "− Brokerage" · "To pay" / "We pay you"  |
+| Estimate caption                                 | "Based on today's expected profit, updated {time}. Final after listing."                         |
+| Final notice (after listing, top of screen once) | "Jio Financial listed at ₹{price}. Your amounts are now final."                                  |
 
 ## Accessibility
 

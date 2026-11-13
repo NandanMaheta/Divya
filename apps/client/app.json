@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Divya",
-    "slug": "divya",
+    "name": "Swastik",
+    "slug": "swastik",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "divya",
+    "scheme": "swastik",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.nandanmaheta.divya"
+      "bundleIdentifier": "com.nandanmaheta.swastik"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nandanmaheta.divya"
+      "package": "com.nandanmaheta.swastik"
     },
     "web": {
       "output": "static",

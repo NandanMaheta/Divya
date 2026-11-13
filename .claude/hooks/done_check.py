@@ -7,7 +7,7 @@ import os
 from lib import active_states, read_input, repo_root, run
 
 data = read_input()
-if os.environ.get("DIVYA_DONE_CHECK", "on") == "off":
+if os.environ.get("SWASTIK_DONE_CHECK", "on") == "off":
     raise SystemExit(0)
 
 root = repo_root(data.get("cwd"))
