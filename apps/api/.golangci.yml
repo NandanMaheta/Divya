@@ -1,6 +1,10 @@
 version: "2"
 run:
   timeout: 5m
+issues:
+  # Report every linter that fires on a line, so a boundary violation (depguard, forbidigo)
+  # is never hidden behind a style finding on the same line.
+  uniq-by-line: false
 linters:
   default: standard
   enable:
