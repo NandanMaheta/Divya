@@ -3,7 +3,7 @@ import type { paths } from "./schema";
 
 export type { components, paths } from "./schema";
 
-/** Typed client generated from the Go API's OpenAPI spec (`pnpm --filter @divya/api-client generate`). */
+/** Typed client generated from the Go API's OpenAPI spec (`pnpm --filter @swastik/api-client generate`). */
 export function createApiClient(baseUrl: string, getToken?: () => string | undefined) {
   const client = createClient<paths>({ baseUrl });
   client.use({

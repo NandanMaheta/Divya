@@ -1,5 +1,5 @@
-import { formatRupees, paise } from "@divya/domain";
-import { colors, space } from "@divya/tokens";
+import { formatRupees, paise } from "@swastik/domain";
+import { colors, space } from "@swastik/tokens";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,7 +8,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>Divya</Text>
+        <Text style={styles.title}>Swastik</Text>
         <Text style={styles.subtitle}>Your IPO tasks, allotments and payments in one place.</Text>
         <Text style={styles.check}>Formatting check: {formatRupees(paise(8658000))}</Text>
       </View>

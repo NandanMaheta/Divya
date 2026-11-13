@@ -1,4 +1,4 @@
-import { formatRupees, paise } from "@divya/domain";
+import { formatRupees, paise } from "@swastik/domain";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({ component: TodayPage });

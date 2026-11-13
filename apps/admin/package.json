@@ -1,5 +1,5 @@
 {
-  "name": "@divya/admin",
+  "name": "@swastik/admin",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@divya/api-client": "workspace:*",
-    "@divya/domain": "workspace:*",
-    "@divya/tokens": "workspace:*",
+    "@swastik/api-client": "workspace:*",
+    "@swastik/domain": "workspace:*",
+    "@swastik/tokens": "workspace:*",
     "@tanstack/react-query": "5.107.1",
     "@tanstack/react-router": "1.170.46",
     "react": "19.3.0",

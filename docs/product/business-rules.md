@@ -1,6 +1,6 @@
 <!-- Source of truth for behaviour. Every rule ID must appear in at least one test name
      (scripts/check-br-traceability.sh enforces this). Change rules only with owner approval. -->
-# Divya business rules
+# Swastik business rules
 
 Agents derive specs from this table, and every rule ID must appear in at least one test name (CI checks this). Notation:
 

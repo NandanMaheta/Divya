@@ -14,11 +14,11 @@ jobs:
         run: |
           if [ -z "${{ secrets.BACKUP_DATABASE_URL }}" ]; then echo "Backups not configured yet (feature 027)."; exit 0; fi
           sudo apt-get install -y postgresql-client >/dev/null
-          FILE=divya-$(date -u +%Y%m%dT%H%M).dump
+          FILE=swastik-$(date -u +%Y%m%dT%H%M).dump
           pg_dump --format=custom "${{ secrets.BACKUP_DATABASE_URL }}" -f "$FILE"
           # Upload to Cloudflare R2 (S3 API) and restore into a throwaway database to prove the backup works.
           AWS_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }} \
-            aws s3 cp "$FILE" "s3://divya-backups/$FILE" --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+            aws s3 cp "$FILE" "s3://swastik-backups/$FILE" --endpoint-url "${{ secrets.R2_ENDPOINT }}"
           docker run -d --name restore -e POSTGRES_PASSWORD=x -p 5433:5432 postgres:18-alpine && sleep 8
           pg_restore --no-owner -d "postgres://postgres:x@localhost:5433/postgres" "$FILE"
           psql "postgres://postgres:x@localhost:5433/postgres" -c "select count(*) from audit_log;"

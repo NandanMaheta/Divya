@@ -1,6 +1,6 @@
-# Divya: automated delivery blueprint (zero → MVP)
+# Swastik: automated delivery blueprint (zero → MVP)
 
-Companion to `Product blueprint.md`. It defines how agents build Divya with minimal human involvement. It covers:
+Companion to `Product blueprint.md`. It defines how agents build Swastik with minimal human involvement. It covers:
 
 - understanding the business rules
 - spec, research and plan
@@ -211,8 +211,8 @@ Fable 5.2 can replace Opus for `architect` and `reviewer` on the riskiest module
 ## 4. Repository layout for automation
 
 ```
-divya/
-├─ CLAUDE.md                     ≤150 lines: what Divya is, commands per app, where rules live, escalation policy
+swastik/
+├─ CLAUDE.md                     ≤150 lines: what Swastik is, commands per app, where rules live, escalation policy
 ├─ .claude/
 │  ├─ settings.json              permissions (allow/deny), hooks, env, model defaults
 │  ├─ agents/                    the 16 agents above
@@ -253,7 +253,7 @@ divya/
 ### 4.2 Permissions
 
 - **Allow:** `go *`, `pnpm *`, `uv *`, `sqlc *`, `goose * (local DB)`, `maestro *`, `npx playwright *`, `gh pr *`, `gh issue *`, `git` (non-force).
-- **Deny:** `Read(.env*)`, `Bash(gcloud * --project=divya-prod*)`, `Bash(supabase db push --linked*)` outside CI, any MCP write tool against production.
+- **Deny:** `Read(.env*)`, `Bash(gcloud * --project=swastik-prod*)`, `Bash(supabase db push --linked*)` outside CI, any MCP write tool against production.
 
 ---
 
@@ -306,7 +306,7 @@ Coverage policy:
 
 Supabase's free plan allows exactly two projects, which covers staging and production.
 
-**Branching:** `main` = production, `stage` = default working branch and staging. Work branches come from `stage` with human-readable names (`feat/<NNN>-<desc>`, `fix/<issue>-<desc>`, `chore/<desc>`, `refactor/<desc>`, `docs/<desc>`, `test/<desc>`; `hotfix/<issue>-<desc>` from `main`) and merge into `stage` by PR; releases are `stage` → `main` PRs, tagged `vX.Y.Z`. Parallel work uses one worktree per branch (`../divya-<id>`). Full guide: `docs/engineering/git-workflow.md`.
+**Branching:** `main` = production, `stage` = default working branch and staging. Work branches come from `stage` with human-readable names (`feat/<NNN>-<desc>`, `fix/<issue>-<desc>`, `chore/<desc>`, `refactor/<desc>`, `docs/<desc>`, `test/<desc>`; `hotfix/<issue>-<desc>` from `main`) and merge into `stage` by PR; releases are `stage` → `main` PRs, tagged `vX.Y.Z`. Parallel work uses one worktree per branch (`../swastik-<id>`). Full guide: `docs/engineering/git-workflow.md`.
 
 ---
 
@@ -344,7 +344,7 @@ Deliberately **not** connected: broker or payment MCPs (Kite, Razorpay), WhatsAp
 
 **You do once.** Agents cannot create accounts or enter card details.
 
-1. Create an empty **private GitHub repo** `divya`; give this session access (add_repo) and enable Actions.
+1. Create an empty **private GitHub repo** `swastik`; give this session access (add_repo) and enable Actions.
 2. Create accounts or projects:
    - **Google Cloud** project (billing card, ₹1 budget alert)
    - **Supabase** (2 free projects, Mumbai region if offered)
@@ -353,7 +353,7 @@ Deliberately **not** connected: broker or payment MCPs (Kite, Razorpay), WhatsAp
    - **Expo** account
    - **Sentry**
    - **Brevo or Resend** (email)
-3. Buy the domain (for example a `divya` .in or .app name; plain `divya.in` is likely taken) on Cloudflare Registrar.
+3. Buy the domain (for example a `swastik` .in or .app name; plain `swastik.in` is likely taken) on Cloudflare Registrar.
 4. Paste secrets into **GitHub Environments** (`staging`, `production`). Agents give you an exact checklist; values never go into chat.
 5. Install the plugins above in Claude Code (one-click cards below).
 

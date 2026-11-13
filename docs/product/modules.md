@@ -1,4 +1,4 @@
-# Divya module map and build order
+# Swastik module map and build order
 
 The conductor (`/ship-module`) works through this file top to bottom. Each feature becomes one Spec Kit feature folder `specs/NNN-<slug>/`. Status values: `todo`, `spec`, `building`, `review`, `uat`, `done`. Agents update the Status column; the owner can reorder rows.
 

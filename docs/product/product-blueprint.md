@@ -1,4 +1,4 @@
-# Divya: product blueprint v2 (internal IPO operations)
+# Swastik: product blueprint v2 (internal IPO operations)
 
 **Version 2.** This replaces v1 and follows your re-described flow.
 
@@ -341,7 +341,7 @@ Notifications are written to an **outbox** in the same database transaction as t
 Monorepo:
 
 ```
-divya/
+swastik/
 ├─ apps/
 │  ├─ api/        Go modular monolith: internal/{auth,clients,members,ipos,deals,tasks,allotment,settlement,ledger,notify,reports,approvals,scheduler}
 │  ├─ worker/     Python FastAPI: ipo_import, rhp_brief, gmp_suggest
@@ -424,7 +424,7 @@ Your resume today: React, React Native, Next.js, TypeScript, Node/Express, Postg
 
 Suggested resume line once built:
 
-> _Divya: IPO operations platform (Go, Python/FastAPI, PostgreSQL, Expo/React Native, React, GCP Cloud Run, OpenTofu). Designed a double-entry settlement ledger and event-driven reminder scheduler; built an LLM pipeline summarising IPO prospectuses; shipped Android + PWA clients from one codebase; ran delivery through a multi-agent Claude Code + Spec Kit pipeline with automated test gates._
+> _Swastik: IPO operations platform (Go, Python/FastAPI, PostgreSQL, Expo/React Native, React, GCP Cloud Run, OpenTofu). Designed a double-entry settlement ledger and event-driven reminder scheduler; built an LLM pipeline summarising IPO prospectuses; shipped Android + PWA clients from one codebase; ran delivery through a multi-agent Claude Code + Spec Kit pipeline with automated test gates._
 
 If you prefer only **one** new language: pick **Python/FastAPI** if you are aiming at AI-product or full-stack roles, or **Go** if you are aiming at backend or fintech roles. Doing both, as above, costs little because the Python part is small and isolated.
 

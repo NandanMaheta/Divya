@@ -23,8 +23,8 @@ if name.startswith(".env") and name != ".env.example":
     block("Editing .env files is not allowed. Secrets live in GitHub Environments / Secret Manager.")
 if name.endswith(".tfstate") or ".terraform/" in rel:
     block("Infrastructure state is managed by CI only.")
-if rel.startswith(".github/workflows/deploy") and os.environ.get("DIVYA_ALLOW_DEPLOY_EDIT") != "1":
-    block("Deploy workflows change only with owner approval (set DIVYA_ALLOW_DEPLOY_EDIT=1 for that session).")
+if rel.startswith(".github/workflows/deploy") and os.environ.get("SWASTIK_ALLOW_DEPLOY_EDIT") != "1":
+    block("Deploy workflows change only with owner approval (set SWASTIK_ALLOW_DEPLOY_EDIT=1 for that session).")
 
 if rel.startswith("apps/api/migrations/") and rel.endswith(".sql"):
     for base in ("origin/stage", "origin/main"):

@@ -17,7 +17,7 @@ The screen where most taps happen. For each family account and each APPLY IPO, s
 ├──────────────────────────────────────┤
 │ Jio Financial                        │  IPO group header, heading 20/600
 │ Closes in 2 h 15 min · Today 5:00 pm │  Countdown (amber bold) + caption
-│ UPI ID  divya@okhdfc       [Copy]    │  CopyField, shared by the group when all rows use it
+│ UPI ID  swastik@okhdfc       [Copy]    │  CopyField, shared by the group when all rows use it
 │                                      │
 │ ┌──────────────────────────────────┐ │  TaskCard
 │ │ Rajesh · PAN ••••4F   ◉ To do    │ │  AccountName (bodyLg 600) + StatusChip
@@ -67,7 +67,7 @@ UPI ID: shown once in the group header when all tasks in the IPO share it; other
 
 - **Mark applied (tap 1)** opens a `ConfirmSheet`:
   - Title "Did you apply for Rajesh?"
-  - Body "Jio Financial · 1 lot · ₹14,850 · UPI divya@okhdfc"
+  - Body "Jio Financial · 1 lot · ₹14,850 · UPI swastik@okhdfc"
   - Note (`ink.600`): "After this, Rajesh's deal is locked and reminders stop."
   - Buttons: **Yes, I applied** (primary, tap 2) · **Not yet** (text button).
   - The sheet exists because marking applied locks the deal (BR-DEAL-04); it keeps the action at 2 taps.

@@ -1,7 +1,7 @@
 ---
 
 name: release
-description: Divya PR, versioning, changelog and release procedure (staging on merge, production on tag with owner approval, APK and OTA updates, rollback). Use when opening PRs or cutting releases.
+description: Swastik PR, versioning, changelog and release procedure (staging on merge, production on tag with owner approval, APK and OTA updates, rollback). Use when opening PRs or cutting releases.
 ---
 
 # Release procedure

@@ -1,7 +1,7 @@
 ---
 
 name: ship-feature
-description: Conductor for one Divya feature from docs/product/modules.md — research, spec, owner approval, plan, tasks, test-first implementation by parallel agents, review, QA and PR. Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
+description: Conductor for one Swastik feature from docs/product/modules.md — research, spec, owner approval, plan, tasks, test-first implementation by parallel agents, review, QA and PR. Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
 ---
 
 # Ship one feature
@@ -12,8 +12,8 @@ You are the conductor. You coordinate agents; you do not write production code y
 
 1. Find the feature row `<NNN>` in `docs/product/modules.md`. Refuse if a dependency is not `done`.
 2. If `specs/<NNN>-*/state.json` exists, resume from its `phase` in its worktree. Otherwise create the branch and worktree from `stage` (see `docs/engineering/git-workflow.md`):
-   `git fetch origin && git worktree add ../divya-<NNN> -b feat/<NNN>-<short-desc> origin/stage`
-   Use the same `<NNN>-<short-desc>` for the spec folder `specs/<NNN>-<short-desc>/` and set `.specify/feature.json` to it (Spec Kit resolves features from that file, not the branch name). Run all agents for this feature inside `../divya-<NNN>`.
+   `git fetch origin && git worktree add ../swastik-<NNN> -b feat/<NNN>-<short-desc> origin/stage`
+   Use the same `<NNN>-<short-desc>` for the spec folder `specs/<NNN>-<short-desc>/` and set `.specify/feature.json` to it (Spec Kit resolves features from that file, not the branch name). Run all agents for this feature inside `../swastik-<NNN>`.
 
 ## 1. Research → `researcher`
 

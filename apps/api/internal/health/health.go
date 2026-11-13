@@ -1,4 +1,4 @@
-// Package health is the golden reference module: every Divya module follows this shape.
+// Package health is the golden reference module: every Swastik module follows this shape.
 //
 //	service.go  - business logic behind small interfaces (no HTTP, no SQL types leak out)
 //	handler.go  - Huma operations: typed input/output, registered via Register

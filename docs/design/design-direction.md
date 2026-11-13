@@ -1,4 +1,4 @@
-# Divya design direction (Stage 1)
+# Swastik design direction (Stage 1)
 
 Status: **proposal for owner approval**. Tokens live in `packages/tokens/src/index.ts` and `packages/tokens/src/theme.css` (kept in sync). Screen specs live in `docs/design/screens/`, UX copy in `docs/design/copy/`.
 
@@ -8,7 +8,7 @@ Sources: constitution principle VII, `docs/product/business-rules.md`, `docs/pro
 
 ## 1. Brand personality
 
-Divya means "divine, radiant". We take the warmth, not the ornament. Clients send real money because of what this app tells them, so the app has to feel like a careful family accountant: calm, exact and kind.
+Swastik is the traditional Indian sign of auspiciousness and well-being (from Sanskrit _svasti_, "well-being"). We take its warmth and sense of good fortune, not the ornament. Clients send real money because of what this app tells them, so the app has to feel like a careful family accountant: calm, exact and kind.
 
 | We are                                                                         | We are not                                                                 |
 | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
@@ -74,7 +74,7 @@ Neutrals are warm stone greys (a slight red-yellow cast) so the app feels like p
 
 ### 2.3 Status tones
 
-The vocabulary is fixed in `@divya/domain` `statusTone` and used identically in both apps:
+The vocabulary is fixed in `@swastik/domain` `statusTone` and used identically in both apps:
 
 | Status                                               | Tone  | Icon (Lucide)  | Light fg / soft       | Dark fg / soft        |
 | ---------------------------------------------------- | ----- | -------------- | --------------------- | --------------------- |
@@ -238,7 +238,7 @@ Calm, quick, purposeful. All values are in `motion` and map directly to Reanimat
 
 | Topic                     | Rule                                                                                                                                                                                | Example                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Currency                  | Always via `formatRupees` from `@divya/domain`; Indian grouping; `₹` with no space                                                                                                  | ₹1,48,500 · ₹86,580 · ₹500                          |
+| Currency                  | Always via `formatRupees` from `@swastik/domain`; Indian grouping; `₹` with no space                                                                                                | ₹1,48,500 · ₹86,580 · ₹500                          |
 | Paise                     | Hidden. Amounts are whole rupees (BR-SET-07 rounds to the rupee). Show paise (`showPaise: true`) only in the admin ledger/audit views or if the operator changes rounding to paise. | ₹17,460                                             |
 | Direction                 | Words, not signs. A balance is "You pay ₹X" or "We pay you ₹X", never "−₹X".                                                                                                        | "We pay you ₹1,500"                                 |
 | Deductions in a breakdown | Minus sign U+2212 with a label, aligned right, tabular                                                                                                                              | "− Your share  ₹900"                                |
@@ -251,7 +251,7 @@ Calm, quick, purposeful. All values are in `motion` and map directly to Reanimat
 | Relative time             | Under 24 h use relative, else absolute                                                                                                                                              | "Closes in 2 h 15 min", "Due Tue, 18 Nov, 11:59 pm" |
 | Financial year            | Apr–Mar, labelled "FY 2026–27" and quarters "Q3 (Oct–Dec)"                                                                                                                          |                                                     |
 | PAN                       | Always masked as in the constitution                                                                                                                                                | ABCDE••••F                                          |
-| UPI ID                    | Monospace not required; shown in full with a Copy button                                                                                                                            | divya@okhdfc                                        |
+| UPI ID                    | Monospace not required; shown in full with a Copy button                                                                                                                            | swastik@okhdfc                                      |
 
 Large numbers: the hero amount of a card uses `amount` (40) and is the visually heaviest element; supporting amounts use `heading` or `bodyLg` with tabular figures and right alignment.
 
@@ -308,7 +308,7 @@ Screen specs refer to these by name. Each is built once per app (`apps/client/sr
 
 | Component         | What it is                                                                                                      | Key rules                                                                                                                                                            |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `StatusChip`      | Pill: tone icon + word on `toneSoft`, text in `tone`                                                            | Takes a `StatusKey` from `@divya/domain`, never a colour. `label` 16/600 on the client, `bodySm` 14/600 on admin. Reads "Status: To do".                             |
+| `StatusChip`      | Pill: tone icon + word on `toneSoft`, text in `tone`                                                            | Takes a `StatusKey` from `@swastik/domain`, never a colour. `label` 16/600 on the client, `bodySm` 14/600 on admin. Reads "Status: To do".                           |
 | `Amount`          | Formatted rupees via `formatRupees`, tabular figures                                                            | Sizes: `amount`, `heading`, `bodyLg`. Accessibility label "Rupees 86,580". Never truncates; wraps the label above instead.                                           |
 | `DirectionAmount` | `Amount` with a word: "You pay" / "We pay you" / "Nothing to pay"                                               | Direction is words, never a sign or colour alone.                                                                                                                    |
 | `Countdown`       | "Closes in 2 h 15 min" in `tone.amber` bold; absolute time underneath in `caption`                              | Updates per minute; not a live region. Turns into a red `StatusChip` "Missed"/"Overdue" only when the deadline has passed.                                           |

@@ -1,5 +1,5 @@
 /**
- * Divya design tokens: the single source for colour, type, spacing, radius, elevation and motion.
+ * Swastik design tokens: the single source for colour, type, spacing, radius, elevation and motion.
  * theme.css mirrors these values for Tailwind v4 (admin) and Uniwind (client); keep both in sync.
  * Design direction and contrast ratios: docs/design/design-direction.md.
  *
@@ -10,7 +10,7 @@
  *   ink[900/600/400] = primary / secondary / tertiary text (all >= 4.5:1 on every surface)
  *   surface.base = cards and panels, surface.muted = app canvas, surface.sunken = wells, inputs, table headers
  *   tone[x] = status text and icon colour, toneSoft[x] = status chip background
- * Status tones (see @divya/domain statusTone): amber = to do, blue = waiting, green = done or allotted,
+ * Status tones (see @swastik/domain statusTone): amber = to do, blue = waiting, green = done or allotted,
  * red = missed or overdue, grey = not allotted. Never show a tone without its icon and label.
  */
 

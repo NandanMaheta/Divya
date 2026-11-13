@@ -30,7 +30,7 @@ jobs:
       - name: Build and push images
         if: steps.cfg.outputs.skip != 'true'
         run: |
-          REG=asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/divya
+          REG=asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/swastik
           gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet
           docker build -t $REG/api:${{ github.sha }} --build-arg VERSION=${{ github.ref_name }} apps/api
           docker build -t $REG/worker:${{ github.sha }} apps/worker
@@ -38,12 +38,12 @@ jobs:
       - name: Migrate and deploy to Cloud Run (Mumbai)
         if: steps.cfg.outputs.skip != 'true'
         run: |
-          REG=asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/divya
-          gcloud run jobs deploy divya-migrate --image $REG/api:${{ github.sha }} --args migrate,up \
+          REG=asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/swastik
+          gcloud run jobs deploy swastik-migrate --image $REG/api:${{ github.sha }} --args migrate,up \
             --region asia-south1 --set-secrets DATABASE_URL=database-url:latest --execute-now --wait
-          gcloud run deploy divya-api --image $REG/api:${{ github.sha }} --region asia-south1 \
+          gcloud run deploy swastik-api --image $REG/api:${{ github.sha }} --region asia-south1 \
             --set-secrets DATABASE_URL=database-url:latest --set-env-vars APP_ENV=${{ vars.APP_ENV }}
-          gcloud run deploy divya-worker --image $REG/worker:${{ github.sha }} --region asia-south1 --no-allow-unauthenticated
+          gcloud run deploy swastik-worker --image $REG/worker:${{ github.sha }} --region asia-south1 --no-allow-unauthenticated
       - name: Smoke test
         if: steps.cfg.outputs.skip != 'true'
         run: curl -fsS "${{ vars.API_BASE_URL }}/readyz"
