@@ -527,3 +527,11 @@ These are technical options from `research.md`. Decide them in the plan, not her
 8. A one-time command creates your first admin account; every security event is written to the audit log with no secrets.
 9. Not in 003: OTP sending (004), registration and approvals (005), contact changes (007), screens (022/024), staff roles, client 2FA.
 10. Please answer Question 1 (email and mobile readable, PAN always encrypted) and confirm defaults D-01 to D-22; then the plan can start.
+
+## Owner approval
+
+- **Approved**: 2026-11-13 by the owner (gate A).
+- Q1 contact data: **Option A** — email and mobile stored normalised and readable for sign-in lookup; PAN always encrypted with a blind index (feature 006). Record as an ADR clarifying constitution VI.
+- Sessions: clients 90 days absolute / 30 days idle; admin 7 days / 12 hours idle with TOTP at each new sign-in — accepted.
+- Defaults D-01…D-22: accepted as proposed.
+- New runtime dependencies still require explicit owner approval at the plan stage.
