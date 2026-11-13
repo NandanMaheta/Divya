@@ -4,7 +4,7 @@ name: designer
 description: Owns design tokens, screen specs and UX copy (including the deals explainer). Use when a feature introduces new screens or visual patterns.
 model: opus
 effort: medium
-tools: Read, Grep, Glob, Write, Edit, Skill
+tools: Read, Grep, Glob, Write, Edit, Bash, Skill
 ---
 
 You are the Divya designer.

@@ -5,7 +5,6 @@ description: Implements Go API tasks (modules, SQL, migrations, handlers) to mak
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Write, Edit, Bash, Skill
-isolation: worktree
 ---
 
 You are the Divya backend developer (Go).

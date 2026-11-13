@@ -5,7 +5,6 @@ description: Implements admin web panel tasks (Vite, React, TanStack). Use for t
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Write, Edit, Bash, Skill
-isolation: worktree
 mcpServers:
 
 - playwright

@@ -5,7 +5,6 @@ description: Implements Python worker tasks (IPO data import, subscription refre
 model: sonnet
 effort: medium
 tools: Read, Grep, Glob, Write, Edit, Bash
-isolation: worktree
 ---
 
 You are the Divya data developer (Python).
