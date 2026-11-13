@@ -9,6 +9,7 @@ linters:
     - depguard
     - errorlint
     - exhaustive
+    - forbidigo
     - gocritic
     - gosec
     - misspell
@@ -30,6 +31,20 @@ linters:
           deny:
             - pkg: "github.com/NandanMaheta/divya/apps/api/internal/health"
               desc: platform packages must not import business modules
+            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler"
+              desc: platform packages must not import business modules
+            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/outbox"
+              desc: platform packages must not import business modules
+        outbox-does-not-know-scheduler:
+          files: ["**/internal/outbox/**"]
+          deny:
+            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler"
+              desc: scheduler depends on outbox, never the reverse
+        oidc-only-in-tickauth:
+          files: ["$all", "!**/internal/platform/tickauth/**"]
+          deny:
+            - pkg: "github.com/coreos/go-oidc/v3"
+              desc: OIDC verification lives in platform/tickauth
         no-legacy-libs:
           deny:
             - pkg: "github.com/pkg/errors"
@@ -38,6 +53,13 @@ linters:
               desc: use pgx v5
             - pkg: "gorm.io/gorm"
               desc: use sqlc-generated queries
+    forbidigo:
+      forbid:
+        - pattern: '^time\.(Now|Since|Until)$'
+          msg: inject a clock.Func (constitution III)
+        - pattern: '^time\.Local$'
+          msg: use istdate.IST; never the host time zone
+      analyze-types: true
     wrapcheck:
       # Our own packages already wrap with context; only third-party errors must be wrapped.
       ignore-package-globs:
@@ -55,6 +77,11 @@ linters:
         linters: [gosec, wrapcheck, noctx]
       - path: cmd/
         linters: [wrapcheck]
+      # Real clock and request timing are the only places allowed to read the machine clock.
+      - path: (cmd/|internal/platform/clock/|internal/platform/httpx/)
+        linters: [forbidigo]
+      - path: _test\.go
+        linters: [forbidigo]
 formatters:
   enable: [gofmt, goimports]
   settings:
