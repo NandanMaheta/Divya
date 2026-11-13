@@ -74,7 +74,7 @@
   - Rules: BR-TASK-03 | Refs: FR-031; D3
   - Files (1, ~90 lines): `apps/api/internal/platform/istdate/quiet.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/istdate/...`
-- [ ] T011 [P] **test-engineer**: Tests for retry: Backoff (deterministic per seed, non-decreasing, strictly increasing to cap, >= 48 s, <= 6 h) and ErrorText (truncate 500, redact Bearer tokens, JWT-shaped strings, PAN pattern).
+- [x] T011 [P] **test-engineer**: Tests for retry: Backoff (deterministic per seed, non-decreasing, strictly increasing to cap, >= 48 s, <= 6 h) and ErrorText (truncate 500, redact Bearer tokens, JWT-shaped strings, PAN pattern).
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-017, FR-018; constitution VI
   - Files (2, ~140 lines): `apps/api/internal/platform/retry/backoff_test.go`, `apps/api/internal/platform/retry/errtext_test.go`

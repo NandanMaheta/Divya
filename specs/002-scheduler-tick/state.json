@@ -150,14 +150,18 @@
     "T011": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/retry/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for retry",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/retry/backoff_test.go",
+        "apps/api/internal/platform/retry/errtext_test.go"
+      ]
     },
     "T012": {
       "owner": "backend-dev",
