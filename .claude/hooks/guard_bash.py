@@ -7,7 +7,7 @@ from lib import block, read_input
 cmd = read_input().get("tool_input", {}).get("command", "")
 rules = [
     (r"git\s+push\s+.*(--force|-f\b)(?!-with-lease)", "Force-push is not allowed."),
-    (r"git\s+push\s+\S+\s+main\b|git\s+push\s+origin\s+HEAD:main", "Never push to main directly; open a PR."),
+    (r"git\s+push\s+\S+\s+(main|stage)\b|git\s+push\s+\S+\s+\S*:(refs/heads/)?(main|stage)\b", "Never push to main or stage directly; open a PR into stage."),
     (r"\brm\s+-rf\s+(/|~|\$HOME|\.\.)", "Refusing a broad rm -rf."),
     (r"gcloud\s+.*(deploy|delete|sql|iam|secrets)", "Cloud changes happen only in CI (deploy.yml)."),
     (r"supabase\s+(db\s+push|db\s+reset\s+--linked|link)", "Remote database changes happen only in CI."),
