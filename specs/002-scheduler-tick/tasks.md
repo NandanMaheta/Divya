@@ -89,7 +89,7 @@
   - Rules: none (mechanism) | Refs: FR-003; US2.5
   - Files (1, ~80 lines): `apps/api/internal/platform/config/config_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/config/...`
-- [ ] T014 **backend-dev**: Implement config Tick settings and validation (Load() error when TICK_AUTH=dev in staging/production).
+- [x] T014 **backend-dev**: Implement config Tick settings and validation (Load() error when TICK_AUTH=dev in staging/production).
   - Depends on: T013
   - Rules: none (mechanism) | Refs: FR-003; US2.5
   - Files (1, ~60 lines): `apps/api/internal/platform/config/config.go`

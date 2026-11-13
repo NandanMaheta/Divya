@@ -191,7 +191,7 @@
     "T014": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/config/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T013"
       ],
