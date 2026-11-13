@@ -32,9 +32,16 @@ Private IPO operations platform for one operator and ~100 invited clients: the o
 - Tests first, by `test-engineer`; implementers never edit those tests.
 - Done = the task's done command + affected suites + golden scenarios pass, with the output pasted as evidence.
 
+## Git workflow
+
+- `main` = production, `stage` = default working branch (staging). Never commit to either directly.
+- Branch from `origin/stage`: `feat/<NNN>-<desc>` (feature number from modules.md), `fix/<issue>-<desc>`, `chore/`, `refactor/`, `docs/`, `test/`; `hotfix/<issue>-<desc>` from `main`. Lowercase, hyphens, 2–5 descriptive words.
+- PRs target `stage`; releases are `stage` → `main` PRs. Parallel work: one worktree per branch, folder `../divya-<id>`.
+- Full guide: `docs/engineering/git-workflow.md`.
+
 ## Hard rules
 
 - Money is integer paise; ledger and audit tables are append-only; never float math on money.
 - Never read or write `.env*`, secrets, or production resources. Deploys happen only in CI.
 - Stop and ask the owner on: money-rule ambiguity, ledger/auth schema changes, new runtime dependencies, security-sensitive changes, or 3 failed attempts.
-- Conventional Commits. Small PRs. Update `docs/product/modules.md` status when a feature moves.
+- Conventional Commits. Small PRs into `stage`. Update `docs/product/modules.md` status when a feature moves.
