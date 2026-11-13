@@ -26,7 +26,7 @@
   - Files (2, ~30 lines): `apps/api/go.mod`, `apps/api/go.sum`
   - Done command (green): `cd apps/api && go mod verify && go list -m github.com/coreos/go-oidc/v3 github.com/google/uuid pgregory.net/rapid && go build ./...`
   - Note: go mod tidy is deferred to T068 (it would drop requirements not yet imported).
-- [ ] T002 [P] **test-engineer**: Write the deliberate-violation check: a script that drops temporary offending files (platform importing health/scheduler/outbox, outbox importing scheduler, go-oidc outside tickauth, time.Now/time.Local in business code) and asserts golangci-lint reports depguard/forbidigo for each, then cleans up. Cases for packages that do not exist yet are skipped.
+- [x] T002 [P] **test-engineer**: Write the deliberate-violation check: a script that drops temporary offending files (platform importing health/scheduler/outbox, outbox importing scheduler, go-oidc outside tickauth, time.Now/time.Local in business code) and asserts golangci-lint reports depguard/forbidigo for each, then cleans up. Cases for packages that do not exist yet are skipped.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan: Boundary rules; Risks (depguard negation syntax)
   - Files (1, ~90 lines): `scripts/check-lint-boundaries.sh`

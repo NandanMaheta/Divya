@@ -17,12 +17,15 @@
     "T002": {
       "owner": "test-engineer",
       "done_command": "bash scripts/check-lint-boundaries.sh",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Write the deliberate-violation check",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "scripts/check-lint-boundaries.sh"
+      ]
     },
     "T003": {
       "owner": "backend-dev",
