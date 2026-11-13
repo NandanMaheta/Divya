@@ -44,7 +44,7 @@
   - Rules: none (mechanism) | Refs: FR-032
   - Files (1, ~60 lines): `apps/api/internal/platform/clock/clock_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/clock/...`
-- [ ] T005 **backend-dev**: Implement clock.Func, Real, Fake (mutex guarded).
+- [x] T005 **backend-dev**: Implement clock.Func, Real, Fake (mutex guarded).
   - Depends on: T004, T003
   - Rules: none (mechanism) | Refs: FR-032
   - Files (2, ~60 lines): `apps/api/internal/platform/clock/clock.go`, `apps/api/internal/platform/clock/fake.go`
@@ -64,7 +64,7 @@
   - Rules: BR-TASK-03 | Refs: US8.1-8.4; TestQuietHours_BR_TASK_03_*
   - Files (1, ~150 lines): `apps/api/internal/platform/istdate/quiet_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/istdate/...`
-- [ ] T009 **backend-dev**: Implement istdate.go: IST via embedded tzdata, Date, DateOf, At, Weekday, AddDays, ParseDate, AddWeekdays (n<0 error), PaymentDue (listing + 2 weekdays at 23:59 IST). 100% branch coverage on this package.
+- [x] T009 **backend-dev**: Implement istdate.go: IST via embedded tzdata, Date, DateOf, At, Weekday, AddDays, ParseDate, AddWeekdays (n<0 error), PaymentDue (listing + 2 weekdays at 23:59 IST). 100% branch coverage on this package.
   - Depends on: T006, T007
   - Rules: BR-SET-08, GS-04 | Refs: FR-033; D1, D2
   - Files (1, ~130 lines): `apps/api/internal/platform/istdate/istdate.go`

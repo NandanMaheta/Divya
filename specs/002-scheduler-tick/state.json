@@ -55,7 +55,7 @@
     "T005": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/clock/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T004",
         "T003"
@@ -119,7 +119,7 @@
     "T009": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'GS_04|BR_SET_08|AddWeekdays|Date' ./internal/platform/istdate/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T006",
         "T007"
