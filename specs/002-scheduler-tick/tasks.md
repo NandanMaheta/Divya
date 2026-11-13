@@ -39,7 +39,7 @@
 
 ## Phase 2 - Platform packages (tests, then implementation)
 
-- [ ] T004 [P] **test-engineer**: Tests for clock: Fake Set/Advance/Now, race-safety with concurrent readers, Real returns UTC.
+- [x] T004 [P] **test-engineer**: Tests for clock: Fake Set/Advance/Now, race-safety with concurrent readers, Real returns UTC.
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-032
   - Files (1, ~60 lines): `apps/api/internal/platform/clock/clock_test.go`

@@ -42,12 +42,15 @@
     "T004": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/clock/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for clock",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/clock/clock_test.go"
+      ]
     },
     "T005": {
       "owner": "backend-dev",
