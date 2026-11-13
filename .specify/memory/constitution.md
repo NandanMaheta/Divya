@@ -40,11 +40,11 @@ Prefer the boring, standard solution; every new dependency needs a reason in the
 3. A change is done only when its done command, the affected suites and the golden scenarios pass, with evidence (command + output) in the PR.
 4. Review is by a fresh-context reviewer against the spec plus a security reviewer; AI review is advisory, CI is the gate.
 5. PRs touching `internal/settlement`, `internal/ledger`, `internal/deals`, `internal/auth`, or migrations require the owner's approval; other green PRs may auto-merge.
-6. Conventional Commits; trunk-based development; releases via tags with an owner-approved production environment.
+6. Git flow (`docs/engineering/git-workflow.md`): `main` = production, `stage` = default working branch and staging. All work happens on short-lived, human-readable branches cut from `stage` (`feat/<NNN>-<desc>`, `fix/<issue>-<desc>`, `chore/<desc>`, `refactor/<desc>`, `docs/<desc>`, `test/<desc>`; `hotfix/<issue>-<desc>` from `main`) and merges into `stage` by PR. Releases are PRs from `stage` to `main`, tagged `vX.Y.Z`, deployed after owner approval. Conventional Commits; parallel work uses one git worktree per branch.
 7. Agents stop and ask the owner on: money-rule ambiguity, ledger or auth schema changes, new runtime dependencies, security-sensitive changes, or three failed attempts at the same fix.
 
 ## Governance
 
 This constitution supersedes conflicting guidance in any other document. Amendments require an ADR in `docs/adr/`, owner approval, and a version bump below. Reviewers verify compliance on every PR; violations are blocking findings.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.1.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13 (git flow: stage/main)
