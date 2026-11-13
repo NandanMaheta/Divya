@@ -99,7 +99,7 @@
   - Rules: none (mechanism) | Refs: FR-002, FR-003; US2.1-2.4
   - Files (1, ~90 lines): `apps/api/internal/platform/tickauth/tickauth_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/tickauth/...`
-- [ ] T016 [P] **test-engineer**: Offline OIDC tests with httptest JWKS and locally minted RS256 tokens: missing/malformed/bad signature/unknown key/expired (fake clock)/wrong audience/wrong issuer/alg none and HS256, valid with wrong email or email_verified=false to ErrForbidden, valid to nil.
+- [x] T016 [P] **test-engineer**: Offline OIDC tests with httptest JWKS and locally minted RS256 tokens: missing/malformed/bad signature/unknown key/expired (fake clock)/wrong audience/wrong issuer/alg none and HS256, valid with wrong email or email_verified=false to ErrForbidden, valid to nil.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-002; US2.1-2.4; SC-004
   - Files (1, ~190 lines): `apps/api/internal/platform/tickauth/oidc_test.go`

@@ -216,14 +216,17 @@
     "T016": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Offline OIDC tests with httptest JWKS and locally minted RS256 tokens",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/tickauth/oidc_test.go"
+      ]
     },
     "T017": {
       "owner": "backend-dev",
