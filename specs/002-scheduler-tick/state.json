@@ -2,12 +2,12 @@
   "feature": "002-scheduler-tick",
   "branch": "feat/002-scheduler-tick",
   "worktree": "/home/user/divya-002",
-  "phase": "tasks",
+  "phase": "building",
   "tasks": {
     "T001": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go mod verify && go list -m github.com/coreos/go-oidc/v3 github.com/google/uuid pgregory.net/rapid && go build ./...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Add approved dependencies",

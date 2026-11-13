@@ -20,7 +20,7 @@
 
 ## Phase 1 - Setup and guard rails
 
-- [ ] T001 **backend-dev**: Add approved dependencies: go-oidc/v3 v3.21.0 (new), google/uuid (indirect to direct), pgregory.net/rapid (test-only). Owner approval recorded in the task brief.
+- [x] T001 **backend-dev**: Add approved dependencies: go-oidc/v3 v3.21.0 (new), google/uuid (indirect to direct), pgregory.net/rapid (test-only). Owner approval recorded in the task brief.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan: Dependencies requiring owner approval
   - Files (2, ~30 lines): `apps/api/go.mod`, `apps/api/go.sum`
