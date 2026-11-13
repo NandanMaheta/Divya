@@ -84,7 +84,7 @@
   - Rules: none (mechanism) | Refs: FR-017, FR-018
   - Files (2, ~90 lines): `apps/api/internal/platform/retry/backoff.go`, `apps/api/internal/platform/retry/errtext.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/retry/...`
-- [ ] T013 [P] **test-engineer**: Config tests: Tick settings (TICK_AUTH, TICK_AUDIENCE, TICK_SERVICE_ACCOUNT, TICK_DEV_TOKEN): defaults per APP_ENV, dev refused in staging/production, invalid value, oidc without audience/service account allowed (tick disabled).
+- [x] T013 [P] **test-engineer**: Config tests: Tick settings (TICK_AUTH, TICK_AUDIENCE, TICK_SERVICE_ACCOUNT, TICK_DEV_TOKEN): defaults per APP_ENV, dev refused in staging/production, invalid value, oidc without audience/service account allowed (tick disabled).
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-003; US2.5
   - Files (1, ~80 lines): `apps/api/internal/platform/config/config_test.go`

@@ -178,12 +178,15 @@
     "T013": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/config/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Config tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/config/config_test.go"
+      ]
     },
     "T014": {
       "owner": "backend-dev",
