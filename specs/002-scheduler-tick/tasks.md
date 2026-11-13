@@ -94,7 +94,7 @@
   - Rules: none (mechanism) | Refs: FR-003; US2.5
   - Files (1, ~60 lines): `apps/api/internal/platform/config/config.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/config/...`
-- [ ] T015 [P] **test-engineer**: Tests for tickauth contract: Authenticator interface, dev mode (constant-time compare, empty token rejects all, non-Bearer, missing header), Disabled.
+- [x] T015 [P] **test-engineer**: Tests for tickauth contract: Authenticator interface, dev mode (constant-time compare, empty token rejects all, non-Bearer, missing header), Disabled.
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-002, FR-003; US2.1-2.4
   - Files (1, ~90 lines): `apps/api/internal/platform/tickauth/tickauth_test.go`

@@ -203,12 +203,15 @@
     "T015": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for tickauth contract",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/tickauth/tickauth_test.go"
+      ]
     },
     "T016": {
       "owner": "test-engineer",
