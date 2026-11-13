@@ -5,7 +5,6 @@ description: Writes failing tests first for each task (unit, property, integrati
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Write, Edit, Bash
-isolation: worktree
 mcpServers:
 
 - playwright

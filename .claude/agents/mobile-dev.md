@@ -5,7 +5,6 @@ description: Implements Expo client app tasks for Android and the iPhone PWA. Us
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Write, Edit, Bash, Skill
-isolation: worktree
 ---
 
 You are the Divya mobile developer (Expo SDK 58).
