@@ -1,0 +1,187 @@
+# Admin operations for failed work and scheduler status (FR-019..FR-022).
+#
+# DELIVERY: Phase B of this feature, implemented only after feature 003 (auth core) is merged to main.
+# They are NOT registered in the first 002 PR, so no unauthenticated admin surface ever ships.
+# Until then the same capabilities exist and are tested at service level (spec Assumptions).
+# When implemented, these paths are added to packages/api-client/openapi.yaml (additive, oasdiff non-breaking),
+# every operation carries security [{bearer: [admin]}] via 003's helper (auth.Secured(op, "admin")),
+# and the org id and actor id come from 003's principal, never from the request.
+openapi: 3.1.0
+info:
+  title: Divya API - scheduler admin (diff)
+  version: "1"
+security:
+  - bearer: [admin]
+paths:
+  /v1/admin/scheduler/status:
+    get:
+      operationId: scheduler-get-status
+      tags: [Scheduler]
+      summary: Last tick, overdue flag and failed-work counts (FR-021, Home warning count for 022)
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/SchedulerStatus" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+  /v1/admin/scheduler/jobs:
+    get:
+      operationId: scheduler-list-failed-jobs
+      tags: [Scheduler]
+      summary: Retrying and dead jobs of the admin's organisation (FR-019)
+      parameters:
+        - { name: state, in: query, schema: { type: string, enum: [retrying, dead] }, description: "omit for both" }
+        - { name: kind, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 }, description: "opaque keyset cursor (last_attempt_at, id)" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FailedJobPage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /v1/admin/scheduler/jobs/{id}/retry:
+    post:
+      operationId: scheduler-retry-job
+      tags: [Scheduler]
+      summary: Requeue a dead job with a fresh attempt count; runs on the next tick; audited (FR-020). Expiry still applies.
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Job after the change (or current state on an idempotent replay), content: { application/json: { schema: { $ref: "#/components/schemas/FailedJob" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { description: Not found in the admin's organisation (also for other orgs' ids, US6.9), $ref: "#/components/responses/Problem" }
+        "409": { description: Job is not dead, $ref: "#/components/responses/Problem" }
+  /v1/admin/scheduler/jobs/{id}/cancel:
+    post:
+      operationId: scheduler-cancel-job
+      tags: [Scheduler]
+      summary: Cancel a dead job; it never runs; audited (FR-020)
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FailedJob" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+  /v1/admin/outbox/messages:
+    get:
+      operationId: outbox-list-failed-messages
+      tags: [Outbox]
+      summary: Retrying and dead messages of the admin's organisation (FR-019)
+      parameters:
+        - { name: state, in: query, schema: { type: string, enum: [retrying, dead] } }
+        - { name: topic, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FailedMessagePage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /v1/admin/outbox/messages/{id}/retry:
+    post:
+      operationId: outbox-retry-message
+      tags: [Outbox]
+      summary: Requeue a dead message (quiet hours and expiry still apply); audited
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FailedMessage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+  /v1/admin/outbox/messages/{id}/cancel:
+    post:
+      operationId: outbox-cancel-message
+      tags: [Outbox]
+      summary: Withdraw a dead message; it is never sent; audited
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/FailedMessage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }   # defined by 003 in httpx.NewAPI
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, minLength: 8, maxLength: 64 }
+      description: Replaying the same key for the same item returns the current item with 200 and writes no second audit entry (key stored in the audit entry's `after`).
+  responses:
+    Problem:
+      description: RFC 9457 problem details
+      content: { application/problem+json: { schema: { type: object } } }
+  schemas:
+    SchedulerStatus:
+      type: object
+      required: [overdue, overdue_after_seconds, dead_jobs, dead_messages, retrying_jobs, retrying_messages]
+      properties:
+        last_tick_started_at: { type: [string, "null"], format: date-time }
+        last_tick_finished_at: { type: [string, "null"], format: date-time }
+        last_tick_status: { type: [string, "null"], enum: [running, ok, error, null] }
+        overdue: { type: boolean, description: "no tick started in the last 15 minutes, or never" }
+        overdue_after_seconds: { type: integer, const: 900 }
+        dead_jobs: { type: integer, minimum: 0 }
+        dead_messages: { type: integer, minimum: 0 }
+        retrying_jobs: { type: integer, minimum: 0 }
+        retrying_messages: { type: integer, minimum: 0 }
+    FailedJob:
+      type: object
+      required: [id, kind, subject, dedupe_key, state, attempts, max_attempts, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string }
+        subject: { type: string, description: "business item, e.g. ipo:<id>" }
+        dedupe_key: { type: string }
+        state: { type: string, enum: [retrying, dead, pending, cancelled, expired, done, running], description: "retrying/dead in lists; other values only in retry/cancel responses" }
+        attempts: { type: integer }
+        max_attempts: { type: integer }
+        first_attempt_at: { type: [string, "null"], format: date-time }
+        last_attempt_at: { type: [string, "null"], format: date-time }
+        next_attempt_at: { type: [string, "null"], format: date-time }
+        expires_at: { type: [string, "null"], format: date-time }
+        last_error: { type: [string, "null"], maxLength: 500, description: "sanitised: no tokens, secrets or unmasked PAN" }
+        created_at: { type: string, format: date-time }
+    FailedJobPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FailedJob" } }
+        next_cursor: { type: [string, "null"] }
+    FailedMessage:
+      type: object
+      required: [id, topic, subject, dedupe_key, recipient_kind, state, attempts, max_attempts, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        topic: { type: string }
+        subject: { type: string }
+        dedupe_key: { type: string }
+        recipient_kind: { type: string, enum: [client, admin] }
+        recipient_id: { type: [string, "null"], format: uuid }
+        state: { type: string, enum: [retrying, dead, pending, withdrawn, expired, sent, sending] }
+        attempts: { type: integer }
+        max_attempts: { type: integer }
+        first_attempt_at: { type: [string, "null"], format: date-time }
+        last_attempt_at: { type: [string, "null"], format: date-time }
+        next_attempt_at: { type: [string, "null"], format: date-time }
+        expires_at: { type: [string, "null"], format: date-time }
+        last_error: { type: [string, "null"], maxLength: 500 }
+        created_at: { type: string, format: date-time }
+    FailedMessagePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FailedMessage" } }
+        next_cursor: { type: [string, "null"] }

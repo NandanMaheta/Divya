@@ -185,3 +185,40 @@ Append: "Implemented as an in-repo `scheduled_jobs` table with lease-based `SKIP
 - Repo: docs/adr/0003-tick-scheduler.md, docs/product/business-rules.md (BR-IPO-03, BR-TASK-03, BR-SET-08), docs/product/product-blueprint.md section 7.
 
 Items marked VERIFY need confirmation once docs.cloud.google.com, riverqueue.com and supabase.com are allowed in the session network settings: Scheduler attempt-deadline default, Cloud Run request timeout, Supabase free connection limits, River start/stop-per-request pattern, pgx exec-mode names, token `email` claims.
+
+## 8. Plan-phase decisions (Phase 0 consolidation, 2026-11-13)
+
+Added by the architect during `/speckit-plan`. Format: Decision / Rationale / Alternatives. Every former "NEEDS CLARIFICATION" for the plan is resolved below; owner approval is still required for the dependencies in plan.md.
+
+### 8.1 Job engine
+- **Decision**: own `scheduled_jobs` table; one-row claims with `FOR UPDATE SKIP LOCKED`, a 60 s lease and a fencing token; handler effects and the "done" mark commit in one transaction guarded by the token. ADR-0003 amended (Amendment 1).
+- **Rationale**: section 2.3. The fenced, same-transaction completion turns at-least-once execution into exactly-once *database* effects (US1.5, US1.6) and keeps lock ordering "business rows, then job row" in both the handler and an owning feature's reschedule, so the two cannot deadlock. A lock-held-for-the-whole-run design (no lease) was rejected for that reason: the handler would lock the job row first while an IPO date change locks the IPO row first.
+- **Alternatives**: River v0.51.2 (deferred, section 2.3); pg_cron (rejected).
+
+### 8.2 OIDC verification library (changes the recommendation in 2.1)
+- **Decision**: `github.com/coreos/go-oidc/v3` v3.21.0 (`oidc.NewVerifier("https://accounts.google.com", oidc.NewRemoteKeySet(ctx, "https://www.googleapis.com/oauth2/v3/certs"), &oidc.Config{ClientID: audience, SupportedSigningAlgs: ["RS256"], Now: clock})`), plus our own `email`/`email_verified` check. Pending owner approval.
+- **Rationale**: checked on proxy.golang.org: go-oidc v3.21.0 requires only `github.com/go-jose/go-jose/v4` and `golang.org/x/oauth2`; `google.golang.org/api` v0.314.0 requires about 20 modules including `google.golang.org/grpc`, `cloud.google.com/go/auth`, `s2a-go` and otelgrpc. Checked in go-oidc v3.21.0 `oidc/verify.go`: it accepts Google's scheme-less issuer `accounts.google.com` when the configured issuer is `https://accounts.google.com`, and `Config.Now` lets the injected clock drive expiry checks. A key set pointed at an `httptest` JWKS lets tests run the *real* signature, issuer, audience and expiry path offline with locally minted RS256 tokens, which matters because this check is the only gate on a public service. Using the JWKS URL directly avoids network discovery at startup (cold starts).
+- **Alternatives**: `google.golang.org/api/idtoken` (Google-specific and convenient, but a large graph pulling gRPC; offline testing of the signature path is awkward); `golang-jwt/jwt/v5` (likely added by 003) plus a hand-written JWKS cache (we would own key-rotation and caching code: security-sensitive); stdlib-only verification (rejected, same reason); Cloud Run IAM invoker-only (blocks the public client API on the same service).
+
+### 8.3 Hosting access model
+- **Decision**: public Cloud Run service, application-level OIDC check on `/internal/tick` only (research 2.1 option b). Recorded in ADR-0003 Amendment 1.
+
+### 8.4 Pooler mode
+- **Decision**: assume the Supabase session pooler on 5432 (caller instruction). pgx defaults (prepared statement cache) stay. No session advisory locks, no LISTEN/NOTIFY, no session `SET`, so a move to 6543 only needs `DefaultQueryExecMode = QueryExecModeExec` in `platform/db.Open` (not in this feature).
+
+### 8.5 Clock and IST
+- **Decision**: no clock library; `platform/clock` (`func() time.Time` convention from `.claude/rules/api.md` plus a mutex-guarded `Fake`). `platform/istdate` loads `Asia/Kolkata` with embedded `time/tzdata`. forbidigo bans `time.Now`, `time.Since`, `time.Until` and `time.Local` outside `cmd/`, `platform/clock` and `platform/httpx`.
+
+### 8.6 Admin endpoints before 003
+- **Decision**: ship the admin capabilities at service level in the first PR (Phase A); register the HTTP operations in a second PR (Phase B) only after 003 is merged, using 003's `bearer` scheme and admin role check. Contract fixed now in `contracts/admin-scheduler.openapi.yaml`.
+- **Rationale**: matches the spec (Assumptions: "verified at service level until 022/023"; FR-022). Never ships an unauthenticated admin surface, avoids publishing always-403 operations into the TS client and oasdiff baseline, and avoids colliding with 003's contract walk test ("every operation has Security or is on the public list").
+- **Alternatives**: register now behind a temporary deny-all guard (adds dead code and a placeholder security scheme that 003 would have to replace; publishes operations nobody can call); build a stop-gap admin token (security-sensitive, throwaway).
+
+### 8.7 Dead-item alert
+- **Decision**: outbox topic `admin.jobs_dead`, one message per org per tick, produced by an `alerted_at` sweep (contracts/outbox-events.md). Respects quiet hours (only payment-overdue is a planned exemption). Delivered by 014.
+
+### 8.8 VERIFY items from section 2, status after planning
+- Cloud Scheduler attempt deadline / retry config and Cloud Run request timeout: no longer load-bearing; the tick bounds itself (45 s budget, write deadline extended to 90 s for the tick route only). Scheduler job settings (attempt deadline 120 s, `retry_count` 0) belong to 027.
+- Supabase free connection limits: still unverified; mitigated by MaxConns 5 per instance and one connection at a time in the tick. 027 must cap Cloud Run max instances (suggest 3).
+- Token `email` / `email_verified` claims: verify with one real staging token when 027 provisions the Scheduler job (quickstart smoke).
+- pgx exec-mode names: not needed under session mode.

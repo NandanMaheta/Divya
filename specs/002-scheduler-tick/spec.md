@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-13
 
-**Status**: Draft (clarified; awaiting owner approval)
+**Status**: Approved by owner (2026-11-13)
 
 **Input**: User description: "Feature 002 Scheduler tick + scheduled_jobs + outbox (fake-clock testable) (M9 Scheduler; BR-IPO-03, BR-TASK-03, BR-SET-08 date helpers, GS-04)."
 
