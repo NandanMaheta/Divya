@@ -109,7 +109,7 @@
   - Rules: none (mechanism) | Refs: FR-002, FR-003
   - Files (2, ~80 lines): `apps/api/internal/platform/tickauth/tickauth.go`, `apps/api/internal/platform/tickauth/dev.go`
   - Done command (green): `cd apps/api && go test -race -run 'Dev|Disabled|Contract' ./internal/platform/tickauth/...`
-- [ ] T018 **backend-dev**: Implement oidc.go: NewOIDC on coreos/go-oidc/v3 (RS256 only, Google issuers, audience, injected clock, email and email_verified check), WithJWKSURL, WithHTTPClient. go-oidc imported only here.
+- [x] T018 **backend-dev**: Implement oidc.go: NewOIDC on coreos/go-oidc/v3 (RS256 only, Google issuers, audience, injected clock, email and email_verified check), WithJWKSURL, WithHTTPClient. go-oidc imported only here.
   - Depends on: T016, T017, T005
   - Rules: none (mechanism) | Refs: FR-002; SC-004
   - Files (1, ~120 lines): `apps/api/internal/platform/tickauth/oidc.go`

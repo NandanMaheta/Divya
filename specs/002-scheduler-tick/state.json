@@ -243,7 +243,7 @@
     "T018": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/tickauth/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T016",
         "T017",
