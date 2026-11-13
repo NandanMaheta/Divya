@@ -2,7 +2,7 @@ name: PR checks
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, stage]
 concurrency:
   group: pr-${{ github.ref }}
   cancel-in-progress: true
