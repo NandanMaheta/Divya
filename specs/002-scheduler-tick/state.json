@@ -270,7 +270,7 @@
     "T020": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/platform/httpx/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T019"
       ],

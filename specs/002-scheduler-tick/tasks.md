@@ -119,7 +119,7 @@
   - Rules: none (mechanism) | Refs: plan: Tick handler 90 s deadline
   - Files (1, ~80 lines): `apps/api/internal/platform/httpx/httpx_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/httpx/...`
-- [ ] T020 **backend-dev**: Implement statusRecorder.Unwrap and httpx.ExtendWriteDeadline(huma.Context, d); global WriteTimeout stays 30 s.
+- [x] T020 **backend-dev**: Implement statusRecorder.Unwrap and httpx.ExtendWriteDeadline(huma.Context, d); global WriteTimeout stays 30 s.
   - Depends on: T019
   - Rules: none (mechanism) | Refs: plan: Tick handler
   - Files (1, ~40 lines): `apps/api/internal/platform/httpx/httpx.go`
