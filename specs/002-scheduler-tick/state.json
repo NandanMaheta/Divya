@@ -429,7 +429,7 @@
     "T032": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T031",
         "T022"
@@ -439,7 +439,11 @@
       ],
       "title": "Outbox record/withdraw tests",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/outbox/outbox_test.go",
+        "apps/api/internal/outbox/helpers_test.go"
+      ]
     },
     "T033": {
       "owner": "test-engineer",

@@ -189,7 +189,7 @@
   - Done command (red): `cd apps/api && gofmt -l internal/outbox/outboxtest/ | (! grep .)`
   - Note (test-engineer): outboxtest.Sender also has OnSend(hook), FailWith(err), Calls(), Count(), Recover(), Reset(). Because it is a non-test file that imports `internal/outbox`, `go build ./...` fails until T036 adds Envelope/Sender; backend tasks whose done command is `go build ./...` before T036 must exclude it (`go build $(go list ./... | grep -v /outboxtest)`).
   - Note: Compiles only after Envelope/Sender exist (T036); gofmt check is the standalone done command, full compile is exercised by T032-T034.
-- [ ] T032 **test-engineer**: Outbox record/withdraw tests: Add commits with the caller and vanishes on rollback, ErrNoTx, duplicate key ignored (also after sent), withdraw by key and by subject (stop-on-complete), channel-agnostic topics.
+- [x] T032 **test-engineer**: Outbox record/withdraw tests: Add commits with the caller and vanishes on rollback, ErrNoTx, duplicate key ignored (also after sent), withdraw by key and by subject (stop-on-complete), channel-agnostic topics.
   - Depends on: T031, T022
   - Rules: BR-TASK-03 | Refs: US3.1, 3.3, 3.5, 3.7, 8.6; FR-023, FR-024, FR-027
   - Files (1, ~180 lines): `apps/api/internal/outbox/outbox_test.go`
