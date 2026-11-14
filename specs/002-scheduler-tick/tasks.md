@@ -127,7 +127,7 @@
 
 ## Phase 3 - Migration, sqlc, transactions, audit
 
-- [ ] T021 **test-engineer**: Migration test: after goose Up the four tables exist with the expected columns, check constraints, partial unique index (org, kind, dedupe_key) for active jobs, unique (org, topic, dedupe_key) for messages, no append-only trigger; Down drops them and leaves 00001 intact.
+- [x] T021 **test-engineer**: Migration test: after goose Up the four tables exist with the expected columns, check constraints, partial unique index (org, kind, dedupe_key) for active jobs, unique (org, topic, dedupe_key) for messages, no append-only trigger; Down drops them and leaves 00001 intact.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: data-model 1-4; FR-009, FR-024, FR-034
   - Files (1, ~150 lines): `apps/api/internal/platform/db/migration_00002_test.go`

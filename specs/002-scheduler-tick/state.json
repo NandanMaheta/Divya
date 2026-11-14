@@ -282,14 +282,17 @@
     "T021": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run Migration00002 ./internal/platform/db/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Migration test",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/platform/db/migration_00002_test.go"
+      ]
     },
     "T022": {
       "owner": "backend-dev",
