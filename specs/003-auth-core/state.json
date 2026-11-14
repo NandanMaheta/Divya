@@ -120,12 +120,15 @@
     "T010": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/ratelimit/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for platform/ratelimit: fixed window per key, 30 per minute then 429 signal, window rollover with an injected clock func, size-capped ",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/ratelimit/ratelimit_test.go"
+      ]
     },
     "T011": {
       "owner": "backend-dev",

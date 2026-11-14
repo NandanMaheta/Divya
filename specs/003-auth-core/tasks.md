@@ -72,7 +72,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-04, P-17
   - Files (2, ~110 lines): `apps/api/internal/platform/httpx/cors.go`, `apps/api/internal/platform/httpx/clientip.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestCORS|TestClientIP' ./internal/platform/httpx/...`
-- [ ] T010 [P] **test-engineer**: Tests for platform/ratelimit: fixed window per key, 30 per minute then 429 signal, window rollover with an injected clock func, size-capped eviction, concurrent use under -race.
+- [x] T010 [P] **test-engineer**: Tests for platform/ratelimit: fixed window per key, 30 per minute then 429 signal, window rollover with an injected clock func, size-capped eviction, concurrent use under -race.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan P-17
   - Files (1, ~110 lines): `apps/api/internal/platform/ratelimit/ratelimit_test.go`
