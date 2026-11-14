@@ -22,11 +22,11 @@ func TestSchemaUsersBR_CLI_04_StatusModel(t *testing.T) {
 	})
 	for _, s := range []string{"approved", "ACTIVE", "", "suspended", "deleted"} {
 		t.Run("rejects_"+fmt.Sprintf("%q", s), func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"status": s})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"status": s})), check)
 		})
 	}
 	t.Run("rejects_null_status", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"status": nil})), notNull)
+		_ = wantState(t, e.insert("users", e.userRow(row{"status": nil})), notNull)
 	})
 }
 
@@ -34,21 +34,21 @@ func TestSchemaUsersBR_CLI_04_StatusModel(t *testing.T) {
 func TestSchemaUsersBR_CLI_04_DisabledPairing(t *testing.T) {
 	e := newSchemaEnv(t)
 	t.Run("disabled_without_previous_status", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"status": "disabled"})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"status": "disabled"})), check)
 	})
 	for _, s := range []string{"pending_verification", "pending_approval", "active"} {
 		t.Run("previous_status_set_while_"+s, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"status": s, "status_before_disabled": "active"})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"status": s, "status_before_disabled": "active"})), check)
 		})
 		t.Run("disabled_remembers_"+s, func(t *testing.T) {
 			wantOK(t, e.insert("users", e.userRow(row{"status": "disabled", "status_before_disabled": s})))
 		})
 	}
 	t.Run("previous_status_cannot_be_disabled", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"status": "disabled", "status_before_disabled": "disabled"})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"status": "disabled", "status_before_disabled": "disabled"})), check)
 	})
 	t.Run("previous_status_must_be_known", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"status": "disabled", "status_before_disabled": "gone"})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"status": "disabled", "status_before_disabled": "gone"})), check)
 	})
 	t.Run("enable_clears_previous_status_in_one_update", func(t *testing.T) {
 		id := e.newUser(t, row{"status": "disabled", "status_before_disabled": "pending_approval"})
@@ -56,7 +56,7 @@ func TestSchemaUsersBR_CLI_04_DisabledPairing(t *testing.T) {
 	})
 	t.Run("update_to_disabled_without_previous_status", func(t *testing.T) {
 		id := e.newUser(t, nil)
-		wantState(t, e.exec(`UPDATE users SET status = 'disabled' WHERE id = $1`, id), check)
+		_ = wantState(t, e.exec(`UPDATE users SET status = 'disabled' WHERE id = $1`, id), check)
 	})
 }
 
@@ -66,10 +66,10 @@ func TestSchemaUsersRole(t *testing.T) {
 	wantOK(t, e.insert("users", e.userRow(row{"role": "admin", "mobile": nil})))
 	for _, r := range []string{"owner", "Admin", "", "superuser"} {
 		t.Run(fmt.Sprintf("rejects_%q", r), func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"role": r})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"role": r})), check)
 		})
 	}
-	wantState(t, e.insert("users", e.userRow(row{"role": nil})), notNull)
+	_ = wantState(t, e.insert("users", e.userRow(row{"role": nil})), notNull)
 }
 
 func TestSchemaUsersName(t *testing.T) {
@@ -78,14 +78,14 @@ func TestSchemaUsersName(t *testing.T) {
 	wantOK(t, e.insert("users", e.userRow(row{"name": strings.Repeat("n", 200)})))
 	for name, v := range map[string]string{"empty": "", "blank": "   ", "tabs_and_spaces": " \t "} {
 		t.Run("rejects_"+name, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"name": v})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"name": v})), check)
 		})
 	}
 	t.Run("rejects_201_chars", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"name": strings.Repeat("n", 201)})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"name": strings.Repeat("n", 201)})), check)
 	})
 	t.Run("rejects_null", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"name": nil})), notNull)
+		_ = wantState(t, e.insert("users", e.userRow(row{"name": nil})), notNull)
 	})
 }
 
@@ -109,11 +109,11 @@ func TestSchemaUsersEmail(t *testing.T) {
 	}
 	for name, v := range bad {
 		t.Run("rejects_"+name, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"email": v})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"email": v})), check)
 		})
 	}
 	t.Run("rejects_null", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"email": nil})), notNull)
+		_ = wantState(t, e.insert("users", e.userRow(row{"email": nil})), notNull)
 	})
 }
 
@@ -138,7 +138,7 @@ func TestSchemaUsersMobile(t *testing.T) {
 	}
 	for name, v := range bad {
 		t.Run("rejects_"+name, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"mobile": v})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"mobile": v})), check)
 		})
 	}
 }
@@ -147,7 +147,7 @@ func TestSchemaUsersMobile(t *testing.T) {
 func TestSchemaUsersMobileRules(t *testing.T) {
 	e := newSchemaEnv(t)
 	t.Run("client_without_mobile_rejected", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"role": "client", "mobile": nil})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"role": "client", "mobile": nil})), check)
 	})
 	t.Run("admin_without_mobile_accepted", func(t *testing.T) {
 		wantOK(t, e.insert("users", e.userRow(row{"role": "admin", "mobile": nil})))
@@ -156,14 +156,14 @@ func TestSchemaUsersMobileRules(t *testing.T) {
 		wantOK(t, e.insert("users", e.userRow(row{"role": "admin"})))
 	})
 	t.Run("mobile_verified_without_mobile_rejected", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"role": "admin", "mobile": nil, "mobile_verified_at": schemaT0})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"role": "admin", "mobile": nil, "mobile_verified_at": schemaT0})), check)
 	})
 	t.Run("mobile_verified_with_mobile_accepted", func(t *testing.T) {
 		wantOK(t, e.insert("users", e.userRow(row{"mobile_verified_at": schemaT0, "email_verified_at": schemaT0})))
 	})
 	t.Run("clearing_mobile_while_verified_rejected", func(t *testing.T) {
 		id := e.newUser(t, row{"role": "admin", "mobile_verified_at": schemaT0})
-		wantState(t, e.exec(`UPDATE users SET mobile = NULL WHERE id = $1`, id), check)
+		_ = wantState(t, e.exec(`UPDATE users SET mobile = NULL WHERE id = $1`, id), check)
 	})
 }
 
@@ -178,7 +178,7 @@ func TestSchemaUsersPasswordHash(t *testing.T) {
 		"prefix_after": " $argon2id$v=19$m=1,t=1,p=1$c2FsdA$aGFzaA",
 	} {
 		t.Run("rejects_"+name, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{"password_hash": v})), check)
+			_ = wantState(t, e.insert("users", e.userRow(row{"password_hash": v})), check)
 		})
 	}
 	t.Run("accepts_argon2id_phc", func(t *testing.T) {
@@ -190,7 +190,7 @@ func TestSchemaUsersNotNull(t *testing.T) {
 	e := newSchemaEnv(t)
 	for _, col := range []string{"org_id", "role", "status", "name", "email", "password_hash", "password_changed_at", "created_at", "updated_at"} {
 		t.Run(col, func(t *testing.T) {
-			wantState(t, e.insert("users", e.userRow(row{col: nil})), notNull)
+			_ = wantState(t, e.insert("users", e.userRow(row{col: nil})), notNull)
 		})
 	}
 	for _, col := range []string{"email_verified_at", "mobile_verified_at", "last_sign_in_at", "status_before_disabled"} {
@@ -210,7 +210,7 @@ func TestSchemaUsersNotNull(t *testing.T) {
 
 func TestSchemaUsersOrgForeignKey(t *testing.T) {
 	e := newSchemaEnv(t)
-	wantState(t, e.insert("users", e.userRow(row{"org_id": uuid.New()})), foreignKey)
+	_ = wantState(t, e.insert("users", e.userRow(row{"org_id": uuid.New()})), foreignKey)
 }
 
 // TestSchemaUsersEmailUnique: email is unique across the whole system, not per org (D-18).
@@ -226,7 +226,7 @@ func TestSchemaUsersEmailUnique(t *testing.T) {
 		wantUnique(t, e.insert("users", e.userRow(row{"org_id": other, "email": "asha@example.com"})), "users_email_key")
 	})
 	t.Run("case_variant_cannot_be_stored", func(t *testing.T) {
-		wantState(t, e.insert("users", e.userRow(row{"email": "Asha@Example.com"})), check)
+		_ = wantState(t, e.insert("users", e.userRow(row{"email": "Asha@Example.com"})), check)
 	})
 }
 

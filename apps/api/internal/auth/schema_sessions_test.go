@@ -26,7 +26,7 @@ func TestSchemaDeviceSessionsEnums(t *testing.T) {
 	}
 	for _, p := range []string{"ios", "Android", "", "desktop"} {
 		t.Run(fmt.Sprintf("platform_rejects_%q", p), func(t *testing.T) {
-			wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"platform": p})), check)
+			_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"platform": p})), check)
 		})
 	}
 	for _, c := range []string{"mobile", "web"} {
@@ -36,7 +36,7 @@ func TestSchemaDeviceSessionsEnums(t *testing.T) {
 	}
 	for _, c := range []string{"native", "Web", ""} {
 		t.Run(fmt.Sprintf("client_type_rejects_%q", c), func(t *testing.T) {
-			wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"client_type": c})), check)
+			_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"client_type": c})), check)
 		})
 	}
 	for _, m := range []string{"totp", "recovery_code", "enrolment"} {
@@ -49,7 +49,7 @@ func TestSchemaDeviceSessionsEnums(t *testing.T) {
 	})
 	for _, m := range []string{"sms", "TOTP", "", "password"} {
 		t.Run(fmt.Sprintf("mfa_method_rejects_%q", m), func(t *testing.T) {
-			wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"mfa_method": m})), check)
+			_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"mfa_method": m})), check)
 		})
 	}
 }
@@ -59,9 +59,9 @@ func TestSchemaDeviceSessionsDeviceName(t *testing.T) {
 	user := e.newUser(t, nil)
 	wantOK(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": "x"})))
 	wantOK(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": strings.Repeat("d", 100)})))
-	wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": ""})), check)
-	wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": strings.Repeat("d", 101)})), check)
-	wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": nil})), notNull)
+	_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": ""})), check)
+	_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": strings.Repeat("d", 101)})), check)
+	_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"device_name": nil})), notNull)
 }
 
 // TestSchemaDeviceSessionsEndReason: the end_reason list is closed, and ended_at and end_reason are
@@ -76,14 +76,14 @@ func TestSchemaDeviceSessionsEndReason(t *testing.T) {
 	}
 	for _, r := range []string{"logout", "SIGNED_OUT", "", "timeout"} {
 		t.Run(fmt.Sprintf("rejects_%q", r), func(t *testing.T) {
-			wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"ended_at": schemaT0, "end_reason": r})), check)
+			_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"ended_at": schemaT0, "end_reason": r})), check)
 		})
 	}
 	t.Run("ended_at_without_reason", func(t *testing.T) {
-		wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"ended_at": schemaT0})), check)
+		_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"ended_at": schemaT0})), check)
 	})
 	t.Run("reason_without_ended_at", func(t *testing.T) {
-		wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"end_reason": "signed_out"})), check)
+		_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"end_reason": "signed_out"})), check)
 	})
 	t.Run("live_session_has_neither", func(t *testing.T) {
 		wantOK(t, e.insert("device_sessions", e.sessionRow(user, nil)))
@@ -94,7 +94,7 @@ func TestSchemaDeviceSessionsEndReason(t *testing.T) {
 	})
 	t.Run("end_without_reason_in_update", func(t *testing.T) {
 		id := e.newSession(t, user, nil)
-		wantState(t, e.exec(`UPDATE device_sessions SET ended_at = $2 WHERE id = $1`, id, schemaT0), check)
+		_ = wantState(t, e.exec(`UPDATE device_sessions SET ended_at = $2 WHERE id = $1`, id, schemaT0), check)
 	})
 }
 
@@ -104,7 +104,7 @@ func TestSchemaDeviceSessionsNotNull(t *testing.T) {
 	for _, col := range []string{"org_id", "user_id", "device_id", "device_name", "platform", "client_type",
 		"created_at", "last_active_at", "idle_expires_at", "absolute_expires_at"} {
 		t.Run(col, func(t *testing.T) {
-			wantState(t, e.insert("device_sessions", e.sessionRow(user, row{col: nil})), notNull)
+			_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{col: nil})), notNull)
 		})
 	}
 }
@@ -113,14 +113,14 @@ func TestSchemaDeviceSessionsForeignKeys(t *testing.T) {
 	e := newSchemaEnv(t)
 	user := e.newUser(t, nil)
 	t.Run("user", func(t *testing.T) {
-		wantState(t, e.insert("device_sessions", e.sessionRow(uuid.New(), nil)), foreignKey)
+		_ = wantState(t, e.insert("device_sessions", e.sessionRow(uuid.New(), nil)), foreignKey)
 	})
 	t.Run("org", func(t *testing.T) {
-		wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"org_id": uuid.New()})), foreignKey)
+		_ = wantState(t, e.insert("device_sessions", e.sessionRow(user, row{"org_id": uuid.New()})), foreignKey)
 	})
 	t.Run("user_with_sessions_cannot_be_deleted", func(t *testing.T) {
 		e.newSession(t, user, nil)
-		wantState(t, e.exec(`DELETE FROM users WHERE id = $1`, user), foreignKey)
+		_ = wantState(t, e.exec(`DELETE FROM users WHERE id = $1`, user), foreignKey)
 	})
 }
 
@@ -161,14 +161,14 @@ func TestSchemaRefreshTokensHashLength(t *testing.T) {
 	sid := e.newSession(t, e.newUser(t, nil), nil)
 	for _, n := range []int{0, 1, 31, 33, 64} {
 		t.Run(fmt.Sprintf("rejects_%d_bytes", n), func(t *testing.T) {
-			wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{"token_hash": make([]byte, n)})), check)
+			_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{"token_hash": make([]byte, n)})), check)
 		})
 	}
 	t.Run("accepts_32_bytes", func(t *testing.T) {
 		wantOK(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, nil)))
 	})
 	t.Run("rejects_null", func(t *testing.T) {
-		wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{"token_hash": nil})), notNull)
+		_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{"token_hash": nil})), notNull)
 	})
 }
 
@@ -177,7 +177,7 @@ func TestSchemaRefreshTokensNotNull(t *testing.T) {
 	sid := e.newSession(t, e.newUser(t, nil), nil)
 	for _, col := range []string{"org_id", "session_id", "issued_at"} {
 		t.Run(col, func(t *testing.T) {
-			wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{col: nil})), notNull)
+			_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 1, row{col: nil})), notNull)
 		})
 	}
 }
@@ -225,17 +225,17 @@ func TestSchemaRefreshTokensReplacedBy(t *testing.T) {
 	other := e.newToken(t, sid, 1, row{"used_at": schemaT0})
 
 	t.Run("replaced_by_needs_used_at", func(t *testing.T) {
-		wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 2, row{"replaced_by": other})), check)
+		_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 2, row{"replaced_by": other})), check)
 	})
 	t.Run("replaced_by_with_used_at_ok", func(t *testing.T) {
 		wantOK(t, e.insert("refresh_tokens", e.tokenRow(sid, 3, row{"used_at": schemaT0, "replaced_by": other})))
 	})
 	t.Run("replaced_by_must_exist", func(t *testing.T) {
-		wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 4, row{"used_at": schemaT0, "replaced_by": uuid.New()})), foreignKey)
+		_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 4, row{"used_at": schemaT0, "replaced_by": uuid.New()})), foreignKey)
 	})
 	t.Run("unused_token_cannot_gain_replaced_by", func(t *testing.T) {
 		live := e.newToken(t, sid, 5, nil)
-		wantState(t, e.exec(`UPDATE refresh_tokens SET replaced_by = $2 WHERE id = $1`, live, other), check)
+		_ = wantState(t, e.exec(`UPDATE refresh_tokens SET replaced_by = $2 WHERE id = $1`, live, other), check)
 	})
 }
 
@@ -243,13 +243,13 @@ func TestSchemaRefreshTokensForeignKeys(t *testing.T) {
 	e := newSchemaEnv(t)
 	sid := e.newSession(t, e.newUser(t, nil), nil)
 	t.Run("session", func(t *testing.T) {
-		wantState(t, e.insert("refresh_tokens", e.tokenRow(uuid.New(), 1, nil)), foreignKey)
+		_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(uuid.New(), 1, nil)), foreignKey)
 	})
 	t.Run("org", func(t *testing.T) {
-		wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 2, row{"org_id": uuid.New()})), foreignKey)
+		_ = wantState(t, e.insert("refresh_tokens", e.tokenRow(sid, 2, row{"org_id": uuid.New()})), foreignKey)
 	})
 	t.Run("session_with_tokens_cannot_be_deleted", func(t *testing.T) {
 		e.newToken(t, sid, 3, nil)
-		wantState(t, e.exec(`DELETE FROM device_sessions WHERE id = $1`, sid), foreignKey)
+		_ = wantState(t, e.exec(`DELETE FROM device_sessions WHERE id = $1`, sid), foreignKey)
 	})
 }
