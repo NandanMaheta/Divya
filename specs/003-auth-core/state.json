@@ -111,14 +111,25 @@
    "owner": "test-engineer",
    "title": "Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.",
    "done_command": "cd apps/api && go test -race -run 'TestSchema' ./internal/auth/",
-   "status": "todo",
+   "status": "done",
    "depends_on": [
     "S01"
    ],
-   "rules": [],
+   "rules": [
+    "BR-CLI-04"
+   ],
    "expect": "red",
    "parallel": true,
-   "replaces": "T031,T032"
+   "replaces": "T031,T032",
+   "protected_tests": [
+    "apps/api/internal/auth/schema_helpers_test.go",
+    "apps/api/internal/auth/schema_structure_test.go",
+    "apps/api/internal/auth/schema_users_test.go",
+    "apps/api/internal/auth/schema_sessions_test.go",
+    "apps/api/internal/auth/schema_mfa_test.go"
+   ],
+   "tests_written": true,
+   "note": "Red for the right reason: relation does not exist (migration 00003 not written; S07 is owner-gated)."
   },
   "S07": {
    "owner": "backend-dev",

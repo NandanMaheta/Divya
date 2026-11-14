@@ -24,9 +24,10 @@ Legend: `[P]` parallel-safe (flat `internal/auth` package: develop as separate w
   - Depends on: S01, S02 | Rules: none (mechanism) | Expected: red->green | Replaces: T024-T030 (tests done)
   - Protected tests (written, do not edit): `apps/api/internal/auth/tokens_test.go`, `apps/api/internal/auth/tokens_reject_test.go`, `apps/api/internal/auth/totp_test.go`, `apps/api/internal/auth/recovery_test.go`
   - Done command: `cd apps/api && go test -race -run 'TestTokens|TestTotp|TestRecovery' ./internal/auth/`
-- [ ] S06 [P] **test-engineer**: Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.
+- [x] S06 [P] **test-engineer**: Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.
   - Depends on: S01 | Rules: none (mechanism) | Expected: red | Replaces: T031,T032
   - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/`
+  - Protected tests (written, do not edit): `apps/api/internal/auth/schema_helpers_test.go`, `schema_structure_test.go`, `schema_users_test.go`, `schema_sessions_test.go`, `schema_mfa_test.go`
 - [ ] S07 **backend-dev**: Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.
   - Depends on: S06 | Rules: none (mechanism) | Expected: green | Replaces: T033,T034
   - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...`
