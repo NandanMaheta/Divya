@@ -296,7 +296,7 @@
   - Rules: none (mechanism) | Refs: K8; contracts/outbox-events.md
   - Files (2, ~120 lines): `apps/api/internal/scheduler/alert.go`, `apps/api/internal/scheduler/tick.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestAlert_|TestTick_' ./internal/scheduler/...`
-- [ ] T051 [P] **test-engineer**: Retention tests: scheduler.retention is recurring daily 03:00 IST per org, purges finished jobs/messages older than 30 days and old tick_runs, keeps dead items, runs once on catch-up.
+- [x] T051 [P] **test-engineer**: Retention tests: scheduler.retention is recurring daily 03:00 IST per org, purges finished jobs/messages older than 30 days and old tick_runs, keeps dead items, runs once on catch-up.
   - Depends on: T040, T022
   - Rules: none (mechanism) | Refs: FR-035; FR-015
   - Files (1, ~110 lines): `apps/api/internal/scheduler/retention_test.go`

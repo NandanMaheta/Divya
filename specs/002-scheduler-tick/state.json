@@ -741,7 +741,7 @@
     "T051": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestRetention_ ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -749,7 +749,10 @@
       "rules": [],
       "title": "Retention tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/retention_test.go"
+      ]
     },
     "T052": {
       "owner": "backend-dev",
