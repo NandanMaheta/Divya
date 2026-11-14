@@ -73,7 +73,8 @@ const claimJob = `-- name: ClaimJob :one
 WITH c AS (
     SELECT id FROM scheduled_jobs
     WHERE (status = 'pending' AND run_at <= $1 AND (expires_at IS NULL OR expires_at > $1))
-       OR (status = 'running' AND run_at <= $1 AND locked_until <= $1)
+       OR (status = 'running' AND run_at <= $1 AND locked_until <= $1
+           AND NOT cancel_requested AND NOT rerun AND (expires_at IS NULL OR expires_at > $1))
     ORDER BY run_at, id
     LIMIT 1
     FOR UPDATE SKIP LOCKED

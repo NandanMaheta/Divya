@@ -105,7 +105,8 @@ FROM stale WHERE j.id = stale.id;
 WITH c AS (
     SELECT id FROM scheduled_jobs
     WHERE (status = 'pending' AND run_at <= @now AND (expires_at IS NULL OR expires_at > @now))
-       OR (status = 'running' AND run_at <= @now AND locked_until <= @now)
+       OR (status = 'running' AND run_at <= @now AND locked_until <= @now
+           AND NOT cancel_requested AND NOT rerun AND (expires_at IS NULL OR expires_at > @now))
     ORDER BY run_at, id
     LIMIT 1
     FOR UPDATE SKIP LOCKED
