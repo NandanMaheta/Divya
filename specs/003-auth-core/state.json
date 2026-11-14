@@ -173,14 +173,18 @@
     "T014": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestNormalize' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for identifier normalisation: all D-17 mobile forms (10 digits, 0/91/+91 prefixes, spaces and hyphens) to +91XXXXXXXXXX, rejections (s",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/normalize_test.go",
+        "apps/api/internal/auth/normalize_prop_test.go"
+      ]
     },
     "T015": {
       "owner": "backend-dev",

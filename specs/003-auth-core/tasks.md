@@ -92,7 +92,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-14, C-11
   - Files (2, ~190 lines): `apps/api/internal/platform/config/auth.go`, `apps/api/internal/platform/config/db.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestAuthConfig|TestLoadDB' ./internal/platform/config/...`
-- [ ] T014 [P] **test-engineer**: Tests for identifier normalisation: all D-17 mobile forms (10 digits, 0/91/+91 prefixes, spaces and hyphens) to +91XXXXXXXXXX, rejections (starts 0-5, wrong length, letters), email trim/lowercase/net-mail parse/254 limit/display-name rejection, identifier kind by '@'; rapid properties: idempotent normalisation, mobile grammar accepted exactly.
+- [x] T014 [P] **test-engineer**: Tests for identifier normalisation: all D-17 mobile forms (10 digits, 0/91/+91 prefixes, spaces and hyphens) to +91XXXXXXXXXX, rejections (starts 0-5, wrong length, letters), email trim/lowercase/net-mail parse/254 limit/display-name rejection, identifier kind by '@'; rapid properties: idempotent normalisation, mobile grammar accepted exactly.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-003, D-16, D-17, US-1 s1-2, s11
   - Files (2, ~180 lines): `apps/api/internal/auth/normalize_test.go`, `apps/api/internal/auth/normalize_prop_test.go`
