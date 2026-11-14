@@ -577,7 +577,7 @@
     "T041": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -587,7 +587,11 @@
       ],
       "title": "Schedule API tests",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/scheduler/schedule_test.go",
+        "apps/api/internal/scheduler/helpers_test.go"
+      ]
     },
     "T042": {
       "owner": "test-engineer",
