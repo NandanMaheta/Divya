@@ -297,7 +297,7 @@
     "T022": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./... && go test -race ./internal/platform/db/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T021"
       ],
@@ -324,7 +324,7 @@
     "T024": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run Tx ./internal/platform/db/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T023"
       ],

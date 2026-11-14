@@ -132,7 +132,7 @@
   - Rules: none (mechanism) | Refs: data-model 1-4; FR-009, FR-024, FR-034
   - Files (1, ~150 lines): `apps/api/internal/platform/db/migration_00002_test.go`
   - Done command (red): `cd apps/api && go test -race -run Migration00002 ./internal/platform/db/...`
-- [ ] T022 **backend-dev**: Migration 00002_scheduler_outbox.sql (goose Up/Down; scheduled_jobs, outbox_messages, quiet_hours, tick_runs, indexes) and sqlc.yaml uuid overrides (uuid.UUID, uuid.NullUUID); regenerate dbgen. PR needs owner approval for migrations/.
+- [x] T022 **backend-dev**: Migration 00002_scheduler_outbox.sql (goose Up/Down; scheduled_jobs, outbox_messages, quiet_hours, tick_runs, indexes) and sqlc.yaml uuid overrides (uuid.UUID, uuid.NullUUID); regenerate dbgen. PR needs owner approval for migrations/.
   - Depends on: T021
   - Rules: none (mechanism) | Refs: data-model; K10
   - Files (2, ~190 lines): `apps/api/migrations/00002_scheduler_outbox.sql`, `apps/api/sqlc.yaml`
@@ -144,7 +144,7 @@
   - Rules: none (mechanism) | Refs: FR-008, FR-023; US1.10
   - Files (1, ~110 lines): `apps/api/internal/platform/db/tx_test.go`
   - Done command (red): `cd apps/api && go test -race -run Tx ./internal/platform/db/...`
-- [ ] T024 **backend-dev**: Implement db/tx.go: TxRunner, NewTxRunner, InTx, Conn, MustTx, ErrNoTx.
+- [x] T024 **backend-dev**: Implement db/tx.go: TxRunner, NewTxRunner, InTx, Conn, MustTx, ErrNoTx.
   - Depends on: T023
   - Rules: none (mechanism) | Refs: FR-008; K9
   - Files (1, ~90 lines): `apps/api/internal/platform/db/tx.go`
