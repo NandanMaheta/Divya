@@ -154,7 +154,7 @@
   - Rules: none (mechanism) | Refs: FR-020; constitution II
   - Files (1, ~90 lines): `apps/api/internal/platform/audit/audit_test.go`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/audit/...`
-- [ ] T026 **backend-dev**: Add InsertAuditLog to queries/platform.sql and implement audit.Actor, Entry, Write.
+- [x] T026 **backend-dev**: Add InsertAuditLog to queries/platform.sql and implement audit.Actor, Entry, Write.
   - Depends on: T025, T024
   - Rules: none (mechanism) | Refs: FR-020
   - Files (2, ~80 lines): `apps/api/queries/platform.sql`, `apps/api/internal/platform/audit/audit.go`

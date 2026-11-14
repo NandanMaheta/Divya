@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
 	Ping(ctx context.Context) (int32, error)
 }
 

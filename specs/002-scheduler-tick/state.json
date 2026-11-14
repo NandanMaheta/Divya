@@ -351,7 +351,7 @@
     "T026": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && sqlc vet && sqlc generate && go test -race ./internal/platform/audit/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T025",
         "T024"
