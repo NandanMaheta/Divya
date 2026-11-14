@@ -115,6 +115,88 @@ else
 	skip_case oidc-inside-tickauth "go-oidc not buildable yet (go.sum entries land with T018)"
 fi
 
+# --- depguard: feature 008 (internal/ipos) boundaries ------------------------------------------
+# Rules to add in apps/api/.golangci.yml (plan "depguard additions"): platform-is-a-leaf denies
+# internal/ipos; scheduler-does-not-know-owners denies internal/ipos from scheduler and outbox;
+# ipos-boundaries is a strict allow-list for non-test files of internal/ipos; ipos-pgx-only-in-store
+# keeps pgx in store.go.
+if has_pkg internal/ipos; then
+	add_case platform-imports-ipos violation depguard "internal/platform/zzviol_ipos/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/ipos"
+EOF
+	if has_pkg internal/scheduler; then
+		add_case scheduler-imports-ipos violation depguard "internal/scheduler/zzviol_ipos/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/ipos"
+EOF
+	else
+		skip_case scheduler-imports-ipos "internal/scheduler does not exist yet"
+	fi
+	if has_pkg internal/outbox; then
+		add_case outbox-imports-ipos violation depguard "internal/outbox/zzviol_ipos/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/ipos"
+EOF
+		add_case ipos-imports-outbox violation depguard "internal/ipos/zzviol_outbox/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/outbox"
+EOF
+	else
+		skip_case outbox-imports-ipos "internal/outbox does not exist yet"
+		skip_case ipos-imports-outbox "internal/outbox does not exist yet"
+	fi
+	add_case ipos-imports-health violation depguard "internal/ipos/zzviol_health/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/health"
+EOF
+	add_case ipos-imports-thirdparty violation depguard "internal/ipos/zzviol_third/v.go" <<EOF
+package zzviol
+
+import _ "pgregory.net/rapid"
+EOF
+	add_case ipos-pgx-outside-store violation depguard "internal/ipos/zzviol_pgx/v.go" <<EOF
+package zzviol
+
+import _ "github.com/jackc/pgx/v5"
+EOF
+	# Negative controls: what the strict allow-list must keep allowing.
+	add_case ipos-imports-audit control depguard "internal/ipos/zzctl_audit/v.go" <<EOF
+package zzctl
+
+import _ "$MOD/internal/platform/audit"
+EOF
+	add_case ipos-imports-uuid-huma control depguard "internal/ipos/zzctl_uuid/v.go" <<EOF
+package zzctl
+
+import (
+	_ "github.com/danielgtaylor/huma/v2"
+	_ "github.com/google/uuid"
+)
+EOF
+	if has_pkg internal/scheduler; then
+		add_case ipos-imports-scheduler control depguard "internal/ipos/zzctl_sched/v.go" <<EOF
+package zzctl
+
+import _ "$MOD/internal/scheduler"
+EOF
+	fi
+	add_case ipos-time-now violation forbidigo "internal/ipos/zzviol_now/v.go" <<'EOF'
+package zzviol
+
+import "time"
+
+func Now() time.Time { return time.Now() }
+EOF
+else
+	skip_case ipos-boundaries "internal/ipos does not exist yet"
+fi
+
 # --- forbidigo: machine clock and host time zone ---------------------------------------------
 add_case time-now violation forbidigo "internal/zzviol_now/v.go" <<'EOF'
 package zzviol

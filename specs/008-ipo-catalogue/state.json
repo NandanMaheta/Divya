@@ -51,7 +51,8 @@
         "apps/api/internal/platform/inr/inr_test.go",
         "apps/api/internal/ipos/schema/schema_test.go",
         "scripts/check-lint-boundaries.sh"
-      ]
+      ],
+      "tests_written": true
     },
     "S03": {
       "owner": "backend-dev",
