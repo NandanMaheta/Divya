@@ -1,7 +1,3 @@
-// Package outbox is the transactional outbox: owning features record messages in the same
-// transaction as their business change, and the scheduler tick relays them to the sender
-// registered for each topic, deferring around quiet hours, retrying with backoff and expiring
-// stale work. It never imports the scheduler (constitution IV).
 package outbox
 
 import (

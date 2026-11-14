@@ -1,8 +1,3 @@
-// Package scheduler runs the durable, tick-driven scheduled jobs of the platform: owning features
-// schedule work in their own transaction, the tick (called by Cloud Scheduler) claims due jobs
-// under a lease, runs each handler atomically with its "done" mark, retries failures with backoff,
-// expires stale work, relays the outbox and alerts the admin about dead items. Time always comes
-// from the injected clock (constitution III).
 package scheduler
 
 import (
