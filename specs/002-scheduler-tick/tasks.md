@@ -207,12 +207,12 @@
   - Files (1, ~150 lines): `apps/api/internal/outbox/quiet_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...`
   - Note (test-engineer): the file splits by implementation task. `TestQuietHours_BR_TASK_03_*` (settings: QuietHours/SetQuietHours + audit) is what T035's done command runs; `TestQuietHoursAvailability_BR_TASK_03_*` (Add computes available_at, incl. a rapid property for SC-008) needs T036; `TestQuietHoursRelay_BR_TASK_03_*` needs T037. T037's done command (`...|TestQuietHours`) covers all three. T035 cannot compile before the Service type from T036 exists; implement T035 and T036 together.
-- [ ] T035 **backend-dev**: Implement outbox/quiet.go: QuietHours(org) with default, SetQuietHours with audit in same transaction, availableAt helper using istdate.QuietHours.Defer.
+- [x] T035 **backend-dev**: Implement outbox/quiet.go: QuietHours(org) with default, SetQuietHours with audit in same transaction, availableAt helper using istdate.QuietHours.Defer.
   - Depends on: T034, T010, T026, T029
   - Rules: BR-TASK-03 | Refs: FR-031
   - Files (1, ~90 lines): `apps/api/internal/outbox/quiet.go`
   - Done command (green): `cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...`
-- [ ] T036 **backend-dev**: Implement outbox service.go and store.go: Options/DefaultOptions, New, types (Message, Recipient, Envelope, Sender), RegisterSender, Add (requires tx, quiet-hours availability), Withdraw, WithdrawSubject.
+- [x] T036 **backend-dev**: Implement outbox service.go and store.go: Options/DefaultOptions, New, types (Message, Recipient, Envelope, Sender), RegisterSender, Add (requires tx, quiet-hours availability), Withdraw, WithdrawSubject.
   - Depends on: T032, T035, T024, T005
   - Rules: BR-TASK-03 | Refs: FR-023, FR-024, FR-027; K9
   - Files (2, ~190 lines): `apps/api/internal/outbox/service.go`, `apps/api/internal/outbox/store.go`

@@ -483,7 +483,7 @@
     "T035": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T034",
         "T010",
@@ -500,7 +500,7 @@
     "T036": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T032",
         "T035",
