@@ -133,7 +133,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: FR-010, FR-012; plan P-06
   - Files (1, ~190 lines): `apps/api/internal/auth/hasher.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestHasher' ./internal/auth/`
-- [ ] T022 [P] **test-engineer**: Tests for the pure throttle.Apply: TestLockout_LocksAt5thFailureUntilPlus15m (T..T+4m locks until T+19m), TestLockout_LockedAt18m59s_UnlockedAt19m, TestLockout_NoExtensionDuringLock, TestLockout_SlidingWindowNotLocked (US-4 s5, outcome only), end of lock clears the counter, at most 5 failures kept; rapid property comparing Apply with a reference model that keeps every failure.
+- [x] T022 [P] **test-engineer**: Tests for the pure throttle.Apply: TestLockout_LocksAt5thFailureUntilPlus15m (T..T+4m locks until T+19m), TestLockout_LockedAt18m59s_UnlockedAt19m, TestLockout_NoExtensionDuringLock, TestLockout_SlidingWindowNotLocked (US-4 s5, outcome only), end of lock clears the counter, at most 5 failures kept; rapid property comparing Apply with a reference model that keeps every failure.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: D-08, US-4 s1-5, SC-004; plan P-07
   - Files (2, ~180 lines): `apps/api/internal/auth/throttle_apply_test.go`, `apps/api/internal/auth/throttle_apply_prop_test.go`

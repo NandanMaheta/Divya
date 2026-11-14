@@ -283,14 +283,18 @@
     "T022": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestLockout_|TestThrottleApply' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for the pure throttle.Apply: TestLockout_LocksAt5thFailureUntilPlus15m (T..T+4m locks until T+19m), TestLockout_LockedAt18m59s_Unlocke",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/throttle_apply_test.go",
+        "apps/api/internal/auth/throttle_apply_prop_test.go"
+      ]
     },
     "T023": {
       "owner": "backend-dev",
