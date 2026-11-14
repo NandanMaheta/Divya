@@ -829,12 +829,15 @@
     "T057": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/swastik/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Contract test in cmd/swastik",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/cmd/swastik/main_test.go"
+      ]
     },
     "T058": {
       "owner": "backend-dev",

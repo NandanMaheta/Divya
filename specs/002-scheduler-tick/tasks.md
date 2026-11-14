@@ -331,11 +331,12 @@
 
 ## Phase 6 - Wiring, lint, deploy variables
 
-- [ ] T057 [P] **test-engineer**: Contract test in cmd/swastik: generated OpenAPI contains no /internal path and no scheduler-tick operation; document builds with zero dependencies (no DB, no network).
+- [x] T057 [P] **test-engineer**: Contract test in cmd/swastik: generated OpenAPI contains no /internal path and no scheduler-tick operation; document builds with zero dependencies (no DB, no network).
   - Depends on: none
   - Rules: none (mechanism) | Refs: US2.6; FR-004; constitution V
   - Files (1, ~70 lines): `apps/api/cmd/swastik/main_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/swastik/...`
+  - Note (test-engineer): this is a regression guard, so it is GREEN before T058 (nothing registers the tick yet); it was shown to fail for the right reason by temporarily registering a non-hidden `/internal/tick` ("public OpenAPI contains /internal" and the committed-contract diff). It drives `run(log, []string{"openapi"})` so it does not depend on buildAPI's deps struct, sets production OIDC env plus unreachable DATABASE_URL/proxies, and compares the output with packages/api-client/openapi.yaml.
 - [ ] T058 **backend-dev**: Wire cmd/swastik/main.go: buildAPI takes a deps struct, serve builds TxRunner, outbox, scheduler (register scheduler.retention), selectTickAuth (go-oidc bound to serve context; Disabled + WARN when unconfigured), RegisterTick; config errors stop the process.
   - Depends on: T057, T056, T052, T014, T018, T005, T020
   - Rules: none (mechanism) | Refs: K6; plan: Wiring; FR-001-FR-004
