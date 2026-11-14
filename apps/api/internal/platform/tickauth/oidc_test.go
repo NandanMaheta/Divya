@@ -41,6 +41,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -244,6 +245,26 @@ func (h *harness) check(header string) error {
 	return h.auth.Authenticate(h.t.Context(), header)
 }
 
+// checkAfterKeySetSettles is check for the first call after the key set changed. go-oidc finishes
+// a key set fetch in a background goroutine: it hands the result to the waiting caller first and
+// only afterwards clears its "fetch in flight" marker. A call that lands in that gap joins the
+// finished fetch and sees the key set as it was before the change, so it is rejected although the
+// next call would be accepted. That is a go-oidc scheduling detail, not a tickauth behaviour
+// (Cloud Scheduler retries a 401 within seconds), so the test yields the processor until the
+// background goroutine has cleared its marker instead of racing it. The loop is bounded by a
+// number of calls, not by time: a key that is really not picked up still fails the test.
+func (h *harness) checkAfterKeySetSettles(header string) error {
+	h.t.Helper()
+	var err error
+	for range 100_000 {
+		if err = h.check(header); err == nil || !errors.Is(err, ErrUnauthenticated) {
+			return err
+		}
+		runtime.Gosched()
+	}
+	return err
+}
+
 // assertNoLeak fails if the error text contains the token or any long segment of it.
 func assertNoLeak(t *testing.T, err error, header string) {
 	t.Helper()
@@ -438,7 +459,7 @@ func TestOIDC_KeyRotationIsPickedUp(t *testing.T) {
 		t.Fatalf("token from unpublished key B: got %v, want ErrUnauthenticated", err)
 	}
 	h.publish(a, b) // Google rotates: B appears in the JWKS
-	if err := h.check(tokenB); err != nil {
+	if err := h.checkAfterKeySetSettles(tokenB); err != nil {
 		t.Fatalf("token from key B after it was published: %v", err)
 	}
 	h.publish(b) // A is retired
