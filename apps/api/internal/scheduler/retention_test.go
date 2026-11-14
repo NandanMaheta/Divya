@@ -21,6 +21,7 @@ const retentionDays = 30 * 24 * time.Hour
 func TestRetention_IsARecurringDailyJobAt0300ISTPerOrg(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("rows", func(h *schedulertest.Harness) {
+		t := h.T
 		if scheduler.RetentionKind != "scheduler.retention" {
 			t.Fatalf("RetentionKind = %q, want scheduler.retention", scheduler.RetentionKind)
 		}
@@ -55,6 +56,7 @@ func TestRetention_IsARecurringDailyJobAt0300ISTPerOrg(t *testing.T) {
 func TestRetention_PurgesFinishedWorkOlderThan30DaysAndKeepsDeadItems(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("purge", func(h *schedulertest.Harness) {
+		t := h.T
 		h.RegisterRetention()
 		other := h.NewOrg("Other")
 		h.Tick() // arms the retention rows for Sun 15 Nov 03:00 IST
@@ -126,6 +128,7 @@ func TestRetention_PurgesFinishedWorkOlderThan30DaysAndKeepsDeadItems(t *testing
 func TestRetention_RunsOnceAfterAnOutage(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("catch_up", func(h *schedulertest.Harness) {
+		t := h.T
 		h.RegisterRetention()
 		h.Tick()
 		h.Clock.Set(schedulertest.Nov(19, 14, 0)) // four 03:00 occurrences missed

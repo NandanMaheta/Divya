@@ -20,6 +20,7 @@ func TestSchedule_BR_IPO_03_ScheduleUpsertsOnePendingJobPerKey(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("latest_due_time_details_and_expiry_win", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		exp1, exp2 := after(2*time.Hour), after(5*time.Hour)
 		first := h.Spec("sample.open", "ipo:42:open", after(time.Hour))
@@ -44,6 +45,7 @@ func TestSchedule_BR_IPO_03_ScheduleUpsertsOnePendingJobPerKey(t *testing.T) {
 	})
 
 	h.Run("a_kind_can_set_its_own_max_attempts", func(h *schedulertest.Harness) {
+		t := h.T
 		h.HandleWith("sample.fragile", func(context.Context, scheduler.Job) error { return nil }, scheduler.KindOptions{MaxAttempts: 3})
 		h.Schedule(h.Spec("sample.fragile", "k", after(time.Hour)))
 		if got := h.Job("sample.fragile", "k").MaxAttempts; got != 3 {
@@ -52,6 +54,7 @@ func TestSchedule_BR_IPO_03_ScheduleUpsertsOnePendingJobPerKey(t *testing.T) {
 	})
 
 	h.Run("the_same_key_in_two_orgs_is_two_jobs", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		other := h.NewOrg("Other")
 		h.Schedule(h.Spec("sample.open", "k", after(time.Hour)))
@@ -64,6 +67,7 @@ func TestSchedule_BR_IPO_03_ScheduleUpsertsOnePendingJobPerKey(t *testing.T) {
 	})
 
 	h.Run("a_done_key_creates_a_new_pending_row_and_keeps_the_old_one_as_history", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "ipo:42:open", after(5*time.Minute)))
 		h.Clock.Set(after(10 * time.Minute))
@@ -90,6 +94,7 @@ func TestSchedule_BR_IPO_03_ScheduleJoinsTheCallersTransaction(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("rollback_leaves_no_job_and_commit_leaves_one", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		err := h.InTx(func(ctx context.Context) error {
 			if err := h.Sched.Schedule(ctx, h.Spec("sample.open", "rolled-back", after(time.Hour))); err != nil {
@@ -112,6 +117,7 @@ func TestSchedule_BR_IPO_03_ScheduleJoinsTheCallersTransaction(t *testing.T) {
 	})
 
 	h.Run("without_a_transaction_it_returns_ErrNoTx_and_writes_nothing", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		err := h.Sched.Schedule(t.Context(), h.Spec("sample.open", "k", after(time.Hour)))
 		if !errors.Is(err, db.ErrNoTx) {
@@ -123,6 +129,7 @@ func TestSchedule_BR_IPO_03_ScheduleJoinsTheCallersTransaction(t *testing.T) {
 	})
 
 	h.Run("an_unregistered_kind_is_ErrUnknownKind", func(h *schedulertest.Harness) {
+		t := h.T
 		err := h.InTx(func(ctx context.Context) error {
 			return h.Sched.Schedule(ctx, h.Spec("nobody.handles_this", "k", after(time.Hour)))
 		})
@@ -135,6 +142,7 @@ func TestSchedule_BR_IPO_03_ScheduleJoinsTheCallersTransaction(t *testing.T) {
 	})
 
 	h.Run("invalid_specs_are_ErrInvalid_before_any_SQL_so_the_transaction_stays_usable", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		bad := map[string]func(*scheduler.JobSpec){
 			"zero run_at":        func(s *scheduler.JobSpec) { s.RunAt = time.Time{} },
@@ -166,6 +174,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	h := schedulertest.NewHarness(t)
 
 	h.Run("commit_moves_the_due_time_so_the_old_time_no_longer_runs_it", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "ipo:42:open", after(time.Hour)))
 		var found bool
@@ -190,6 +199,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	})
 
 	h.Run("rollback_keeps_the_old_due_time", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "k", after(time.Hour)))
 		_ = h.InTx(func(ctx context.Context) error {
@@ -204,6 +214,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	})
 
 	h.Run("a_date_moved_into_the_past_runs_on_the_next_tick", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "k", after(2*time.Hour)))
 		inTx(t, h, func(ctx context.Context) error {
@@ -216,6 +227,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	})
 
 	h.Run("a_missing_key_is_a_no_op_that_creates_nothing", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		var found bool
 		inTx(t, h, func(ctx context.Context) error {
@@ -229,6 +241,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	})
 
 	h.Run("a_done_job_is_not_rescheduled", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		h.SeedJob(schedulertest.JobSeed{Kind: "sample.open", Key: "k", Status: "done"})
 		var found bool
@@ -244,6 +257,7 @@ func TestSchedule_BR_IPO_03_RescheduleMovesTheJobAndNeverCreatesOne(t *testing.T
 	})
 
 	h.Run("without_a_transaction_it_returns_ErrNoTx", func(h *schedulertest.Harness) {
+		t := h.T
 		_, err := h.Sched.Reschedule(t.Context(), h.Org, "sample.open", "k", after(time.Hour))
 		if !errors.Is(err, db.ErrNoTx) {
 			t.Fatalf("error = %v, want db.ErrNoTx", err)
@@ -255,6 +269,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	h := schedulertest.NewHarness(t)
 
 	h.Run("cancel_by_key_records_cancelled_and_the_job_never_runs", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "k", after(time.Hour)))
 		var n int
@@ -277,6 +292,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	})
 
 	h.Run("cancel_rolled_back_leaves_the_job_pending", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		h.Schedule(h.Spec("sample.open", "k", after(time.Hour)))
 		_ = h.InTx(func(ctx context.Context) error {
@@ -289,6 +305,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	})
 
 	h.Run("cancel_of_a_missing_key_is_zero_and_not_an_error", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.open")
 		var n int
 		inTx(t, h, func(ctx context.Context) error {
@@ -302,6 +319,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	})
 
 	h.Run("cancel_subject_stops_every_job_of_one_item_in_this_org_only", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.step")
 		other := h.NewOrg("Other")
 		for _, key := range []string{"ipo:42:open", "ipo:42:close", "ipo:42:remind"} {
@@ -339,6 +357,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	})
 
 	h.Run("cancel_subject_rolled_back_leaves_all_jobs_pending", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.step")
 		for _, key := range []string{"a", "b"} {
 			spec := h.Spec("sample.step", key, after(time.Hour))
@@ -357,6 +376,7 @@ func TestSchedule_BR_IPO_03_CancelStopsPendingJobsByKeyAndBySubject(t *testing.T
 	})
 
 	h.Run("cancel_and_cancel_subject_require_a_transaction", func(h *schedulertest.Harness) {
+		t := h.T
 		if _, err := h.Sched.Cancel(t.Context(), h.Org, "sample.step", "k"); !errors.Is(err, db.ErrNoTx) {
 			t.Errorf("Cancel error = %v, want db.ErrNoTx", err)
 		}
@@ -391,6 +411,7 @@ func TestSchedule_BR_IPO_03_ChangesWhileRunningAreKept(t *testing.T) {
 	}
 
 	h.Run("reschedule_while_running_ends_pending_at_the_new_time", func(h *schedulertest.Harness) {
+		t := h.T
 		newTime := after(3 * time.Hour)
 		rec := whileRunning(h, "sample.open", func(ctx context.Context) error {
 			found, err := h.Sched.Reschedule(ctx, h.Org, "sample.open", "k", newTime)
@@ -420,6 +441,7 @@ func TestSchedule_BR_IPO_03_ChangesWhileRunningAreKept(t *testing.T) {
 	})
 
 	h.Run("schedule_upsert_while_running_ends_pending_with_the_new_values", func(h *schedulertest.Harness) {
+		t := h.T
 		newTime := after(4 * time.Hour)
 		whileRunning(h, "sample.open", func(ctx context.Context) error {
 			spec := h.Spec("sample.open", "k", newTime)
@@ -439,6 +461,7 @@ func TestSchedule_BR_IPO_03_ChangesWhileRunningAreKept(t *testing.T) {
 	})
 
 	h.Run("cancel_while_running_lets_a_failing_run_end_cancelled_instead_of_retrying", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := whileRunning(h, "sample.open", func(ctx context.Context) error {
 			n, err := h.Sched.Cancel(ctx, h.Org, "sample.open", "k")
 			if err == nil && n != 1 {

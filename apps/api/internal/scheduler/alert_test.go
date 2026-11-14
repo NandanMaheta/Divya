@@ -73,6 +73,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 	h := schedulertest.NewHarness(t)
 
 	h.Run("payload_fields_and_marking", func(h *schedulertest.Harness) {
+		t := h.T
 		j1 := deadJob(h, h.Org, "sample.open", "a")
 		j2 := deadJob(h, h.Org, "ipo.close", "b")
 		j3 := deadJob(h, h.Org, "sample.open", "c")
@@ -107,6 +108,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 	})
 
 	h.Run("an_alert_is_not_repeated_on_the_next_tick", func(h *schedulertest.Harness) {
+		t := h.T
 		deadJob(h, h.Org, "sample.open", "a")
 		h.Tick()
 		h.Clock.Advance(5 * time.Minute)
@@ -119,6 +121,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 	})
 
 	h.Run("no_dead_items_no_alert", func(h *schedulertest.Harness) {
+		t := h.T
 		h.SeedJob(schedulertest.JobSeed{Kind: "sample.open", Key: "done", Status: "done"})
 		h.SeedJob(schedulertest.JobSeed{Kind: "sample.open", Key: "retrying", Attempts: 3, LastError: "x", RunAt: after(time.Hour)})
 		h.Tick()
@@ -128,6 +131,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 	})
 
 	h.Run("each_org_gets_its_own_alert_with_its_own_counts", func(h *schedulertest.Harness) {
+		t := h.T
 		other := h.NewOrg("Other")
 		deadJob(h, h.Org, "sample.open", "a")
 		deadJob(h, other, "sample.close", "b")
@@ -151,6 +155,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 	})
 
 	h.Run("kinds_list_is_capped_at_10_while_counts_stay_exact", func(h *schedulertest.Harness) {
+		t := h.T
 		for i := range 12 {
 			deadJob(h, h.Org, "sample.k"+strconv.Itoa(10+i), "x")
 		}
@@ -169,6 +174,7 @@ func TestAlert_OneGroupedAlertPerOrgPerTickWithTheContractPayload(t *testing.T) 
 func TestAlert_AdminTopicsNeverTriggerAnAlert(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("dead_alert_message", func(h *schedulertest.Harness) {
+		t := h.T
 		id := deadMessage(h, h.Org, alertTopic, "jobs_dead:old")
 		h.Tick()
 		if n := h.Count("outbox_messages", "topic = $1", alertTopic); n != 1 {
@@ -180,6 +186,7 @@ func TestAlert_AdminTopicsNeverTriggerAnAlert(t *testing.T) {
 	})
 
 	h.Run("undeliverable_alerts_die_without_a_cascade", func(h *schedulertest.Harness) {
+		t := h.T
 		deadJob(h, h.Org, "sample.open", "a")
 		h.Tick()       // records one alert; no sender is registered for admin.jobs_dead until 014
 		for range 80 { // 10 days of 3-hourly ticks: enough for every attempt outside quiet hours
@@ -201,6 +208,7 @@ func TestAlert_AdminTopicsNeverTriggerAnAlert(t *testing.T) {
 func TestAlert_AFailedSweepMarksNothingAndIsRetriedNextTick(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("failing_insert", func(h *schedulertest.Harness) {
+		t := h.T
 		// Make recording the alert fail inside the sweep transaction, as a database error would.
 		h.Exec(`CREATE FUNCTION fail_alert() RETURNS trigger LANGUAGE plpgsql AS $$
 			BEGIN IF NEW.topic = 'admin.jobs_dead' THEN RAISE EXCEPTION 'injected alert failure'; END IF; RETURN NEW; END $$`)
@@ -250,6 +258,7 @@ func TestAlert_AFailedSweepMarksNothingAndIsRetriedNextTick(t *testing.T) {
 func TestAlert_AnItemRetriedByTheAdminThatDiesAgainAlertsAgain(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("retry_then_die", func(h *schedulertest.Harness) {
+		t := h.T
 		h.HandleWith("sample.once", func(context.Context, scheduler.Job) error { return errBoom }, scheduler.KindOptions{MaxAttempts: 1})
 		alertedAt := after(-time.Hour)
 		id := h.SeedJob(schedulertest.JobSeed{Kind: "sample.once", Key: "k", Status: "dead", Attempts: 1, MaxAttempts: 1, AlertedAt: &alertedAt})

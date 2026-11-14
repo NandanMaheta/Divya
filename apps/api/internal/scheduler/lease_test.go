@@ -24,6 +24,7 @@ import (
 func TestLease_AClaimThatNeverFinishesIsSkippedUntilTheLeaseEndsThenRunsAgain(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("crash_after_claim", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.step")
 		h.Schedule(h.Spec("sample.step", "k", after(-time.Minute)))
 		claimed, ok := h.ClaimOnly() // the instance crashes right after claiming (US1.5)
@@ -63,6 +64,7 @@ func TestLease_AClaimThatNeverFinishesIsSkippedUntilTheLeaseEndsThenRunsAgain(t 
 func TestLease_AnEffectCommittedBeforeTheCrashIsNotDuplicatedByTheRerun(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("dedupe", func(h *schedulertest.Harness) {
+		t := h.T
 		var inserted []bool
 		h.Handle("sample.notify", func(ctx context.Context, job scheduler.Job) error {
 			ok, err := h.Outbox.Add(ctx, outboxMessage(h, "notice:"+job.Key))
@@ -124,6 +126,7 @@ func TestLease_ALostLeaseRollsBackTheHandlersEffects(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("successful_handler_with_a_stale_token_commits_nothing", func(h *schedulertest.Harness) {
+		t := h.T
 		rec, thief := stealDuringRun(t, h, "sample.step", nil)
 		h.Schedule(h.Spec("sample.step", "k", after(-time.Minute)))
 		sum := h.Tick() // a lost lease is not a tick error (h.Tick fails the test on error)
@@ -148,6 +151,7 @@ func TestLease_ALostLeaseRollsBackTheHandlersEffects(t *testing.T) {
 	})
 
 	h.Run("failing_handler_with_a_stale_token_records_no_failure", func(h *schedulertest.Harness) {
+		t := h.T
 		_, thief := stealDuringRun(t, h, "sample.step", errBoom)
 		h.Schedule(h.Spec("sample.step", "k", after(-time.Minute)))
 		sum := h.Tick()
@@ -168,6 +172,7 @@ func TestLease_ALostLeaseRollsBackTheHandlersEffects(t *testing.T) {
 func TestLease_RepeatedLeaseExpiryEndsDead(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("lease_expired_too_often", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := &recorder{}
 		h.HandleWith("sample.crashy", func(_ context.Context, job scheduler.Job) error { rec.add(job.Key); return nil }, scheduler.KindOptions{MaxAttempts: 2})
 		h.Schedule(h.Spec("sample.crashy", "k", after(-time.Minute)))

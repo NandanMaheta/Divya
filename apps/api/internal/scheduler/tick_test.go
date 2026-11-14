@@ -28,6 +28,7 @@ func TestTick_BR_IPO_03_DueJobsRunOnceOldestFirstAndNeverBeforeTheirTime(t *test
 	h := schedulertest.NewHarness(t)
 
 	h.Run("oldest_due_time_first_each_once_and_future_jobs_wait", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.step")
 		h.Schedule(h.Spec("sample.step", "late", after(-30*time.Minute)))
 		h.Schedule(h.Spec("sample.step", "early", after(-2*time.Hour)))
@@ -76,6 +77,7 @@ func TestTick_BR_IPO_03_LateNotSkipped(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("a_skipped_tick_and_a_long_outage_never_lose_state_change_work", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.step")
 		h.Schedule(h.Spec("sample.step", "ipo:42:close", after(30*time.Minute))) // due 10:30
 		h.Schedule(h.Spec("sample.step", "ipo:43:close", after(24*time.Hour+time.Minute)))
@@ -100,6 +102,7 @@ func TestTick_IdleTickIsRecordedAndTouchesTheDatabase(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("an_idle_tick_succeeds_with_zero_counts_and_writes_one_tick_run", func(h *schedulertest.Harness) {
+		t := h.T
 		h.Clock.Set(after(time.Minute))
 		sum := h.Tick()
 		if sum.Jobs.Run+sum.Jobs.Failed+sum.Jobs.Dead+sum.Jobs.Expired != 0 || sum.Messages.Sent+sum.Messages.Failed+sum.Messages.Dead+sum.Messages.Expired != 0 || sum.BudgetExhausted {
@@ -127,6 +130,7 @@ func TestTick_IdleTickIsRecordedAndTouchesTheDatabase(t *testing.T) {
 	})
 
 	h.Run("the_tick_run_row_carries_the_same_counts_as_the_summary", func(h *schedulertest.Harness) {
+		t := h.T
 		recordKind(h, "sample.step")
 		failingKind(h, "sample.flaky", errBoom)
 		h.Schedule(h.Spec("sample.step", "a", after(-time.Hour)))
@@ -151,6 +155,7 @@ func TestTick_IdleTickIsRecordedAndTouchesTheDatabase(t *testing.T) {
 	})
 
 	h.Run("an_unreachable_database_makes_the_tick_return_an_error", func(h *schedulertest.Harness) {
+		t := h.T
 		pool, err := pgxpool.NewWithConfig(t.Context(), h.Pool.Config())
 		if err != nil {
 			t.Fatal(err)
@@ -167,6 +172,7 @@ func TestTick_IdleTickIsRecordedAndTouchesTheDatabase(t *testing.T) {
 func TestTick_RunsJobsFirstThenRelaysAvailableMessages(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("a_message_recorded_by_a_job_is_relayed_in_the_same_tick", func(h *schedulertest.Harness) {
+		t := h.T
 		h.Handle("sample.notify", func(ctx context.Context, job scheduler.Job) error {
 			_, err := h.Outbox.Add(ctx, outboxMessage(h, "from-job"))
 			return err
@@ -188,6 +194,7 @@ func TestTick_PerTickCapsAndBudgetsLeaveTheRestForTheNextTick(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("at_most_250_jobs_per_tick_oldest_first_then_the_rest_without_repeats", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := &recorder{}
 		h.Handle("sample.bulk", func(_ context.Context, job scheduler.Job) error { rec.add(job.Key); return nil })
 		var want []string
@@ -213,6 +220,7 @@ func TestTick_PerTickCapsAndBudgetsLeaveTheRestForTheNextTick(t *testing.T) {
 	})
 
 	h.Run("the_jobs_phase_stops_taking_new_work_after_30_seconds", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := &recorder{}
 		h.Handle("sample.slow", func(_ context.Context, job scheduler.Job) error {
 			rec.add(job.Key)
@@ -232,6 +240,7 @@ func TestTick_PerTickCapsAndBudgetsLeaveTheRestForTheNextTick(t *testing.T) {
 	})
 
 	h.Run("at_most_250_messages_per_tick", func(h *schedulertest.Harness) {
+		t := h.T
 		for i := range 255 {
 			h.SeedMessage(schedulertest.MessageSeed{Key: "m-" + strconv.Itoa(i)})
 		}
@@ -253,6 +262,7 @@ func TestTick_RecurringKindsRunOnceOnCatchUp(t *testing.T) {
 	nextHour := func(now time.Time) time.Time { return now.Truncate(time.Hour).Add(time.Hour) }
 
 	h.Run("an_active_row_per_org_is_ensured_and_missed_runs_collapse_into_one", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := &recorder{}
 		h.HandleWith("sample.recurring", func(_ context.Context, job scheduler.Job) error {
 			rec.add(job.Key)
@@ -291,6 +301,7 @@ func TestTick_RecurringKindsRunOnceOnCatchUp(t *testing.T) {
 	})
 
 	h.Run("every_org_gets_its_own_row_and_a_dead_row_is_replaced", func(h *schedulertest.Harness) {
+		t := h.T
 		h.HandleWith("sample.recurring", func(context.Context, scheduler.Job) error { return nil }, scheduler.KindOptions{Recurring: nextHour})
 		h.SeedJob(schedulertest.JobSeed{Kind: "sample.recurring", Key: "recurring", Subject: "recurring", Status: "dead", Recurring: true, LastError: "gave up"})
 		other := h.NewOrg("Other")
@@ -310,6 +321,7 @@ func TestTick_RecurringKindsRunOnceOnCatchUp(t *testing.T) {
 func TestTick_UnknownKindFailsThatJobAndTheTickContinues(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("unknown_kind", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.step")
 		h.SeedJob(schedulertest.JobSeed{Kind: "ghost.kind", Key: "g", RunAt: after(-2 * time.Hour)})
 		h.Schedule(h.Spec("sample.step", "ok", after(-time.Hour)))

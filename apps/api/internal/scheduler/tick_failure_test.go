@@ -34,6 +34,7 @@ func TestTickFailure_RetriesWithGrowingWaitsThenGoesDeadAndIsNeverRunAgain(t *te
 	// failUntilDead drives an always-failing job through every attempt: each tick runs at the
 	// row's own run_at, so a retry can never happen before its time.
 	failUntilDead := func(h *schedulertest.Harness, kind string, maxAttempts int) {
+		t := h.T
 		rec := failingKind(h, kind, fmt.Errorf("push gateway returned 502"))
 		h.Schedule(h.Spec(kind, "k", start))
 		var prev time.Duration
@@ -99,6 +100,7 @@ func TestTickFailure_RetriesWithGrowingWaitsThenGoesDeadAndIsNeverRunAgain(t *te
 func TestTickFailure_RetriesAreStillSubjectToExpiry(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("expiry_passes_while_waiting_for_a_retry", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := failingKind(h, "sample.reminder", errBoom)
 		exp := after(10 * time.Minute)
 		spec := h.Spec("sample.reminder", "slot-1", start)
@@ -117,6 +119,7 @@ func TestTickFailure_RetriesAreStillSubjectToExpiry(t *testing.T) {
 func TestTickFailure_APanicInAHandlerIsRecoveredAndTheTickContinues(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("panic", func(h *schedulertest.Harness) {
+		t := h.T
 		const token = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJl"
 		h.Handle("sample.explode", func(ctx context.Context, job scheduler.Job) error {
 			_ = h.Effect(ctx, job.Key) // must be rolled back with the panic
@@ -156,6 +159,7 @@ func TestTickFailure_APanicInAHandlerIsRecoveredAndTheTickContinues(t *testing.T
 func TestTickFailure_LastErrorIsTruncatedAndNeverCarriesSecrets(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("secrets", func(h *schedulertest.Harness) {
+		t := h.T
 		jwt := "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 		failingKind(h, "sample.leaky", fmt.Errorf("call failed: Authorization: Bearer abc123.def456.ghi789 pan=ABCDE1234F jwt=%s %s", jwt, strings.Repeat("x", 900)))
 		h.Schedule(h.Spec("sample.leaky", "k", start))
@@ -180,6 +184,7 @@ func TestTickFailure_BR_IPO_03_ExpiredWorkIsRecordedNotRunWhileStateChangesAlway
 	h := schedulertest.NewHarness(t)
 
 	h.Run("hourly_reminder_slots_after_an_outage_only_the_current_slot_runs", func(h *schedulertest.Harness) {
+		t := h.T
 		reminders := recordKind(h, "sample.reminder")
 		state := recordKind(h, "sample.open")
 		for slot := range 5 { // slots 10:00..14:00, each valid until the next slot starts (US7.2)
@@ -213,6 +218,7 @@ func TestTickFailure_BR_IPO_03_ExpiredWorkIsRecordedNotRunWhileStateChangesAlway
 	})
 
 	h.Run("expires_at_equal_to_now_is_expired_one_nanosecond_later_still_runs", func(h *schedulertest.Harness) {
+		t := h.T
 		rec := recordKind(h, "sample.reminder")
 		atNow, later := start, start.Add(time.Nanosecond)
 		a := h.Spec("sample.reminder", "at-now", after(-time.Hour))
@@ -233,6 +239,7 @@ func TestTickFailure_CompletionIsAtomicWithTheHandlersEffects(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 
 	h.Run("effects_and_done_become_visible_together", func(h *schedulertest.Harness) {
+		t := h.T
 		var midEffects, midRunning int
 		h.Handle("sample.step", func(ctx context.Context, job scheduler.Job) error {
 			if err := h.Effect(ctx, job.Key); err != nil {
@@ -255,6 +262,7 @@ func TestTickFailure_CompletionIsAtomicWithTheHandlersEffects(t *testing.T) {
 	})
 
 	h.Run("a_failing_handler_leaves_no_partial_effects_but_the_failure_is_recorded", func(h *schedulertest.Harness) {
+		t := h.T
 		h.Handle("sample.step", func(ctx context.Context, job scheduler.Job) error {
 			if err := h.Effect(ctx, job.Key); err != nil {
 				return err
@@ -277,6 +285,7 @@ func TestTickFailure_CompletionIsAtomicWithTheHandlersEffects(t *testing.T) {
 	})
 
 	h.Run("a_successful_job_commits_its_outbox_message_with_the_done_mark", func(h *schedulertest.Harness) {
+		t := h.T
 		h.Handle("sample.step", func(ctx context.Context, job scheduler.Job) error {
 			_, err := h.Outbox.Add(ctx, outboxMessage(h, "msg-"+job.Key))
 			return err
@@ -293,6 +302,7 @@ func TestTickFailure_CompletionIsAtomicWithTheHandlersEffects(t *testing.T) {
 func TestTickFailure_HandlerReceivesTheJobAndABoundedContext(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("job_fields_attempt_number_and_deadline", func(h *schedulertest.Harness) {
+		t := h.T
 		var seen []scheduler.Job
 		var hasDeadline bool
 		var remaining time.Duration
@@ -332,6 +342,7 @@ func TestTickFailure_HandlerReceivesTheJobAndABoundedContext(t *testing.T) {
 func TestTickFailure_AFailingJobDoesNotBlockOthers(t *testing.T) {
 	h := schedulertest.NewHarness(t)
 	h.Run("older_failing_job_and_younger_good_job", func(h *schedulertest.Harness) {
+		t := h.T
 		failingKind(h, "sample.flaky", errBoom)
 		ok := recordKind(h, "sample.step")
 		h.Schedule(h.Spec("sample.flaky", "bad", start.Add(-2*time.Hour)))
