@@ -10,7 +10,7 @@ import (
 
 // US7 (service side), US9: reads, filters, pages, delete rules, org isolation.
 
-func (e *svcEnv) seedCatalogue() map[string]IPO {
+func (e *svcEnv) seedCatalogue() {
 	e.t.Helper()
 	mk := func(name string, open *istdate.Date) Draft {
 		d := acme()
@@ -18,23 +18,21 @@ func (e *svcEnv) seedCatalogue() map[string]IPO {
 		d.Dates = Dates{Open: open}
 		return d
 	}
-	out := map[string]IPO{}
 	// A: published APPLY OPEN, open 11 Nov
 	a := e.published(mk("A", dt(11)), FlagApply)
-	out["A"] = e.override(a, StatusOpen, "seed")
+	_ = e.override(a, StatusOpen, "seed")
 	// B: published DO NOT APPLY UPCOMING, open 20 Nov
-	out["B"] = e.published(mk("B", dt(20)), FlagDoNotApply)
+	_ = e.published(mk("B", dt(20)), FlagDoNotApply)
 	// C: draft, no flag, no dates
-	out["C"] = e.create(minimalDraft("C"))
+	_ = e.create(minimalDraft("C"))
 	// D: draft APPLY CLOSED, open 2 Dec
 	d := e.create(Draft{Name: "D", Exchanges: []Exchange{ExchangeNSE}, Dates: Dates{Open: &istdate.Date{Year: 2026, Month: time.December, Day: 2}}})
 	d = e.setFlag(d, FlagApply, nil)
-	out["D"] = e.override(d, StatusClosed, "seed")
+	_ = e.override(d, StatusClosed, "seed")
 	// E: published APPLY LISTED, open 5 Oct
 	oct := &istdate.Date{Year: 2026, Month: time.October, Day: 5}
 	ee := e.published(mk("E", oct), FlagApply)
-	out["E"] = e.override(ee, StatusListed, "seed")
-	return out
+	_ = e.override(ee, StatusListed, "seed")
 }
 
 func listNames(t *testing.T, p Page[IPO], err error) []string {

@@ -87,7 +87,7 @@ func TestOverride_BR_IPO_03_ReasonRequired(t *testing.T) {
 		e := newSvcEnv(t)
 		i := e.create(acme())
 		_, err := e.svc.OverrideStatus(e.ctx(), e.admin, e.org, i.ID, i.Version, StatusOpen, reason, e.key())
-		wantValidation2(t, err, "ipo.invalid_value")
+		_ = wantValidation2(t, err, "ipo.invalid_value")
 		if e.mustRow(i.ID).Status != "UPCOMING" || e.auditCount(i.ID) != 1 {
 			t.Fatalf("nothing may change without a reason (US6.4)")
 		}

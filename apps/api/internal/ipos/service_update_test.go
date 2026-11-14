@@ -82,7 +82,7 @@ func TestUpdate_BR_IPO_01_EditToNonMainboardRejected(t *testing.T) {
 			d := draftOf(i)
 			d.Exchanges = tc.segs
 			_, err := e.svc.Update(e.ctx(), e.admin, e.org, i.ID, i.Version, d, e.key())
-			wantValidation2(t, err, tc.code)
+			_ = wantValidation2(t, err, tc.code)
 			if r := e.mustRow(i.ID); r.Version != 1 || e.auditCount(i.ID) != 1 {
 				t.Fatalf("IPO must be unchanged: %+v", r)
 			}
@@ -105,7 +105,7 @@ func TestUpdate_FR003_InvalidValuesChangeNothing(t *testing.T) {
 		d := draftOf(i)
 		mut(&d)
 		_, err := e.svc.Update(e.ctx(), e.admin, e.org, i.ID, i.Version, d, e.key())
-		wantValidation2(t, err, "ipo.invalid_value")
+		_ = wantValidation2(t, err, "ipo.invalid_value")
 	}
 	if r := e.mustRow(i.ID); r.Version != 1 || e.auditCount(i.ID) != 1 {
 		t.Fatalf("nothing may change: %+v", r)
@@ -137,7 +137,7 @@ func TestUpdate_BR_IPO_03_DateOrderRejected(t *testing.T) {
 				}
 				return
 			}
-			wantValidation2(t, err, "ipo.date_order")
+			_ = wantValidation2(t, err, "ipo.date_order")
 			if e.mustRow(i.ID).Version != 1 {
 				t.Fatalf("nothing may change")
 			}
@@ -183,7 +183,7 @@ func TestUpdate_BR_IPO_02_PublishedEditSendsNoEligibilitySignal(t *testing.T) {
 	if _, err := e.svc.Update(e.ctx(), e.admin, e.org, i.ID, i.Version, d, e.key()); err != nil {
 		t.Fatal(err)
 	}
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 }
 
 func TestUpdate_FR006_NoOpWritesNothing(t *testing.T) {

@@ -222,7 +222,6 @@ func (e *svcEnv) published(d Draft, flag ApplyFlag) IPO {
 }
 
 // current reads the row back through raw SQL.
-func (e *svcEnv) current(i IPO) IPO { return e.currentID(i.ID) }
 
 func (e *svcEnv) currentID(id uuid.UUID) IPO {
 	e.t.Helper()
@@ -465,13 +464,15 @@ func (r *recorder) counts() (dates, elig, status int) {
 	return len(r.Dates), len(r.Elig), len(r.Status)
 }
 
-func (r *recorder) wantCounts(t *testing.T, dates, elig, status int) {
+func (r *recorder) wantDatesOnly(t *testing.T, dates int) {
 	t.Helper()
 	d, el, s := r.counts()
-	if d != dates || el != elig || s != status {
-		t.Fatalf("signals (dates, eligibility, status) = (%d, %d, %d), want (%d, %d, %d)", d, el, s, dates, elig, status)
+	if d != dates || el != 0 || s != 0 {
+		t.Fatalf("signals (dates, eligibility, status) = (%d, %d, %d), want (%d, 0, 0)", d, el, s, dates)
 	}
 }
+
+func (r *recorder) wantNoSignals(t *testing.T) { t.Helper(); r.wantDatesOnly(t, 0) }
 
 // captureRegistrar records what RegisterJobs registers so tests can run a step handler directly.
 type captureRegistrar struct {
@@ -508,7 +509,5 @@ func (e *svcEnv) runStep(c *captureRegistrar, id uuid.UUID, kind string) error {
 	job := scheduler.Job{ID: row.ID, OrgID: row.Org, Kind: row.Kind, Key: row.Key, Subject: row.Subject, Payload: row.Payload, RunAt: row.RunAt}
 	return e.h.Txr.InTx(e.ctx(), func(ctx context.Context) error { return h(ctx, job) })
 }
-
-func utcOf(t time.Time) time.Time { return t.UTC() }
 
 func newID() uuid.UUID { return uuid.New() }

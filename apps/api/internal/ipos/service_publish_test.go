@@ -74,7 +74,7 @@ func TestPublish_BR_IPO_02_DoNotApplyVisibleNotEligible(t *testing.T) {
 	if i.Eligible() || !i.Published {
 		t.Fatalf("DNA must be published but not eligible: %+v", i)
 	}
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 	p, err := e.svc.ListPublished(e.ctx(), e.org, ClientFilter{})
 	if err != nil || len(p.Items) != 1 || p.Items[0].Flag == nil || *p.Items[0].Flag != FlagDoNotApply {
 		t.Fatalf("client must see the DNA IPO: %+v err=%v", p.Items, err)
@@ -169,7 +169,7 @@ func TestSetFlag_BR_IPO_02_NoteOnlyNoEligibilitySignal(t *testing.T) {
 	if _, err := e.svc.SetFlag(e.ctx(), e.admin, e.org, i.ID, i.Version, flagPtr(FlagApply), &note, e.key()); err != nil {
 		t.Fatal(err)
 	}
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 	if e.auditCount(i.ID) != n+1 || e.mustRow(i.ID).Note == nil || *e.mustRow(i.ID).Note != note {
 		t.Fatalf("note must change with an audit entry (US3.6)")
 	}
@@ -180,7 +180,7 @@ func TestSetFlag_BR_IPO_02_DraftFlagNeverSignals(t *testing.T) {
 	i := e.create(acme())
 	r := e.listen()
 	e.setFlag(i, FlagApply, nil)
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 }
 
 func TestSetFlag_BR_IPO_02_NoOpWritesNothing(t *testing.T) {
@@ -197,7 +197,7 @@ func TestSetFlag_BR_IPO_02_PublishedCannotClearFlag(t *testing.T) {
 	e := newSvcEnv(t)
 	i := e.published(acme(), FlagApply)
 	_, err := e.svc.SetFlag(e.ctx(), e.admin, e.org, i.ID, i.Version, nil, nil, e.key())
-	wantValidation2(t, err, "ipo.publish_incomplete")
+	_ = wantValidation2(t, err, "ipo.publish_incomplete")
 	if r := e.mustRow(i.ID); r.Flag == nil || r.Version != i.Version {
 		t.Fatalf("flag must stay (US3.7): %+v", r)
 	}
@@ -208,7 +208,7 @@ func TestSetFlag_BR_IPO_02_NoteWithoutFlagRejected(t *testing.T) {
 	i := e.create(acme())
 	note := "orphan note"
 	_, err := e.svc.SetFlag(e.ctx(), e.admin, e.org, i.ID, i.Version, nil, &note, e.key())
-	wantValidation2(t, err, "ipo.invalid_value")
+	_ = wantValidation2(t, err, "ipo.invalid_value")
 }
 
 func TestSetFlag_FR006_StaleAndNotFound(t *testing.T) {
@@ -268,5 +268,5 @@ func TestUnpublish_BR_IPO_02_DoNotApplySendsNoSignal(t *testing.T) {
 	if _, err := e.svc.Unpublish(e.ctx(), e.admin, e.org, i.ID, i.Version, e.key()); err != nil {
 		t.Fatal(err)
 	}
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 }

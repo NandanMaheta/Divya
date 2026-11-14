@@ -13,7 +13,7 @@ func TestSignals_BR_IPO_03_DatesChangedOncePerEdit(t *testing.T) {
 	e := newSvcEnv(t)
 	r := e.listen()
 	i := e.create(acme())
-	r.wantCounts(t, 0, 0, 0) // creating sends no dates signal
+	r.wantNoSignals(t) // creating sends no dates signal
 
 	d := draftOf(i)
 	d.Dates = Dates{Open: dt(12), Close: dt(17), Allotment: dt(18), Refund: dt(19), DematCredit: dt(19), Listing: dt(20)}
@@ -45,7 +45,7 @@ func TestSignals_BR_IPO_03_DatesChangedOncePerEdit(t *testing.T) {
 	if _, err := e.svc.Update(e.ctx(), e.admin, e.org, i.ID, res2.IPO.Version, draftOf(res2.IPO), e.key()); err != nil {
 		t.Fatal(err)
 	}
-	r.wantCounts(t, 1, 0, 0)
+	r.wantDatesOnly(t, 1)
 
 	// a refund-only change still signals (no step moves, dependents still need to know)
 	d3 := draftOf(res2.IPO)
@@ -53,7 +53,7 @@ func TestSignals_BR_IPO_03_DatesChangedOncePerEdit(t *testing.T) {
 	if _, err := e.svc.Update(e.ctx(), e.admin, e.org, i.ID, res2.IPO.Version, d3, e.key()); err != nil {
 		t.Fatal(err)
 	}
-	r.wantCounts(t, 2, 0, 0)
+	r.wantDatesOnly(t, 2)
 }
 
 func TestSignals_BR_IPO_03_DatesChangedFailureRollsBack(t *testing.T) {
@@ -83,7 +83,7 @@ func TestSignals_BR_IPO_02_EligibilityChanged(t *testing.T) {
 	r := e.listen()
 	i := e.create(acme())
 	i = e.setFlag(i, FlagApply, nil) // draft
-	r.wantCounts(t, 0, 0, 0)
+	r.wantNoSignals(t)
 	i = e.publish(i) // -> eligible
 	if len(r.Elig) != 1 || !r.Elig[0].Eligible || r.Elig[0].Cause != "publish" {
 		t.Fatalf("publish APPLY: %+v", r.Elig)

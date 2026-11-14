@@ -135,7 +135,7 @@ func TestCreate_BR_IPO_01_SMEStoresNothingAndSchedulesNothing(t *testing.T) {
 			d := acme()
 			d.Exchanges = tc.segs
 			_, err := e.svc.Create(e.ctx(), e.admin, e.org, d, e.key())
-			wantValidation2(t, err, tc.code)
+			_ = wantValidation2(t, err, tc.code)
 			if e.iposCount() != 0 || e.h.Count("scheduled_jobs", "true") != 0 || e.h.Count("audit_log", "entity = 'ipo'") != 0 {
 				t.Fatalf("nothing may be stored, scheduled or audited (US2.1)")
 			}
@@ -184,7 +184,7 @@ func TestCreate_FR003_InvalidValuesStoreNothing(t *testing.T) {
 			d := acme()
 			tc.mut(&d)
 			_, err := e.svc.Create(e.ctx(), e.admin, e.org, d, e.key())
-			wantValidation2(t, err, tc.code)
+			_ = wantValidation2(t, err, tc.code)
 			if e.iposCount() != 0 || e.h.Count("scheduled_jobs", "true") != 0 {
 				t.Fatalf("nothing may change on a rejected create")
 			}
