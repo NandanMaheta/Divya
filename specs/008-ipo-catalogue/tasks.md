@@ -26,7 +26,7 @@
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: FR-003, FR-008, FR-011, FR-061; data-model 1
   - Files (~330 lines): `apps/api/internal/platform/inr/inr_test.go`, `apps/api/internal/ipos/schema/schema_test.go`, `scripts/check-lint-boundaries.sh`
   - Done command (red): `cd apps/api && go test -race ./internal/platform/inr/... ./internal/ipos/schema/... && cd ../.. && bash scripts/check-lint-boundaries.sh`
-- [ ] S03 **backend-dev**: Foundations: inr.Format (integer-only Indian grouping), migrations/00004_ipos.sql (expand-only, all CHECKs, indexes, delete trigger), depguard rules in apps/api/.golangci.yml. Migration PR needs owner approval (CODEOWNERS); merges after 003, never renumber.
+- [x] S03 **backend-dev**: Foundations: inr.Format (integer-only Indian grouping), migrations/00004_ipos.sql (expand-only, all CHECKs, indexes, delete trigger), depguard rules in apps/api/.golangci.yml. Migration PR needs owner approval (CODEOWNERS); merges after 003, never renumber.
   - Depends on: S02, 002-merged
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: data-model 1-2; plan: depguard additions; C-7
   - Files (~250 lines): `apps/api/internal/platform/inr/inr.go`, `apps/api/migrations/00004_ipos.sql`, `apps/api/.golangci.yml`
