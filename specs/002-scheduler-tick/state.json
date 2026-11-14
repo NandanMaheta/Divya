@@ -614,7 +614,7 @@
     "T043": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestTickFailure_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -624,7 +624,10 @@
       ],
       "title": "Tick failure tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/tick_failure_test.go"
+      ]
     },
     "T044": {
       "owner": "test-engineer",

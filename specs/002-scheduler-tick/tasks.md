@@ -253,8 +253,8 @@
   - Rules: BR-IPO-03 | Refs: US1.1-1.3, 1.7, 1.8, 6.8, 7.6; FR-005, FR-006, FR-010, FR-015, FR-016, FR-021; TestTick_BR_IPO_03_LateNotSkipped
   - Files (1, ~190 lines): `apps/api/internal/scheduler/tick_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestTick_' ./internal/scheduler/...`
-  - Note (test-engineer): the "status overdue at 15 minutes" case lives in `admin_test.go` as `TestAdmin_StatusIsOverdueMoreThan15MinutesAfterTheLastTick` (T053), because `Status` is implemented in T054 and T048's done command runs `TestTick_`. `TestTick_TheJobsPhase...`/caps/recurring cases need T048; the idle-tick case also needs the outbox relay (T037, done).
-- [ ] T043 [P] **test-engineer**: Tick failure tests: handler error retries with growing waits then dead, panic recovered with sanitised last_error, expiry skips effect while state-change jobs always run, last_error never carries secrets, completion atomic with handler effects.
+  - Note (test-engineer): the "status overdue at 15 minutes" case lives in `admin_test.go` as `TestAdmin_StatusIsOverdueMoreThan15MinutesAfterTheLastTick` (T053), because `Status` is implemented in T054 and T048's done command runs `TestTick_`. All `TestTick_` cases need T048; the idle-tick case also needs the outbox relay (T037, done).
+- [x] T043 [P] **test-engineer**: Tick failure tests: handler error retries with growing waits then dead, panic recovered with sanitised last_error, expiry skips effect while state-change jobs always run, last_error never carries secrets, completion atomic with handler effects.
   - Depends on: T040, T022
   - Rules: BR-IPO-03 | Refs: US6.1-6.3; FR-012, FR-014, FR-017, FR-018
   - Files (1, ~190 lines): `apps/api/internal/scheduler/tick_failure_test.go`
