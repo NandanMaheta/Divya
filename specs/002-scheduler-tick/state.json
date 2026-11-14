@@ -943,8 +943,8 @@
     },
     "T064": {
       "owner": "test-engineer",
-      "done_command": "cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties -rapid.checks=50 ./internal/scheduler/...",
-      "status": "todo",
+      "done_command": "cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties ./internal/scheduler/... -rapid.checks=50",
+      "status": "done",
       "depends_on": [
         "T048",
         "T050",
@@ -955,7 +955,10 @@
       ],
       "title": "Rapid state-machine model test of the scheduler against an in-memory model (schedule/resch",
       "expect": "green",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/model_test.go"
+      ]
     },
     "T065": {
       "owner": "test-engineer",

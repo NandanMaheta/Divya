@@ -371,11 +371,11 @@
   - Rules: none (mechanism) | Refs: US1.4, 3.8; FR-011, FR-026
   - Files (1, ~140 lines): `apps/api/internal/scheduler/concurrency_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestTick_Concurrent -count=20 ./internal/scheduler/...`
-- [ ] T064 [P] **test-engineer**: Rapid state-machine model test of the scheduler against an in-memory model (schedule/reschedule/cancel/advance/tick/crash-after-claim/fail): no effect twice, never before run_at, <= 1 active row per key, running implies lease and token, dead iff attempts >= max.
+- [x] T064 [P] **test-engineer**: Rapid state-machine model test of the scheduler against an in-memory model (schedule/reschedule/cancel/advance/tick/crash-after-claim/fail): no effect twice, never before run_at, <= 1 active row per key, running implies lease and token, dead iff attempts >= max.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03 | Refs: FR-009-FR-016
   - Files (1, ~190 lines): `apps/api/internal/scheduler/model_test.go`
-  - Done command (green): `cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties -rapid.checks=50 ./internal/scheduler/...`
+  - Done command (green): `cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties ./internal/scheduler/... -rapid.checks=50`
 - [ ] T065 [P] **test-engineer**: Short soak test TestSoak_SC_001: 3-day slice in PR (30 days, 100 clients, 10 IPOs when SWASTIK_SOAK=full) with random duplicate/overlapping/skipped ticks and crashes; skipped under -short.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: SC-001
