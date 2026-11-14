@@ -799,14 +799,17 @@
     "T055": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestHandler_ ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T017"
       ],
       "rules": [],
       "title": "Tick handler tests with humatest",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/handler_test.go"
+      ]
     },
     "T056": {
       "owner": "backend-dev",
