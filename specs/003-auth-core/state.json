@@ -202,7 +202,7 @@
       "owner": "test-engineer",
       "title": "Service tests A (fake clock, real Store): accounts status machine (BR_CLI_04), CreateClient/ResetPassword/Replace*/EndAllSessions, throttle service, client sign-in, sign-in gate generic failures, lockout through service.",
       "done_command": "cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "S10"
       ],
@@ -212,7 +212,16 @@
       ],
       "expect": "red",
       "parallel": false,
-      "replaces": "T050,T051,T054,T056,T057,T066"
+      "replaces": "T050,T051,T054,T056,T057,T066",
+      "protected_tests": [
+        "apps/api/internal/auth/svc_helpers_test.go",
+        "apps/api/internal/auth/accounts_test.go",
+        "apps/api/internal/auth/throttle_test.go",
+        "apps/api/internal/auth/signin_test.go",
+        "apps/api/internal/auth/lockout_service_test.go"
+      ],
+      "tests_written": true,
+      "note": "Red (errNotImplemented). Added compile stubs apps/api/internal/auth/service_stubs.go (SignIn, Refresh, sign-out/devices/admin sessions, ChangePassword, Bearer/ChallengeVerifier, ErrInvalidCredentials/ErrRefreshRejected/ErrReauthFailed, SignInInput/SessionTokens/Device types; S12/S14 replace each in place) and test-support authtest/service.go (Env.Service/ServiceWith/AuditRows). Note: TestLockoutService_* also matches the S04 done pattern 'TestLockout'."
     },
     "S12": {
       "owner": "backend-dev",
