@@ -334,7 +334,9 @@ type cursorJSON struct {
 	ID   uuid.UUID `json:"i"`
 }
 
-// encodeCursor is the opaque cursor that resumes after row i.
+// encodeCursor is the opaque cursor that resumes after row i (used by the service list calls).
+//
+//nolint:unused // wired by the service core slice
 func encodeCursor(i IPO) string {
 	c := cursorJSON{ID: i.ID}
 	if i.Dates.Open != nil {

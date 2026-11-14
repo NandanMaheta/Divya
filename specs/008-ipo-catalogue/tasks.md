@@ -46,7 +46,7 @@
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: FR-020, FR-021, FR-031, FR-032, FR-036, FR-040, FR-041; US3, US5
   - Files (~620 lines): `apps/api/internal/ipos/validate_dates_test.go`, `apps/api/internal/ipos/validate_prop_test.go`, `apps/api/internal/ipos/step_test.go`, `apps/api/internal/ipos/step_prop_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestValidate_BR_IPO_03|TestValidate_BR_IPO_02|TestDateOrder_BR_IPO_03|TestSegments_BR_IPO_01_Properties|TestMinApplication_Properties|TestStepInstant_BR_IPO_03|TestStepDecision_BR_IPO_03|TestStepDiff_BR_IPO_03' ./internal/ipos/`
-- [ ] S07 **backend-dev**: validate.go (segment mapping, values, band, publish completeness), validate_dates.go (transitive closure of FR-040), lifecycle_steps.go (step table, stepInstant, stepDecision, stepDiff, job payload).
+- [x] S07 **backend-dev**: validate.go (segment mapping, values, band, publish completeness), validate_dates.go (transitive closure of FR-040), lifecycle_steps.go (step table, stepInstant, stepDecision, stepDiff, job payload).
   - Depends on: S04, S05, S06, 002-merged
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: FR-003, FR-010..012, FR-020, FR-040; K-03, K-04, K-08
   - Files (~430 lines): `apps/api/internal/ipos/validate.go`, `apps/api/internal/ipos/validate_dates.go`, `apps/api/internal/ipos/lifecycle_steps.go`

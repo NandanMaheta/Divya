@@ -9,8 +9,10 @@ import (
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/istdate"
 )
 
+// Status is the IPO lifecycle status (FR-030).
 type Status string
 
+// Lifecycle statuses, lowest rank first.
 const (
 	StatusUpcoming     Status = "UPCOMING"
 	StatusOpen         Status = "OPEN"
@@ -39,30 +41,38 @@ func (s Status) Rank() int {
 	return -1
 }
 
+// StatusSource records who set the current status.
 type StatusSource string
 
+// Status sources.
 const (
 	SourceSchedule   StatusSource = "schedule"
 	SourceAdmin      StatusSource = "admin"
 	SourceSettlement StatusSource = "settlement"
 )
 
+// ApplyFlag is the operator verdict on an IPO (BR-IPO-02).
 type ApplyFlag string
 
+// Apply flags.
 const (
 	FlagApply      ApplyFlag = "APPLY"
 	FlagDoNotApply ApplyFlag = "DO_NOT_APPLY"
 )
 
+// Exchange is a mainboard exchange a listing is stated on.
 type Exchange string
 
+// Mainboard exchanges.
 const (
 	ExchangeNSE Exchange = "NSE"
 	ExchangeBSE Exchange = "BSE"
 )
 
+// Dates are the IST civil dates of an IPO; nil means not set.
 type Dates struct{ Open, Close, Allotment, Refund, DematCredit, Listing *istdate.Date }
 
+// IPO is one catalogue entry.
 type IPO struct {
 	ID, OrgID                                               uuid.UUID
 	Name                                                    string

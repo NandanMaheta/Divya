@@ -169,7 +169,7 @@
       "owner": "backend-dev",
       "title": "validate.go (segment mapping, values, band, publish completeness), validate_dates.go (transitive closure of FR-040), lifecycle_steps.go (step table, stepInstant, stepDecision, stepDiff, job payload).",
       "done_command": "cd apps/api && go test -race -run 'TestValidate_|TestDateOrder_BR_IPO_03|TestSegments_BR_IPO_01|TestMinApplication_Properties|TestStep' ./internal/ipos/",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "S04",
         "S05",
