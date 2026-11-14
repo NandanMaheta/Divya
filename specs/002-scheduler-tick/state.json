@@ -466,7 +466,7 @@
     "T034": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T022"
       ],
@@ -475,7 +475,10 @@
       ],
       "title": "Quiet-hours tests with fake clock",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/outbox/quiet_test.go"
+      ]
     },
     "T035": {
       "owner": "backend-dev",

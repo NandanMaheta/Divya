@@ -200,7 +200,7 @@
   - Rules: BR-TASK-03 | Refs: US3.2, 3.4, 3.6, 7.3, 8.7; FR-017, FR-025, FR-026, FR-028, FR-030; SC-008
   - Files (1, ~190 lines): `apps/api/internal/outbox/relay_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay' ./internal/outbox/...`
-- [ ] T034 [P] **test-engineer**: Quiet-hours tests with fake clock: default 21:30-08:00, message inside window available at 08:00, exempt immediate, boundaries, per-org setting applies only to new messages and writes audit_log.
+- [x] T034 [P] **test-engineer**: Quiet-hours tests with fake clock: default 21:30-08:00, message inside window available at 08:00, exempt immediate, boundaries, per-org setting applies only to new messages and writes audit_log.
   - Depends on: T022
   - Rules: BR-TASK-03 | Refs: US8.1-8.9; FR-031
   - Files (1, ~150 lines): `apps/api/internal/outbox/quiet_test.go`
