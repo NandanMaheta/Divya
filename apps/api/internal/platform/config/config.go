@@ -4,6 +4,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 )
@@ -15,6 +16,19 @@ type Config struct {
 	HTTPAddr        string
 	DatabaseURL     string
 	ShutdownTimeout time.Duration
+	Auth            AuthConfig
+}
+
+// LogValue implements slog.LogValuer so logging a Config never reveals the database password or
+// any key material.
+func (c Config) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.String("env", c.Env),
+		slog.String("http_addr", c.HTTPAddr),
+		slog.String("database_url", "[redacted]"),
+		slog.Duration("shutdown_timeout", c.ShutdownTimeout),
+		slog.Any("auth", c.Auth),
+	)
 }
 
 // Load reads configuration from the environment and validates it.
@@ -29,21 +43,26 @@ func Load() (Config, error) {
 	if port := os.Getenv("PORT"); port != "" && os.Getenv("HTTP_ADDR") == "" {
 		cfg.HTTPAddr = ":" + port
 	}
-	if err := cfg.validate(); err != nil {
+	if err := validateDB(cfg.DatabaseURL, cfg.Env); err != nil {
 		return Config{}, fmt.Errorf("config: %w", err)
 	}
+	auth, err := loadAuth(cfg.Env)
+	if err != nil {
+		return Config{}, fmt.Errorf("config: %w", err)
+	}
+	cfg.Auth = auth
 	return cfg, nil
 }
 
-func (c Config) validate() error {
-	if c.DatabaseURL == "" {
+func validateDB(databaseURL, env string) error {
+	if databaseURL == "" {
 		return errors.New("DATABASE_URL is required")
 	}
-	switch c.Env {
+	switch env {
 	case "local", "ci", "staging", "production":
 		return nil
 	default:
-		return fmt.Errorf("APP_ENV %q is not one of local, ci, staging, production", c.Env)
+		return fmt.Errorf("APP_ENV %q is not one of local, ci, staging, production", env)
 	}
 }
 
