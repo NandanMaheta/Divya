@@ -1,4 +1,4 @@
-# Divya
+# Swastik
 
 Private IPO operations platform for one operator and ~100 invited clients: the operator lists mainboard IPOs, publishes deals, assigns "apply" tasks per family account, records allotments and the NSE listing price, and settles money with clients. No public users. No automated IPO applying.
 
@@ -23,7 +23,7 @@ Private IPO operations platform for one operator and ~100 invited clients: the o
 - Go: `cd apps/api && go test -race ./...` · `golangci-lint run ./...` · `sqlc generate && sqlc vet` · short tests: `go test -short ./...`
 - Python: `cd apps/worker && uv run pytest -q && uv run ruff check . && uv run pyright`
 - JS: `pnpm turbo run typecheck test build` · lint: `pnpm lint`
-- Regenerate TS client after API changes: `pnpm --filter @divya/api-client generate`
+- Regenerate TS client after API changes: `pnpm --filter @swastik/api-client generate`
 - Expo deps: always `npx expo install <pkg>` inside `apps/client`.
 
 ## How work happens
@@ -36,7 +36,7 @@ Private IPO operations platform for one operator and ~100 invited clients: the o
 
 - `main` = production, `stage` = default working branch (staging). Never commit to either directly.
 - Branch from `origin/stage`: `feat/<NNN>-<desc>` (feature number from modules.md), `fix/<issue>-<desc>`, `chore/`, `refactor/`, `docs/`, `test/`; `hotfix/<issue>-<desc>` from `main`. Lowercase, hyphens, 2–5 descriptive words.
-- PRs target `stage`; releases are `stage` → `main` PRs. Parallel work: one worktree per branch, folder `../divya-<id>`.
+- PRs target `stage`; releases are `stage` → `main` PRs. Parallel work: one worktree per branch, folder `../swastik-<id>`.
 - Full guide: `docs/engineering/git-workflow.md`.
 
 ## Hard rules

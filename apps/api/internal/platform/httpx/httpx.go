@@ -17,7 +17,7 @@ var Version = "dev"
 // NewAPI returns the router and the Huma API (OpenAPI 3.1, RFC 9457 problem details by default).
 func NewAPI() (*http.ServeMux, huma.API) {
 	mux := http.NewServeMux()
-	cfg := huma.DefaultConfig("Divya API", Version)
+	cfg := huma.DefaultConfig("Swastik API", Version)
 	cfg.Info.Description = "Internal IPO operations platform."
 	api := humago.New(mux, cfg)
 	return mux, api

@@ -33,7 +33,7 @@ linters:
         platform-is-a-leaf:
           files: ["**/internal/platform/**"]
           deny:
-            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/health"
+            - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/health"
               desc: platform packages must not import business modules
             - pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler"
               desc: platform packages must not import business modules
@@ -67,7 +67,7 @@ linters:
     wrapcheck:
       # Our own packages already wrap with context; only third-party errors must be wrapped.
       ignore-package-globs:
-        - github.com/NandanMaheta/divya/*
+        - github.com/NandanMaheta/swastik/*
       ignore-sigs:
         - huma.Error
         - .Errorf(
@@ -90,4 +90,4 @@ formatters:
   enable: [gofmt, goimports]
   settings:
     goimports:
-      local-prefixes: [github.com/NandanMaheta/divya]
+      local-prefixes: [github.com/NandanMaheta/swastik]

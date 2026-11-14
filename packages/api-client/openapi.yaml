@@ -113,7 +113,7 @@ components:
       type: object
 info:
   description: Internal IPO operations platform.
-  title: Divya API
+  title: Swastik API
   version: dev
 openapi: 3.1.0
 paths:

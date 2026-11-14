@@ -1,4 +1,4 @@
-module github.com/NandanMaheta/divya/apps/api
+module github.com/NandanMaheta/swastik/apps/api
 
 go 1.27
 
