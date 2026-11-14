@@ -28,7 +28,7 @@ None of these tables is append-only: they are operational queues (owner decision
 | `locked_until` | timestamptz | yes | | lease end (FR-011) |
 | `lock_token` | uuid | yes | | fencing token set per claim |
 | `locked_by` | text | yes | | instance/hostname, diagnostics only |
-| `rerun` | boolean | no | false | set when `Schedule` hits a `running` row: the row goes back to `pending` at the new `run_at` when the run finishes (US5.5) |
+| `rerun` | boolean | no | false | set when `Schedule` hits a `running` row: the row goes back to `pending` at the new `run_at` when the run finishes (US5.5); a lease-expiry takeover consumes `rerun` (FR-010: the takeover is the rerun) |
 | `cancel_requested` | boolean | no | false | set when `Cancel` hits a `running` row: a failing run becomes `cancelled` instead of retrying |
 | `alerted_at` | timestamptz | yes | | when this dead row was included in an `admin.jobs_dead` alert; NULL = not yet alerted |
 | `finished_at` | timestamptz | yes | | set on `done`/`cancelled`/`expired`/`dead` |

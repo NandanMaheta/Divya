@@ -86,6 +86,11 @@ func (m *model) next(now time.Time) (key string, ambiguous bool) {
 
 func (m *model) claim(key string, now time.Time) *mjob {
 	j := m.active[key]
+	if j.running {
+		// FR-010 takeover of an expired lease IS the rerun: it runs with the latest inputs, so the
+		// flag is consumed here and settle will not re-pend the job.
+		j.rerun = false
+	}
 	j.attempts++
 	j.running = true
 	j.leaseEnd = now.Add(lease)
