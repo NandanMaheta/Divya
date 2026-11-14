@@ -86,7 +86,6 @@ UPDATE scheduled_jobs j SET
     locked_until     = $2,
     lock_token       = gen_random_uuid(),
     locked_by        = $3,
-    rerun            = CASE WHEN j.status = 'running' THEN false ELSE j.rerun END,
     updated_at       = $1
 FROM c WHERE j.id = c.id
 RETURNING j.id, j.org_id, j.kind, j.dedupe_key, j.subject, j.payload, j.run_at, j.expires_at, j.recurring, j.status, j.attempts, j.max_attempts, j.first_attempt_at, j.last_attempt_at, j.last_error, j.locked_until, j.lock_token, j.locked_by, j.rerun, j.cancel_requested, j.alerted_at, j.finished_at, j.created_at, j.updated_at
@@ -98,7 +97,7 @@ type ClaimJobParams struct {
 	LockedBy    pgtype.Text        `json:"locked_by"`
 }
 
-// Claim one due job (or one whose lease ran out) under a fresh lease and fencing token.
+// Claim one job (or one whose lease ran out) under a fresh lease and fencing token.
 func (q *Queries) ClaimJob(ctx context.Context, arg ClaimJobParams) (ScheduledJob, error) {
 	row := q.db.QueryRow(ctx, claimJob, arg.Now, arg.LockedUntil, arg.LockedBy)
 	var i ScheduledJob
@@ -336,6 +335,47 @@ func (q *Queries) MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64
 		arg.ID,
 		arg.LockToken,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const recoverStaleJobs = `-- name: RecoverStaleJobs :execrows
+WITH stale AS (
+    SELECT id FROM scheduled_jobs
+    WHERE status = 'running' AND locked_until <= $1
+      AND (cancel_requested OR rerun OR (expires_at IS NOT NULL AND expires_at <= $1))
+    ORDER BY locked_until, id
+    LIMIT 1000
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE scheduled_jobs j SET
+    status           = CASE
+                           WHEN j.cancel_requested THEN 'cancelled'
+                           WHEN j.expires_at IS NOT NULL AND j.expires_at <= $1 THEN 'expired'
+                           ELSE 'pending'
+                       END,
+    finished_at      = CASE
+                           WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= $1) THEN $1::timestamptz
+                           ELSE NULL
+                       END,
+    attempts         = CASE WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= $1) THEN j.attempts ELSE 0 END,
+    first_attempt_at = CASE WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= $1) THEN j.first_attempt_at ELSE NULL END,
+    rerun            = false,
+    cancel_requested = false,
+    locked_until     = NULL,
+    lock_token       = NULL,
+    locked_by        = NULL,
+    updated_at       = $1
+FROM stale WHERE j.id = stale.id
+`
+
+// Recover jobs whose run crashed (status running, lease over) before any claim. Precedence:
+// cancel requested -> cancelled; expired -> expired; rerun -> pending again at its run_at with a
+// fresh attempt budget. Other stale rows are left for ClaimJob to take over. Bounded per tick.
+func (q *Queries) RecoverStaleJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error) {
+	result, err := q.db.Exec(ctx, recoverStaleJobs, now)
 	if err != nil {
 		return 0, err
 	}

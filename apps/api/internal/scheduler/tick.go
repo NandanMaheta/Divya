@@ -76,6 +76,9 @@ func (s *Service) runPhases(ctx context.Context, q *dbgen.Queries, sum *TickSumm
 	if err := s.ensureRecurring(ctx, q); err != nil {
 		return err
 	}
+	if _, err := q.RecoverStaleJobs(ctx, db.Timestamptz(s.now())); err != nil {
+		return fmt.Errorf("scheduler: tick: recover stale jobs: %w", err)
+	}
 	expired, err := q.ExpireDueJobs(ctx, db.Timestamptz(s.now()))
 	if err != nil {
 		return fmt.Errorf("scheduler: tick: expire due jobs: %w", err)

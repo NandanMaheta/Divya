@@ -21,7 +21,7 @@ type Querier interface {
 	// Cancel: pending becomes cancelled; a running job is only flagged, its in-flight run decides.
 	CancelJobByKey(ctx context.Context, arg CancelJobByKeyParams) (int64, error)
 	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
-	// Claim one due job (or one whose lease ran out) under a fresh lease and fencing token.
+	// Claim one job (or one whose lease ran out) under a fresh lease and fencing token.
 	ClaimJob(ctx context.Context, arg ClaimJobParams) (ScheduledJob, error)
 	// Claim one available message (or one whose send lease ran out), oldest id first, so messages
 	// of one recipient are relayed in the order they were recorded (FR-030).
@@ -82,6 +82,10 @@ type Querier interface {
 	// Retention (FR-035): finished messages older than the cutoff; dead messages are kept until an admin acts.
 	PurgeFinishedMessages(ctx context.Context, arg PurgeFinishedMessagesParams) (int64, error)
 	PurgeTickRuns(ctx context.Context, cutoff pgtype.Timestamptz) (int64, error)
+	// Recover jobs whose run crashed (status running, lease over) before any claim. Precedence:
+	// cancel requested -> cancelled; expired -> expired; rerun -> pending again at its run_at with a
+	// fresh attempt budget. Other stale rows are left for ClaimJob to take over. Bounded per tick.
+	RecoverStaleJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
 	// Reschedule never creates a row. A running job is flagged to run again at the new time.
 	RescheduleJob(ctx context.Context, arg RescheduleJobParams) (int64, error)
 	// Dead jobs not yet included in an alert. Locked, so a concurrent sweep skips them.

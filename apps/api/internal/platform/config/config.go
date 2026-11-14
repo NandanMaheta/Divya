@@ -33,6 +33,11 @@ type Tick struct {
 
 // Load reads configuration from the environment and validates it.
 func Load() (Config, error) {
+	// Cloud Run sets K_SERVICE. There APP_ENV must be explicit: the "local" fallback would
+	// default the tick to unauthenticated dev mode.
+	if os.Getenv("K_SERVICE") != "" && os.Getenv("APP_ENV") == "" {
+		return Config{}, errors.New("config: APP_ENV is required when running on Cloud Run (K_SERVICE is set)")
+	}
 	cfg := Config{
 		Env:             getenv("APP_ENV", "local"),
 		HTTPAddr:        getenv("HTTP_ADDR", ":8080"),
@@ -74,6 +79,9 @@ func (c Config) validateTick() error {
 	case "oidc":
 		return nil
 	case "dev":
+		if os.Getenv("K_SERVICE") != "" {
+			return errors.New("TICK_AUTH=dev is not allowed on Cloud Run (K_SERVICE is set)")
+		}
 		if c.Env == "staging" || c.Env == "production" {
 			return fmt.Errorf("TICK_AUTH=dev is not allowed when APP_ENV is %s", c.Env)
 		}

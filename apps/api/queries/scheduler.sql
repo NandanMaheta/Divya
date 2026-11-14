@@ -68,7 +68,39 @@ WITH due AS (
 UPDATE scheduled_jobs j SET status = 'expired', finished_at = @now, updated_at = @now
 FROM due WHERE j.id = due.id;
 
--- Claim one due job (or one whose lease ran out) under a fresh lease and fencing token.
+-- Recover jobs whose run crashed (status running, lease over) before any claim. Precedence:
+-- cancel requested -> cancelled; expired -> expired; rerun -> pending again at its run_at with a
+-- fresh attempt budget. Other stale rows are left for ClaimJob to take over. Bounded per tick.
+-- name: RecoverStaleJobs :execrows
+WITH stale AS (
+    SELECT id FROM scheduled_jobs
+    WHERE status = 'running' AND locked_until <= @now
+      AND (cancel_requested OR rerun OR (expires_at IS NOT NULL AND expires_at <= @now))
+    ORDER BY locked_until, id
+    LIMIT 1000
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE scheduled_jobs j SET
+    status           = CASE
+                           WHEN j.cancel_requested THEN 'cancelled'
+                           WHEN j.expires_at IS NOT NULL AND j.expires_at <= @now THEN 'expired'
+                           ELSE 'pending'
+                       END,
+    finished_at      = CASE
+                           WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= @now) THEN @now::timestamptz
+                           ELSE NULL
+                       END,
+    attempts         = CASE WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= @now) THEN j.attempts ELSE 0 END,
+    first_attempt_at = CASE WHEN j.cancel_requested OR (j.expires_at IS NOT NULL AND j.expires_at <= @now) THEN j.first_attempt_at ELSE NULL END,
+    rerun            = false,
+    cancel_requested = false,
+    locked_until     = NULL,
+    lock_token       = NULL,
+    locked_by        = NULL,
+    updated_at       = @now
+FROM stale WHERE j.id = stale.id;
+
+-- Claim one job (or one whose lease ran out) under a fresh lease and fencing token.
 -- name: ClaimJob :one
 WITH c AS (
     SELECT id FROM scheduled_jobs
@@ -86,7 +118,6 @@ UPDATE scheduled_jobs j SET
     locked_until     = @locked_until,
     lock_token       = gen_random_uuid(),
     locked_by        = @locked_by,
-    rerun            = CASE WHEN j.status = 'running' THEN false ELSE j.rerun END,
     updated_at       = @now
 FROM c WHERE j.id = c.id
 RETURNING j.*;
