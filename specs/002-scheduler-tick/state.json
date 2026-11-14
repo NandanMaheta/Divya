@@ -872,7 +872,7 @@
     "T060": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && golangci-lint run ./... && cd .. && bash scripts/check-lint-boundaries.sh",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T058",
         "T003"

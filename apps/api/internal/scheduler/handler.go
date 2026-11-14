@@ -66,8 +66,8 @@ func extendWriteDeadline(ctx huma.Context, next func(huma.Context)) {
 func rejection(ctx context.Context, err error) error {
 	if errors.Is(err, tickauth.ErrForbidden) {
 		slog.WarnContext(ctx, "scheduler: tick rejected", "reason", "forbidden")
-		return huma.Error403Forbidden("forbidden")
+		return huma.Error403Forbidden("forbidden") //nolint:wrapcheck // an HTTP problem answer, not a failure to wrap
 	}
 	slog.WarnContext(ctx, "scheduler: tick rejected", "reason", "unauthenticated")
-	return huma.ErrorWithHeaders(huma.Error401Unauthorized("unauthorized"), http.Header{"Www-Authenticate": []string{"Bearer"}})
+	return huma.ErrorWithHeaders(huma.Error401Unauthorized("unauthorized"), http.Header{"Www-Authenticate": []string{"Bearer"}}) //nolint:wrapcheck // an HTTP problem answer, not a failure to wrap
 }

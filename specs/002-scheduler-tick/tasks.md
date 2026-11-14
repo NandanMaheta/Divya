@@ -347,7 +347,7 @@
   - Rules: none (mechanism) | Refs: plan: Configuration; K6
   - Files (1, ~10 lines): `.github/workflows/deploy.yml`
   - Done command (green): `grep -q 'TICK_AUDIENCE=${{ vars.TICK_AUDIENCE }}' .github/workflows/deploy.yml && grep -q 'TICK_SERVICE_ACCOUNT=${{ vars.TICK_SERVICE_ACCOUNT }}' .github/workflows/deploy.yml && python3 -c "import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))"`
-- [ ] T060 **backend-dev**: Re-run boundary and lint gates with scheduler/outbox present: fix any findings; deliberate-violation check covers all cases.
+- [x] T060 **backend-dev**: Re-run boundary and lint gates with scheduler/outbox present: fix any findings; deliberate-violation check covers all cases.
   - Depends on: T058, T003
   - Rules: none (mechanism) | Refs: constitution III, IV
   - Files (1, ~30 lines): `apps/api/.golangci.yml`
