@@ -786,7 +786,7 @@
     "T054": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T053",
         "T048"

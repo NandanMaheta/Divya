@@ -312,7 +312,7 @@
   - Files (1, ~190 lines): `apps/api/internal/scheduler/admin_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...`
   - Note (test-engineer): assumptions are listed at the top of admin_test.go (FailedJob/Page/Status read through their JSON schemas; ErrConflict when retry would hit the active (org, kind, dedupe_key) unique index). Also holds the overdue status test moved from T042. Retry/cancel/expiry cases tick, so they need T048 as well.
-- [ ] T054 **backend-dev**: Implement scheduler admin.go: Status, ListFailedJobs, RetryJob, CancelJob (audit in same tx, org-scoped).
+- [x] T054 **backend-dev**: Implement scheduler admin.go: Status, ListFailedJobs, RetryJob, CancelJob (audit in same tx, org-scoped).
   - Depends on: T053, T048
   - Rules: none (mechanism) | Refs: FR-019, FR-020, FR-021
   - Files (1, ~170 lines): `apps/api/internal/scheduler/admin.go`

@@ -193,11 +193,23 @@ func auditState(m dbgen.OutboxMessage, idemKey string) map[string]any {
 
 // CountDead is the number of dead messages of the org (the dead count of the status view).
 func (s *Service) CountDead(ctx context.Context, org uuid.UUID) (int, error) {
+	c, err := s.Counts(ctx, org)
+	return c.Dead, err
+}
+
+// Counts holds the failed-work counts of the status view.
+type Counts struct {
+	Retrying int // pending after at least one failed attempt
+	Dead     int
+}
+
+// Counts returns how many messages of the org are retrying and dead.
+func (s *Service) Counts(ctx context.Context, org uuid.UUID) (Counts, error) {
 	row, err := dbgen.New(s.txr.Conn(ctx)).CountMessagesByState(ctx, org)
 	if err != nil {
-		return 0, fmt.Errorf("outbox: count dead: %w", err)
+		return Counts{}, fmt.Errorf("outbox: count messages: %w", err)
 	}
-	return int(row.Dead), nil
+	return Counts{Retrying: int(row.Retrying), Dead: int(row.Dead)}, nil
 }
 
 // SweepDead returns the dead messages that no alert has covered yet, grouped per organisation,
