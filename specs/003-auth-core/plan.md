@@ -12,7 +12,7 @@
 
 003 adds sign-in, sessions and authorisation to the Go API. Every later feature depends on it.
 
-- A new business module `internal/auth` owns users, password hashing, lockout counters, device sessions with rotating refresh credentials, admin TOTP with recovery codes, the account capabilities for 004/005/007, the housekeeping job handler, and the `divya admin create` bootstrap command.
+- A new business module `internal/auth` owns users, password hashing, lockout counters, device sessions with rotating refresh credentials, admin TOTP with recovery codes, the account capabilities for 004/005/007, the housekeeping job handler, and the `swastik admin create` bootstrap command.
 - **Reused from 002 (no duplicates)**: `internal/platform/clock` (`clock.Func`, `clock.Fake`), `internal/platform/db` (`TxRunner` carrying the transaction in `context`, `MustTx`, `ErrNoTx`), `internal/platform/audit` (`audit.Write` inside the caller's transaction), `internal/platform/istdate` (`NextDailyAt` for the job schedule), 002's scheduler job registry, `github.com/google/uuid` and the sqlc `uuid` override.
 - **New platform packages, free of business imports**: `internal/platform/authz` (one global, fail-closed Huma middleware driven by each operation's declared `Security`; it depends only on a `Verifier` interface that `internal/auth` implements), `internal/platform/crypto` (AES-256-GCM key ring, HMAC-SHA-256 blind index, random tokens; 006 reuses it for PAN) and `internal/platform/ratelimit` (coarse per-IP limiter). `internal/platform/httpx` gains RFC 9457 problems with a stable `code`, CORS and client-IP helpers. `internal/platform/audit` gets one additive extension (explicit timestamp, nil-UUID to NULL).
 - **Access credential**: a JWT signed with EdDSA (Ed25519) with a `kid` header for key rotation, valid for 15 minutes, built and verified with `github.com/go-jose/go-jose/v4` (already in the module graph through 002's owner-approved go-oidc). Every authenticated request also does one primary-key lookup of the device session and user, which is what makes revocation take effect on the next request (D-05).
@@ -33,7 +33,7 @@
 
 **Testing**: `go test -race ./...`; real PostgreSQL 18 through `dbtest.New(t)` (skipped with `-short`); `humatest` for handlers; `pgregory.net/rapid` for properties; 002's `clock.Fake` for every time-based rule; `golangci-lint` v2 (depguard, forbidigo, gosec); `sqlc vet`; CI OpenAPI diff plus oasdiff.
 
-**Target Platform**: Cloud Run (asia-south1, Mumbai), Linux container. `divya admin create` runs on the owner's machine against the target database.
+**Target Platform**: Cloud Run (asia-south1, Mumbai), Linux container. `swastik admin create` runs on the owner's machine against the target database.
 
 **Project Type**: Web service (Go modular monolith) plus one operator CLI subcommand. No UI in 003 (screens are 022 and 024).
 
@@ -42,7 +42,7 @@
 **Constraints**:
 
 - Argon2 memory is ~19 MiB per hash in flight, capped by a semaphore (default 4, ~76 MiB). The pgx pool has `MaxConns=5`, so Argon2 always runs **outside** any transaction.
-- `divya openapi` must build the API with no database, no keys and no config.
+- `swastik openapi` must build the API with no database, no keys and no config.
 - No Redis, no background goroutines for business work; housekeeping runs only through 002's `/internal/tick`.
 - Time comes only from the injected `clock.Func`; SQL receives `@now`, never `now()`, for anything behavioural (002's forbidigo rule enforces `time.Now`/`time.Since`/`time.Until`/`time.Local`).
 
@@ -59,7 +59,7 @@ No open NEEDS CLARIFICATION items: every architect note in the spec is resolved 
 | I. Business rules are the source of truth | Every behaviour traces to the spec (D-01…D-22, FR-001…FR-093) or BR-CLI-04. BR-CLI-05 stays in 007; 003 provides only FR-055. One reading is applied from D-08's own text and flagged for the owner: because D-08 counts "wrong current password on change-password" as a failed attempt and says "attempts during the lock fail", a re-authentication (change password, regenerate recovery codes, replace authenticator) is refused while the account is locked; the existing session keeps working. Tests carry `BR_CLI_04` wherever the status gate is exercised. | PASS |
 | II. Money exact, history immutable | No money. Every mutation writes exactly one `audit_log` row in the same transaction through 002's `audit.Write`, which refuses to write without a transaction (`db.ErrNoTx`). `audit_log` stays append-only (001 trigger). The housekeeping job writes one summary audit row per run when it deletes anything. | PASS |
 | III. Test-first, layered, deterministic | `test-engineer` writes tests first (strategy below). 002's `clock.Fake` drives the service, JWT validation (`jwt.Expected.Time`), TOTP, lockout, challenge expiry and the housekeeping job; SQL takes `@now`; audit rows take `At` from the clock. | PASS |
-| IV. Modular monolith, hard boundaries | `internal/auth` is a business module. `platform/authz`, `platform/crypto` and `platform/ratelimit` import no business module; `authz` depends only on its own `Verifier` interface, implemented in `internal/auth`. depguard's `platform-is-a-leaf` list gains `internal/auth`; go-jose, argon2 and pquerna/otp are confined to `internal/auth` (P-19). The scheduler job is wired in `cmd/divya` through an adapter, so `auth` does not import `scheduler`. | PASS |
+| IV. Modular monolith, hard boundaries | `internal/auth` is a business module. `platform/authz`, `platform/crypto` and `platform/ratelimit` import no business module; `authz` depends only on its own `Verifier` interface, implemented in `internal/auth`. depguard's `platform-is-a-leaf` list gains `internal/auth`; go-jose, argon2 and pquerna/otp are confined to `internal/auth` (P-19). The scheduler job is wired in `cmd/swastik` through an adapter, so `auth` does not import `scheduler`. | PASS |
 | V. Contract-first APIs | Every operation declares `Security`; a static and runtime contract walk fails the build on undeclared or unlisted public operations (FR-034). Errors are RFC 9457 with a stable `code` member (FR-093). The OpenAPI diff is additive; the TS client is regenerated. **Deviation 1**: credential operations do not accept `Idempotency-Key`. | PASS (justified) |
 | VI. Security and privacy by default | Argon2id; 15-minute access tokens; rotating, device-bound refresh families; admin TOTP; AES-GCM for the TOTP secret with the key outside the database; HMAC blind-index helper ready for PAN (006). Contact data readable per **ADR 0007** (owner Option A). No secrets in logs, audit or responses (scan test; Huma's echo of raw input is stripped). Keys from Secret Manager in staging/production. **Deviation 2**: local and CI generate ephemeral keys when none are set. | PASS (justified) |
 | VII. Simple, fast, accessible | One genuinely new third-party module pair (pquerna/otp + barcode), one indirect-to-direct JOSE promotion that adds no module, three `golang.org/x` promotions. CORS, PHC encoding, mobile normalisation and the rate limiter use the standard library. p95 analysed below. Error codes let UIs translate (English, Gujarati, Hindi). | PASS |
@@ -74,16 +74,16 @@ Post-design re-check (after data-model, contracts and the 002 coordination below
 | # | Topic | Agreement | 003 work |
 |---|---|---|---|
 | C-1 | Migration numbering | 002 owns `00002_scheduler_outbox.sql`; 003 uses `00003_auth.sql`. Because 003 merges after 002, versions are in order and nobody renumbers. | None beyond the file name. If the merge order ever flipped, 003 would wait rather than renumber. |
-| C-2 | Clock | `clock.Func` (`func() time.Time`), `clock.Real` wired only in `cmd/divya`, `clock.Fake` (`NewFake`, `Now`, `Set`, `Advance`) in tests. | `auth.Deps.Now clock.Func`; no `authtest.Clock`. |
+| C-2 | Clock | `clock.Func` (`func() time.Time`), `clock.Real` wired only in `cmd/swastik`, `clock.Fake` (`NewFake`, `Now`, `Set`, `Advance`) in tests. | `auth.Deps.Now clock.Func`; no `authtest.Clock`. |
 | C-3 | Transactions | `db.TxRunner` (struct) with `InTx` (nested calls join), `Conn(ctx)`, `db.MustTx(ctx)`, `db.ErrNoTx`. | The auth store builds `dbgen.New(txr.Conn(ctx))`; account capabilities join a caller's transaction (005 registration). No new `tx.go`. |
 | C-4 | Audit writer | `audit.Write(ctx, audit.Entry{OrgID, Actor{ID, Kind}, Entity, EntityID, Action, Before, After})` requires a transaction. | **Additive extension in 003's PR** (with tests), unless 002's code already has it: `Entry.At time.Time` (zero keeps the column default, 003 always sets it from the clock, so US-4 s1 "audit entry at T+4m" is testable) and `uuid.Nil` for `EntityID` / `Actor.ID` stored as SQL NULL (failures for unknown identifiers, system actor). 002's `InsertAuditLog` query gains `COALESCE(sqlc.narg('created_at'), now())`. 002's existing calls keep working unchanged. |
 | C-5 | IST dates | `istdate.NextDailyAt(now, WallClock)`. | Used for the `auth.housekeeping` schedule only; auth times are UTC and rendered in IST by UIs. |
 | C-6 | IDs | `github.com/google/uuid` direct, sqlc override `uuid → uuid.UUID` / `uuid.NullUUID`. | All 003 Go signatures use `uuid.UUID` (the earlier draft's "UUID strings" decision is withdrawn). |
-| C-7 | Scheduler job | 002's `Service.Register(kind, Handler, KindOptions{Recurring})`; handlers run inside the job transaction. | Kind `auth.housekeeping` (P-20), registered in `cmd/divya` through an adapter. |
+| C-7 | Scheduler job | 002's `Service.Register(kind, Handler, KindOptions{Recurring})`; handlers run inside the job transaction. | Kind `auth.housekeeping` (P-20), registered in `cmd/swastik` through an adapter. |
 | C-8 | Hidden tick operation | 002 registers `POST /internal/tick` as a `Hidden` Huma operation with no `Security`; its handler authenticates with `platform/tickauth`. Huma applies global middlewares to hidden operations too, so 003's fail-closed middleware would answer it with 500. | 003's PR adds one line to 002's tick registration: `Security: authz.SelfAuthenticated()`. That declaration means the operation authenticates itself and is valid **only** on `Hidden` operations: `authz.AssertDeclared` panics at startup if a documented operation carries it, and the middleware answers 500 if a non-hidden operation does. A wiring test proves `POST /internal/tick` without credentials still returns tickauth's 401 and does no work. |
-| C-9 | 002 Phase B admin operations | 002's `/v1/admin/scheduler/*` and `/v1/admin/outbox/*` use `bearer [admin]`, org and actor from 003's principal, and `Idempotency-Key` replay via an audit lookup. | `authz.Require(authz.RoleAdmin)`, `authz.MustPrincipal(ctx)` and `Principal.AuditActor()` serve them; Phase B appends its operation ids to `cmd/divya/testdata/admin-operations.txt`. |
+| C-9 | 002 Phase B admin operations | 002's `/v1/admin/scheduler/*` and `/v1/admin/outbox/*` use `bearer [admin]`, org and actor from 003's principal, and `Idempotency-Key` replay via an audit lookup. | `authz.Require(authz.RoleAdmin)`, `authz.MustPrincipal(ctx)` and `Principal.AuditActor()` serve them; Phase B appends its operation ids to `cmd/swastik/testdata/admin-operations.txt`. |
 | C-10 | Lint configuration | 002 extends `platform-is-a-leaf` (health, scheduler, outbox), adds `oidc-only-in-tickauth` and the forbidigo time rules. | 003 appends `internal/auth` and adds the JOSE, argon2 and OTP confinement rules (P-19). |
-| C-11 | Shared files | Both features edit `platform/config/config.go`, `platform/httpx/httpx.go`, `cmd/divya/main.go`, `.golangci.yml`, `sqlc.yaml` (002 only) and `queries/platform.sql`. | 003 puts new code in new files (`httpx/errors.go`, `cors.go`, `clientip.go`; `config/auth.go`) and rebases. |
+| C-11 | Shared files | Both features edit `platform/config/config.go`, `platform/httpx/httpx.go`, `cmd/swastik/main.go`, `.golangci.yml`, `sqlc.yaml` (002 only) and `queries/platform.sql`. | 003 puts new code in new files (`httpx/errors.go`, `cors.go`, `clientip.go`; `config/auth.go`) and rebases. |
 | C-12 | JWT library | go-oidc brings `go-jose/v4`; 003 evaluated it against `golang-jwt/jwt/v5` (P-02). | Recommend go-jose/v4; owner approves the direct use. |
 
 ## Key decisions
@@ -93,7 +93,7 @@ Decisions numbered P-xx are referenced by data-model, contracts and tasks.
 ### P-01 Module layout and dependency direction
 
 ```text
-cmd/divya ──> internal/auth ──> internal/platform/{authz, crypto, ratelimit, audit, db, db/dbgen, clock, httpx, config}
+cmd/swastik ──> internal/auth ──> internal/platform/{authz, crypto, ratelimit, audit, db, db/dbgen, clock, httpx, config}
           ──> internal/scheduler (002) ── Register("auth.housekeeping", adapter → auth.Service.Housekeep)
           ──> internal/health ─> huma only
 internal/platform/* ──X──> any business module (depguard)
@@ -107,7 +107,7 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
 
 ### P-02 Access credential: EdDSA JWT with `kid` rotation plus a per-request session lookup
 
-- **Token**: header `{"alg":"EdDSA","typ":"at+jwt","kid":"<kid>"}`; claims `iss="divya-api"`, `aud=["divya-api"]`, `sub=user_id`, `sid=session_id`, `org=org_id`, `role`, `iat`, `exp`, `jti` (128-bit random). `exp = min(now+15m, session.absolute_expires_at)`, truncated to whole seconds (NumericDate).
+- **Token**: header `{"alg":"EdDSA","typ":"at+jwt","kid":"<kid>"}`; claims `iss="swastik-api"`, `aud=["swastik-api"]`, `sub=user_id`, `sid=session_id`, `org=org_id`, `role`, `iat`, `exp`, `jti` (128-bit random). `exp = min(now+15m, session.absolute_expires_at)`, truncated to whole seconds (NumericDate).
 - **Library**: `github.com/go-jose/go-jose/v4` (`jose` + `jose/jwt`), confined to `internal/auth/tokens.go` by depguard.
   - Sign: `jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: jose.JSONWebKey{Key: ed25519.PrivateKey, KeyID: kid}}, (&jose.SignerOptions{}).WithType("at+jwt"))`, then `jwt.Signed(signer).Claims(std).Claims(custom).Serialize()`.
   - Verify, in this order (each failure is `auth.unauthenticated`):
@@ -115,7 +115,7 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
     2. Exactly one signature header; `Headers[0].KeyID` must be in the configured ring (unknown kid rejects; `jku`, `jwk` and `x5u` headers are never consulted).
     3. `Headers[0].ExtraHeaders["typ"] == "at+jwt"` (go-jose does not check `typ`).
     4. `tok.Claims(publicKey, &std, &custom)` verifies the signature.
-    5. `std.ValidateWithLeeway(jwt.Expected{Issuer: "divya-api", AnyAudience: {"divya-api"}, Time: now()}, 0)`; `Expected.Time` is always set from the clock (go-jose falls back to `time.Now()` when it is zero, and a unit test pins this).
+    5. `std.ValidateWithLeeway(jwt.Expected{Issuer: "swastik-api", AnyAudience: {"swastik-api"}, Time: now()}, 0)`; `Expected.Time` is always set from the clock (go-jose falls back to `time.Now()` when it is zero, and a unit test pins this).
     6. Explicit checks that go-jose leaves to the caller: `std.Expiry != nil`, `std.IssuedAt != nil`, and **`now < exp`**. go-jose treats a token as still valid at exactly `exp` (`validationTime.After(exp)`); the spec's edge cases make limits inclusive of expiry, so the extra check rejects at `exp`.
 - **Per-request lookup**: after the signature check the bearer verifier runs `GetSessionPrincipal(sid)` (one join of `device_sessions` and `users` by primary key). The request is rejected as `auth.unauthenticated` unless `ended_at IS NULL`, `now < idle_expires_at`, `now < absolute_expires_at`, `users.status = 'active'`, `users.role = role claim` and `user_id = sub`.
 - **Trade-off, stated explicitly**: with the lookup the JWT is, in practice, a signed carrier for `sid`. The lookup costs ~1–3 ms per request; without it sign-out, revoke, disable and password change would lag by up to 15 minutes, violating D-05. ADR 0004 (JWT, 15 min) still holds and is amended to record the lookup (ADR 0004 Amendment 1). The JWT still gives cheap rejection of forged or expired tokens before any database access and a standard `bearerFormat: JWT` in the contract.
@@ -145,13 +145,13 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
 - `client_type` is required on sign-in (`mobile` or `web`) and stored on the session. `platform` (`android`, `iphone`, `web`) is informational.
 - **mobile**: `refresh_token` in the JSON body; the device keeps it in secure storage (024); refresh sends `{device_id, refresh_token}`.
 - **web**: the body **never** contains `refresh_token`. The response sets
-  `Set-Cookie: __Secure-divya_rt=<token>; Path=/v1/auth/refresh; HttpOnly; Secure; SameSite=Strict; Max-Age=<seconds to absolute expiry>`
+  `Set-Cookie: __Secure-swastik_rt=<token>; Path=/v1/auth/refresh; HttpOnly; Secure; SameSite=Strict; Max-Age=<seconds to absolute expiry>`
   - No `Domain` attribute: host-only on the API host. `__Secure-` prefix forces `Secure`.
   - The access token lives only in SPA memory; a reload calls refresh.
   - Sign-out, sign-out-everywhere and self-revocation of the current web session clear the cookie (`Max-Age=0`, same Path).
 - **CSRF defences**, applied to refresh when the credential comes from the cookie, and to every operation that sets the cookie (`client_type=web` sign-in, mfa-verify, enrolment-confirm):
   1. `Origin` must exactly equal one entry of `WEB_ORIGINS`; missing or `null` is rejected.
-  2. Header `X-Divya-CSRF: 1` is required (forces a CORS preflight; a form cannot set it).
+  2. Header `X-Swastik-CSRF: 1` is required (forces a CORS preflight; a form cannot set it).
   3. `Content-Type: application/json` only (Huma returns 415 otherwise; the handler re-checks).
   4. CORS: exact-origin allowlist with `Access-Control-Allow-Credentials: true`; never `*`, never a pattern; `Vary: Origin`.
   5. `SameSite=Strict` as defence in depth (OWASP: sibling subdomains are same-site, so it is not relied upon alone).
@@ -168,7 +168,7 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
 - **Challenge token** (interim proof): `dmc_` + base64url(32 random bytes), stored as SHA-256 in `mfa_challenges` with `purpose` (`verify` or `enrol`), `expires_at = now+5m` (expired at exactly 5 minutes), `consumed_at` and the device details from sign-in. Sent as `Authorization: Bearer dmc_…` only to operations declared `authz.ChallengeOnly()`. It is opaque, so the bearer (JWT) verifier rejects it, and the challenge verifier rejects JWTs and `drt_` tokens because their digests never exist in `mfa_challenges` (FR-035). Wrong purpose: `auth.unauthenticated`. Single use: `consumed_at` is set in the transaction that creates the session.
 - **Lockout across factors**: the counter is cleared only after the second factor succeeds (clearing at the password step would allow unlimited code guesses). Wrong TOTP or recovery codes count on the same `user` subject (D-08); while locked, verify answers `auth.invalid_credentials` even for a correct code.
 - **TOTP** (library `github.com/pquerna/otp` v1.5.0, pending approval; stdlib fallback below):
-  - Enrolment: `totp.Generate(GenerateOpts{Issuer: "Divya", AccountName: email, SecretSize: 20, Algorithm: SHA1, Digits: 6, Period: 30, Rand: crypto/rand.Reader})` gives the base32 secret (no padding) and the `otpauth://totp/Divya:<email>?…` URI, returned once. The panel draws the QR code client-side (022); `Key.Image()` is never called.
+  - Enrolment: `totp.Generate(GenerateOpts{Issuer: "Swastik", AccountName: email, SecretSize: 20, Algorithm: SHA1, Digits: 6, Period: 30, Rand: crypto/rand.Reader})` gives the base32 secret (no padding) and the `otpauth://totp/Swastik:<email>?…` URI, returned once. The panel draws the QR code client-side (022); `Key.Image()` is never called.
   - Verify: `N = floor(now/30)`; for each candidate step `s ∈ {N−1, N, N+1}` with `s > admin_mfa.last_used_step`, call `hotp.ValidateCustom(code, s, secret, {Digits: 6, Algorithm: SHA1})` (constant-time compare inside). All candidates are evaluated; the matched step is written as the new `last_used_step` under `SELECT … FOR UPDATE` on `admin_mfa`, so two parallel submissions of one code give exactly one success and no code from the same or an earlier step is ever accepted again (FR-061, US-5 s4–s5). `totp.Validate` is not used because it does not report the matched step.
   - Fallback if the owner declines the library: ~40 lines of RFC 6238 on `crypto/hmac` + `crypto/sha1` + `encoding/base32` in `totp.go`; the tests (RFC 6238 Appendix B vectors, replay, skew) are identical.
 - **Secret at rest**: `crypto.Seal(secret, aad="admin_mfa.secret:"+user_id)`. Enrolment and replacement keep a pending secret (`pending_secret_enc`, AAD `admin_mfa.pending_secret:<user_id>`) until a code from it is confirmed; calling start again replaces it.
@@ -232,8 +232,8 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
   - empty → `next`.
   - otherwise (exactly one requirement object, enforced at startup): pick the verifier by scheme name (unknown scheme panics at startup), extract `Authorization: Bearer`, verify; error → 401 `auth.unauthenticated` with `WWW-Authenticate: Bearer`; role scopes present and principal's role not listed → 403 `auth.forbidden`; else `huma.WithValue(ctx, principalKey, p)`.
   - It runs before body parsing and validation, so unauthenticated calls never reach validation or handlers.
-- **Startup guard**: `authz.AssertDeclared(api)` at the end of `buildAPI` panics if any documented operation has nil `Security`, names an unregistered scheme, or uses `SelfAuthenticated` without `Hidden`. `divya openapi`, `serve` and tests fail fast. Hidden operations are not in `Paths`; for them the runtime 500 is the fail-closed backstop, and C-8's wiring test covers the tick.
-- **Contract-walk tests** (`cmd/divya/contract_test.go`):
+- **Startup guard**: `authz.AssertDeclared(api)` at the end of `buildAPI` panics if any documented operation has nil `Security`, names an unregistered scheme, or uses `SelfAuthenticated` without `Hidden`. `swastik openapi`, `serve` and tests fail fast. Hidden operations are not in `Paths`; for them the runtime 500 is the fail-closed backstop, and C-8's wiring test covers the tick.
+- **Contract-walk tests** (`cmd/swastik/contract_test.go`):
   - (a) static walk over `buildAPI(deps{}).OpenAPI().Paths`: every operation declares Security; operations with empty Security are exactly `{health-live, health-ready, auth-sign-in, auth-refresh}`; `mfaChallenge` operations are exactly `{auth-mfa-verify, auth-mfa-enrolment-start, auth-mfa-enrolment-confirm}`; every admin-scoped operation id is listed in `testdata/admin-operations.txt` (and vice versa); no operation id contains an FR-050…055 capability name.
   - (b) runtime walk: for every non-public operation send no credential, a tampered JWT, an expired JWT, a JWT for a revoked session, a refresh token, a challenge token, and (admin operations) a valid client JWT. Assert 401/403 with the right `code` and, via a recording fake store, that nothing was written. Path parameters get random UUIDs, bodies `{}`.
 
@@ -242,7 +242,7 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
 ### P-10 RFC 9457 errors with stable codes (FR-093)
 
 - `httpx` defines `type ErrorModel struct { huma.ErrorModel; Code string }` with the JSON tag `json:"code"` on `Code`; the schema name stays `ErrorModel`, so the diff is additive.
-- `httpx.InstallErrors()` overrides `huma.NewError` / `huma.NewErrorWithContext` once (idempotent): every problem gets `code` (default from status: `validation_failed`, `bad_request`, `not_found`, `unsupported_media_type`, `rate_limited`, `internal`) and `type = urn:divya:problem:<code>`; **`ErrorDetail.Value` is always dropped**, because Huma v2.40.0 echoes the raw body on parse errors (`validateBody`: `Value: string(body)`) and field values on validation errors, which would put passwords and tokens into responses (FR-091).
+- `httpx.InstallErrors()` overrides `huma.NewError` / `huma.NewErrorWithContext` once (idempotent): every problem gets `code` (default from status: `validation_failed`, `bad_request`, `not_found`, `unsupported_media_type`, `rate_limited`, `internal`) and `type = urn:swastik:problem:<code>`; **`ErrorDetail.Value` is always dropped**, because Huma v2.40.0 echoes the raw body on parse errors (`validateBody`: `Value: string(body)`) and field values on validation errors, which would put passwords and tokens into responses (FR-091).
 - Domain errors use `httpx.Problem(status, code, detail)`. `code` is a plain string in the schema (an enum would make later additions breaking for oasdiff). Catalogue: [contracts/error-codes.md](./contracts/error-codes.md), mirrored in `packages/domain/src/auth-error-codes.ts` for UI translation (022, 024).
 
 ### P-11 Audit in the same transaction (FR-090, FR-091)
@@ -255,9 +255,9 @@ future modules (004, 005, 007, 022, 002 Phase B …) ──> internal/auth (Acco
 ### P-12 Organisation resolution
 
 - Users are globally unique by email and mobile (D-18), so lookup needs no org; the org is still needed for audit and throttle rows when nothing matches. `store.DefaultOrg(ctx)` returns the single `orgs` row (cached after the first success); none → 503 `auth.not_configured`; more than one → error until multi-org sign-in has its own feature.
-- `divya admin create` creates the org when none exists (`--org-name`, default "Divya"), reuses it when exactly one exists, and requires `--org-id` otherwise.
+- `swastik admin create` creates the org when none exists (`--org-name`, default "Swastik"), reuses it when exactly one exists, and requires `--org-id` otherwise.
 
-### P-13 Bootstrap command `divya admin create` (D-15, US-9)
+### P-13 Bootstrap command `swastik admin create` (D-15, US-9)
 
 - Flags `--email`, `--name` (required), `--mobile`, `--org-name`, `--org-id`. Password: TTY → prompted twice with `golang.org/x/term.ReadPassword` (no echo); otherwise exactly one line from stdin. Never a flag or environment variable.
 - Config: `config.LoadDB()` (only `DATABASE_URL` and optional `APP_ENV`), so bootstrapping needs no JWT or PII keys.
@@ -312,7 +312,7 @@ depguard:
     platform-is-a-leaf:               # 002 lists health, scheduler, outbox; 003 appends:
       files: ["**/internal/platform/**"]
       deny:
-        - pkg: "github.com/NandanMaheta/divya/apps/api/internal/auth"
+        - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/auth"
           desc: platform packages must not import business modules
     jose-only-in-auth-and-tickauth:
       files: ["$all", "!**/internal/auth/**", "!**/internal/platform/tickauth/**"]
@@ -335,7 +335,7 @@ depguard:
 
 ### P-20 Scheduler jobs and outbox events
 
-- **Job kind `auth.housekeeping`** (recurring, per org), registered in `cmd/divya/main.go` with 002's registry:
+- **Job kind `auth.housekeeping`** (recurring, per org), registered in `cmd/swastik/main.go` with 002's registry:
   `sch.Register(auth.HousekeepingKind, func(ctx context.Context, job scheduler.Job) error { _, err := authSvc.Housekeep(ctx, job.OrgID); return err }, scheduler.KindOptions{Recurring: auth.HousekeepingNext})`
   where `auth.HousekeepingNext(now) = istdate.NextDailyAt(now, istdate.WallClock{Hour: 3, Minute: 30})` (after 002's `scheduler.retention` at 03:00 IST). `internal/auth` does not import `internal/scheduler`; the adapter lives in `cmd`.
 - `Housekeep(ctx, orgID)` runs in the job's transaction (`db.MustTx`), with `@now` from the clock, at most 1,000 rows per table per run:
@@ -368,11 +368,11 @@ Full schemas: [contracts/openapi-auth.yaml](./contracts/openapi-auth.yaml). Expe
 
 | operationId | Method and path | Security | Request | Success | Errors (`code`) |
 |---|---|---|---|---|---|
-| auth-sign-in | POST /v1/auth/sign-in | Public | `SignInRequest{identifier, password, client_type, device{id,name,platform}}`; Origin + `X-Divya-CSRF` when web | 200 `SignInResponse{next_step, session?, challenge?}` + Set-Cookie (web) | 401 invalid_credentials · 422 identifier_invalid / validation_failed · 403 csrf_rejected · 429 rate_limited · 503 busy / not_configured |
+| auth-sign-in | POST /v1/auth/sign-in | Public | `SignInRequest{identifier, password, client_type, device{id,name,platform}}`; Origin + `X-Swastik-CSRF` when web | 200 `SignInResponse{next_step, session?, challenge?}` + Set-Cookie (web) | 401 invalid_credentials · 422 identifier_invalid / validation_failed · 403 csrf_rejected · 429 rate_limited · 503 busy / not_configured |
 | auth-mfa-verify | POST /v1/auth/mfa/verify | mfaChallenge | `MfaVerifyRequest{code}` xor `{recovery_code}`; web headers | 200 `SessionTokens` + Set-Cookie (web) | 401 unauthenticated (challenge) / invalid_credentials (code, locked) · 403 csrf_rejected · 422 · 429 |
 | auth-mfa-enrolment-start | POST /v1/auth/mfa/enrolment | mfaChallenge (enrol) | – | 200 `TotpSecret{secret, otpauth_uri}` | 401 · 429 |
 | auth-mfa-enrolment-confirm | POST /v1/auth/mfa/enrolment/confirm | mfaChallenge (enrol) | `TotpCodeRequest{code}`; web headers | 200 `EnrolmentResult{session, recovery_codes[10]}` + Set-Cookie (web) | 401 unauthenticated / invalid_credentials · 403 csrf_rejected · 409 mfa_no_pending_secret · 422 |
-| auth-refresh | POST /v1/auth/refresh | Public | `RefreshRequest{device_id, refresh_token?}` + cookie `__Secure-divya_rt`; Origin + `X-Divya-CSRF` on the cookie path | 200 `SessionTokens` (+ Set-Cookie on the cookie path) | 401 refresh_rejected · 403 csrf_rejected · 422 · 429 |
+| auth-refresh | POST /v1/auth/refresh | Public | `RefreshRequest{device_id, refresh_token?}` + cookie `__Secure-swastik_rt`; Origin + `X-Swastik-CSRF` on the cookie path | 200 `SessionTokens` (+ Set-Cookie on the cookie path) | 401 refresh_rejected · 403 csrf_rejected · 422 · 429 |
 | auth-sign-out | POST /v1/auth/sign-out | bearer (any) | – | 204 (+ clearing Set-Cookie) | 401 |
 | auth-sign-out-everywhere | POST /v1/auth/sign-out-everywhere | bearer (any) | – | 204 (+ clearing Set-Cookie) | 401 |
 | auth-devices-list | GET /v1/auth/devices | bearer (any) | – | 200 `DeviceList{items[]}` | 401 |
@@ -385,7 +385,7 @@ Full schemas: [contracts/openapi-auth.yaml](./contracts/openapi-auth.yaml). Expe
 | auth-admin-user-device-revoke | DELETE /v1/admin/users/{userId}/devices/{sessionId} | bearer [admin] | path uuids | 204 | 401 · 403 · 404 user_not_found / device_not_found |
 | auth-admin-user-sessions-end-all | POST /v1/admin/users/{userId}/sessions/end-all | bearer [admin] | path uuid | 204 | 401 · 403 · 404 user_not_found |
 
-Idempotency per P-16 (none accept `Idempotency-Key`; session-ending operations are naturally idempotent). The account capabilities FR-050…FR-055 are **Go interfaces only**, with no HTTP operation (US-10 s7): [contracts/go-capabilities.md](./contracts/go-capabilities.md). After the code lands: `go run ./cmd/divya openapi > packages/api-client/openapi.yaml` and `pnpm --filter @divya/api-client generate`.
+Idempotency per P-16 (none accept `Idempotency-Key`; session-ending operations are naturally idempotent). The account capabilities FR-050…FR-055 are **Go interfaces only**, with no HTTP operation (US-10 s7): [contracts/go-capabilities.md](./contracts/go-capabilities.md). After the code lands: `go run ./cmd/swastik openapi > packages/api-client/openapi.yaml` and `pnpm --filter @swastik/api-client generate`.
 
 ## Project Structure
 
@@ -402,7 +402,7 @@ specs/003-auth-core/
 │   ├── openapi-auth.yaml    # intended OpenAPI fragment (generated doc is authoritative)
 │   ├── error-codes.md       # FR-093 catalogue
 │   ├── go-capabilities.md   # exported Go interfaces (authz, Accounts, Throttle, crypto, housekeeping)
-│   └── cli.md               # `divya admin create`
+│   └── cli.md               # `swastik admin create`
 ├── checklists/requirements.md
 └── tasks.md             # produced by the planner (/speckit-tasks), not by this plan
 ```
@@ -411,13 +411,13 @@ specs/003-auth-core/
 
 ```text
 apps/api/
-├── cmd/divya/
+├── cmd/swastik/
 │   ├── main.go                 # buildAPI(deps) nil-safe; httpx.InstallErrors; authz.Install before Register; AssertDeclared;
 │   │                           # auth.Register; sch.Register("auth.housekeeping", …); `admin create` subcommand
 │   ├── admin.go                # bootstrap CLI (flags, TTY prompt, exit codes)
 │   ├── contract_test.go        # static + runtime security walk (FR-034, SC-001)
 │   ├── wiring_test.go          # tick declared SelfAuthenticated still 401s; housekeeping kind registered
-│   ├── openapi_test.go         # `divya openapi` builds with zero deps
+│   ├── openapi_test.go         # `swastik openapi` builds with zero deps
 │   ├── admin_test.go           # CLI integration tests
 │   └── testdata/admin-operations.txt
 ├── internal/auth/
@@ -487,11 +487,11 @@ All tests are written first by `test-engineer`; implementers never edit them. Ti
 | Int (fake clock) | Admin MFA: enrolment, verify, recovery codes (single use, regenerate invalidates), replace (other sessions end), `TestMfaChallenge_ExpiredAt5m`, single use, wrong purpose, enrolment cannot be skipped, TOTP required again after sign-out | `mfa_test.go` | US-5 s1–13, FR-060…065, US-2 s9 |
 | Int | Password change (others end, current kept, safe retry, locked → reauth_failed); reset capability (all end, lock cleared) | `password_flow_test.go` | US-7, US-10 s5, D-13 |
 | Int | Audit: exactly one entry per US-11 event with actor kind, actor, user, session, action and clock time | `audit_events_test.go` | US-11 s1, FR-090 |
-| Int (fake clock, 002 harness) | `auth.housekeeping`: registered as recurring; advancing to 03:30 IST and ticking purges stale throttles, expired challenges and old refresh tokens only; summary audit row; rerun purges nothing; lockout/refresh outcomes identical with and without the job | `housekeeping_test.go`, `cmd/divya/wiring_test.go` | P-20, FR-045, C-7 |
+| Int (fake clock, 002 harness) | `auth.housekeeping`: registered as recurring; advancing to 03:30 IST and ticking purges stale throttles, expired challenges and old refresh tokens only; summary audit row; rerun purges nothing; lockout/refresh outcomes identical with and without the job | `housekeeping_test.go`, `cmd/swastik/wiring_test.go` | P-20, FR-045, C-7 |
 | Int (security) | No-secrets scan over audit rows, logs and responses for the whole suite | `secretscan_test.go` | FR-091, SC-006, US-11 s2 |
-| Int (security) | CSRF: cookie refresh and web sign-in without Origin, with `null`, a foreign or sibling origin, without `X-Divya-CSRF`, or with a form content type → 403 `csrf_rejected`; cookie attributes exact; body never carries `refresh_token` for web | `csrf_test.go` | P-04 |
-| Contract | Static + runtime security walk; `divya openapi` builds with zero deps; `code` on every non-2xx in the walk; no FR-050…055 operation; `/internal/tick` absent and still 401 without credentials | `cmd/divya/contract_test.go`, `openapi_test.go`, `wiring_test.go` | FR-030, FR-034, SC-001, US-2 s1–4, US-10 s7, C-8 |
-| CLI (Int) | `divya admin create`: success, admin exists, policy failure names the rule, email taken, two concurrent runs, password absent from stdout/stderr/logs/audit (stdin pipe mode) | `cmd/divya/admin_test.go` | US-9, FR-080 |
+| Int (security) | CSRF: cookie refresh and web sign-in without Origin, with `null`, a foreign or sibling origin, without `X-Swastik-CSRF`, or with a form content type → 403 `csrf_rejected`; cookie attributes exact; body never carries `refresh_token` for web | `csrf_test.go` | P-04 |
+| Contract | Static + runtime security walk; `swastik openapi` builds with zero deps; `code` on every non-2xx in the walk; no FR-050…055 operation; `/internal/tick` absent and still 401 without credentials | `cmd/swastik/contract_test.go`, `openapi_test.go`, `wiring_test.go` | FR-030, FR-034, SC-001, US-2 s1–4, US-10 s7, C-8 |
+| CLI (Int) | `swastik admin create`: success, admin exists, policy failure names the rule, email taken, two concurrent runs, password absent from stdout/stderr/logs/audit (stdin pipe mode) | `cmd/swastik/admin_test.go` | US-9, FR-080 |
 | Timing (nightly) | SC-003: 50 attempts × 6 failure cases, medians within 10%, identical status and body bytes; `nightly.yml -run Timing` (CI runners are noisy for PRs) | `timing_test.go` | D-09, SC-003, US-1 s5, US-4 s6 |
 | Benchmark | Argon2id cost on the CI runner; staging measurement reported in the PR | `password_bench_test.go` | SC-007, R-6 |
 | Component / E2E | None in 003 (no UI). 022 (Playwright) and 024 (Maestro) test the flows against these operations, including the cookie flow on the shared domain. | – | – |
@@ -554,7 +554,7 @@ Nothing below is added to `go.mod` by this plan; implementation tasks that need 
 | **JWT library choice**: `github.com/go-jose/go-jose/v4` (v4.1.9; go-oidc requires ≥ v4.1.4) — **recommended** | Indirect (via 002's owner-approved go-oidc) promoted to **direct**; **no new module**; go-jose itself has zero requirements | Signing and verifying EdDSA access JWTs with `kid` (P-02) | Already compiled into the binary for 002's tick verification, so one JOSE stack serves both features and receives security fixes once. The v4 API forces an algorithm allowlist at parse time (algorithm-confusion defence by construction), supports Ed25519 and `kid`, and publishes a threat model. **Costs, handled in `tokens.go` and pinned by tests**: lower-level validation; `exp` is accepted at exactly `exp` (we add `now < exp`), `exp`/`iat` presence is not required (we check), `typ` is not checked (we check), and a zero `Expected.Time` silently means `time.Now()` (we always pass the clock). Larger API surface (JWE, JWK) that we do not use. | `github.com/golang-jwt/jwt/v5` v5.3.1: friendlier validator (`WithExpirationRequired`, `WithIssuedAt`, `WithTimeFunc`, exp rejected at exactly `exp`), zero dependencies, but a **new module** and a second JOSE stack in the binary; good fallback if go-oidc is rejected (R-10). `lestrrat-go/jwx/v3` (large). Hand-rolled JWS on the standard library (owning parsing edge cases is riskier). PASETO (contradicts ADR 0004). |
 | `github.com/pquerna/otp` v1.5.0 (+ `github.com/boombuler/barcode`, zero further requirements) — **recommended** | **New** runtime (two modules) | TOTP secret and `otpauth://` URI generation (`totp.Generate`), step-aware code checks (`hotp.ValidateCustom` per candidate step) (P-05) | Widely used, interoperable with Google Authenticator and others, constant-time comparison, stable for a frozen standard (RFC 6238); avoids owning HOTP truncation, base32 and URI-escaping code in a security-critical module whose every PR needs owner review. Replay protection stays ours (`last_used_step`), using per-step validation. Matches research §5. | Standard library RFC 6238 (~40 lines, RFC vectors in tests; zero dependencies) is a fully specified fallback if the owner prefers no new module (R-11). Downsides of the library: last release Dec 2024; its root package imports `boombuler/barcode` for `Key.Image()`, which we never call but which is compiled in (a small binary-size cost). |
 | `golang.org/x/crypto` v0.58.0 (already in go.sum) | Indirect → **direct** | `argon2.IDKey` (P-06) | Argon2id is mandated by constitution VI and is not in the standard library; maintained by the Go team. Stay on v0.58.0 (v0.59.0 would pull `x/net` v0.62.0 and `x/term` v0.48.0 into the graph); bump in a routine dependency update. | `alexedwards/argon2id` (thin wrapper, no release since 2023, adds a module) |
-| `golang.org/x/term` v0.47.0 (already in go.sum) | Indirect → **direct** | `ReadPassword` without echo in `divya admin create` (P-13) | D-15 requires no echo; the standard library cannot disable terminal echo portably; linked only into the CLI path. | Echoing stdin (violates D-15 on a TTY); shelling out to `stty -echo` (not portable) |
+| `golang.org/x/term` v0.47.0 (already in go.sum) | Indirect → **direct** | `ReadPassword` without echo in `swastik admin create` (P-13) | D-15 requires no echo; the standard library cannot disable terminal echo portably; linked only into the CLI path. | Echoing stdin (violates D-15 on a TTY); shelling out to `stty -echo` (not portable) |
 | `golang.org/x/text` v0.44.0 (already in go.sum) | Indirect → **direct** | `unicode/norm` NFC for passwords (P-06) | D-07 accepts Gujarati and Hindi passphrases; without normalisation the same passphrase from a different input method can produce different bytes and fail to sign in (NIST SP 800-63B recommends normalisation). | No normalisation (real lockout risk); hand-rolled normalisation (not feasible) |
 | `github.com/google/uuid` v1.6.0 | Indirect → direct, **approved via 002** | Typed ids (C-6) | Listed for completeness; 003 adds nothing. | – |
 | `pgregory.net/rapid` v1.2.0 | **Test-only** (already in go.sum; 002 also uses it) | Property tests | Named by `.claude/rules/tests.md`; not linked into the binary. | – |

@@ -16,7 +16,7 @@ sqlc generate && sqlc vet && git diff --exit-code   # generated code current (uu
 golangci-lint run ./...                              # depguard P-19, forbidigo (002), gosec
 ```
 
-Expected: no findings. Boundary self-test (revert afterwards): add `import _ "github.com/NandanMaheta/divya/apps/api/internal/auth"` to any file in `internal/platform/authz`, or import `github.com/go-jose/go-jose/v4` from `internal/health`; `golangci-lint run ./...` must fail with the `platform-is-a-leaf` or `jose-only-in-auth-and-tickauth` rule.
+Expected: no findings. Boundary self-test (revert afterwards): add `import _ "github.com/NandanMaheta/swastik/apps/api/internal/auth"` to any file in `internal/platform/authz`, or import `github.com/go-jose/go-jose/v4` from `internal/health`; `golangci-lint run ./...` must fail with the `platform-is-a-leaf` or `jose-only-in-auth-and-tickauth` rule.
 
 ## 2. Unit and property tests (no Docker)
 
@@ -32,11 +32,11 @@ Expected: all pass with no real waiting (002's `clock.Fake`). The lockout bounda
 ## 3. Integration tests (real PostgreSQL 18)
 
 ```bash
-go test -race ./internal/auth/... ./internal/platform/audit/... ./cmd/divya/...
+go test -race ./internal/auth/... ./internal/platform/audit/... ./cmd/swastik/...
 go test -race -run 'TestRefresh_' -v ./internal/auth/...            # rotation, reuse, device binding, lifetimes ±1 min
 go test -race -run 'Concurrent' -count=20 ./internal/auth/...        # parallel refresh / TOTP / bootstrap: exactly one wins
 go test -race -run 'TestSecretScan' ./internal/auth/...              # SC-006: no secret in audit, logs or responses
-go test -race -run 'TestHousekeeping' ./internal/auth/... ./cmd/divya/...  # auth.housekeeping via 002's tick harness
+go test -race -run 'TestHousekeeping' ./internal/auth/... ./cmd/swastik/...  # auth.housekeeping via 002's tick harness
 ```
 
 Expected: all pass. The secret scan reports the number of audit rows, log lines and responses scanned and zero hits.
@@ -52,16 +52,16 @@ Expected: the six D-09 failure cases return identical status and body bytes; med
 ## 4. Contract checks
 
 ```bash
-go test -run 'TestContract|TestOpenAPI|TestWiring' ./cmd/divya/...
-go run ./cmd/divya openapi > /tmp/openapi.yaml && diff -u ../../packages/api-client/openapi.yaml /tmp/openapi.yaml
+go test -run 'TestContract|TestOpenAPI|TestWiring' ./cmd/swastik/...
+go run ./cmd/swastik openapi > /tmp/openapi.yaml && diff -u ../../packages/api-client/openapi.yaml /tmp/openapi.yaml
 ```
 
 Expected:
 
-- The static walk finds Security on every operation; the public set is exactly `health-live`, `health-ready`, `auth-sign-in`, `auth-refresh`; the challenge set is exactly the three MFA operations; admin operations match `cmd/divya/testdata/admin-operations.txt`.
+- The static walk finds Security on every operation; the public set is exactly `health-live`, `health-ready`, `auth-sign-in`, `auth-refresh`; the challenge set is exactly the three MFA operations; admin operations match `cmd/swastik/testdata/admin-operations.txt`.
 - The runtime walk gets 401/403 with the right `code` for every non-public operation and records zero writes.
 - `POST /internal/tick` (hidden, 002) without credentials answers tickauth's 401, not 500.
-- Before regeneration the diff shows only the additive changes listed in plan "API operations"; after `go run ./cmd/divya openapi > ../../packages/api-client/openapi.yaml && pnpm --filter @divya/api-client generate` it is empty and oasdiff reports no breaking change.
+- Before regeneration the diff shows only the additive changes listed in plan "API operations"; after `go run ./cmd/swastik openapi > ../../packages/api-client/openapi.yaml && pnpm --filter @swastik/api-client generate` it is empty and oasdiff reports no breaking change.
 
 ## 5. Manual smoke on a local database
 
@@ -69,11 +69,11 @@ Expected:
 make db-up && make migrate
 cd apps/api
 export APP_ENV=local DATABASE_URL=<local url from infra/docker/compose.yaml>
-printf '%s\n' 'correct horse battery staple' | go run ./cmd/divya admin create --email owner@example.com --name Owner
+printf '%s\n' 'correct horse battery staple' | go run ./cmd/swastik admin create --email owner@example.com --name Owner
 # stdout: admin created: id=<uuid> email=owner@example.com   (no password anywhere)
-printf '%s\n' 'another long passphrase 42' | go run ./cmd/divya admin create --email other@example.com --name Other; echo "exit=$?"
+printf '%s\n' 'another long passphrase 42' | go run ./cmd/swastik admin create --email other@example.com --name Other; echo "exit=$?"
 # stderr: error: bootstrap.admin_exists: ...   exit=1   (US-9 s2; nothing changed)
-go run ./cmd/divya serve      # keys unset: ephemeral keys + one WARN line, no key values
+go run ./cmd/swastik serve      # keys unset: ephemeral keys + one WARN line, no key values
 ```
 
 In a second shell (mobile transport, so curl needs no cookie handling):
@@ -106,7 +106,7 @@ Cookie (web) flow: exercised by `csrf_test.go`, and end to end by 022's Playwrig
 Fail-closed check:
 
 ```bash
-APP_ENV=staging DATABASE_URL=... go run ./cmd/divya serve   # exits non-zero: JWT_SIGNING_KEYS / PII keys / BLIND_INDEX_KEY required
+APP_ENV=staging DATABASE_URL=... go run ./cmd/swastik serve   # exits non-zero: JWT_SIGNING_KEYS / PII keys / BLIND_INDEX_KEY required
 ```
 
 ## Key generation

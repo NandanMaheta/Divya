@@ -3,7 +3,7 @@
 Every non-2xx response is RFC 9457 `application/problem+json` with these fields:
 
 - `code`: stable and language-neutral; UIs translate it.
-- `type`: `urn:divya:problem:<code>`.
+- `type`: `urn:swastik:problem:<code>`.
 - `title`, `status` and `detail`: English, for developers only.
 - `errors[]`: never contains `value` (plan P-10).
 
@@ -30,7 +30,7 @@ The UI wording comes from `packages/domain/src/auth-error-codes.ts` (English fir
 | auth.unauthenticated | 401 | Missing, invalid, expired or tampered access token; revoked or expired session; user not active; refresh token or challenge used as an access token; invalid, expired, used or wrong-purpose challenge. Sent with `WWW-Authenticate: Bearer`. | FR-031, FR-035, US-2 |
 | auth.forbidden | 403 | The caller's role is not allowed by the operation's declared roles | FR-032, US-2 s3, US-8 s7 |
 | auth.refresh_rejected | 401 | Every refresh failure: unknown, used (reuse), device mismatch, transport mismatch, expired, session ended, user not active. One code, so reuse detection is not revealed. | FR-040…043, US-3 |
-| auth.csrf_rejected | 403 | Cookie refresh, or an operation that sets the refresh cookie (`client_type=web` sign-in, mfa-verify, enrolment-confirm), with a missing, `null` or non-allowlisted Origin, without `X-Divya-CSRF: 1`, or with a non-JSON content type | Plan P-04 |
+| auth.csrf_rejected | 403 | Cookie refresh, or an operation that sets the refresh cookie (`client_type=web` sign-in, mfa-verify, enrolment-confirm), with a missing, `null` or non-allowlisted Origin, without `X-Swastik-CSRF: 1`, or with a non-JSON content type | Plan P-04 |
 | auth.reauth_failed | 403 | Wrong current password, TOTP code or recovery code on change-password, recovery-code regeneration or authenticator replacement; also returned while the account is locked | D-08, FR-070, US-7 s2 |
 | auth.password_too_short | 422 | Fewer than 10 characters (after NFC) | D-07, US-7 s3 |
 | auth.password_too_long | 422 | More than 256 characters | D-07, US-7 s6 |
@@ -41,7 +41,7 @@ The UI wording comes from `packages/domain/src/auth-error-codes.ts` (English fir
 | auth.user_not_found | 404 | Admin operation on a user who does not exist or belongs to another org | FR-049 |
 | auth.mfa_no_pending_secret | 409 | Enrolment or replacement confirm without a pending secret | P-05 |
 | auth.busy | 503 | Argon2 concurrency queue wait timed out (independent of the account) | P-06 |
-| auth.not_configured | 503 | No organisation exists yet (run `divya admin create`) | P-12 |
+| auth.not_configured | 503 | No organisation exists yet (run `swastik admin create`) | P-12 |
 
 ## Go capability errors (not HTTP; for 004/005/007 to map)
 
@@ -55,7 +55,7 @@ The UI wording comes from `packages/domain/src/auth-error-codes.ts` (English fir
 | `*auth.PolicyError{Code}` | auth.password_* | Password policy failure on create or reset |
 | `auth.ErrInvalidIdentifier` | auth.identifier_invalid | Email or mobile does not normalise |
 
-## Bootstrap CLI (`divya admin create`; exit status 1, code printed on stderr)
+## Bootstrap CLI (`swastik admin create`; exit status 1, code printed on stderr)
 
 | code | When |
 |---|---|

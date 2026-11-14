@@ -1,9 +1,9 @@
 # Intended OpenAPI 3.1 additions for feature 003 (design contract).
-# The generated document (`go run ./cmd/divya openapi` -> packages/api-client/openapi.yaml) is authoritative;
+# The generated document (`go run ./cmd/swastik openapi` -> packages/api-client/openapi.yaml) is authoritative;
 # this file states what the Go code must produce. Schema names follow Go type names in internal/auth.
 # 002's POST /internal/tick is a Hidden operation: it never appears here; it declares authz.SelfAuthenticated() (plan C-8).
 openapi: 3.1.0
-info: { title: Divya API, version: dev }
+info: { title: Swastik API, version: dev }
 components:
   securitySchemes:
     bearer:
@@ -21,7 +21,7 @@ components:
       properties:
         code:
           type: string
-          description: Stable, language-neutral problem code (see contracts/error-codes.md). Also encoded in `type` as urn:divya:problem:<code>.
+          description: Stable, language-neutral problem code (see contracts/error-codes.md). Also encoded in `type` as urn:swastik:problem:<code>.
           examples: [auth.invalid_credentials]
     DeviceInfo:
       type: object
@@ -91,7 +91,7 @@ components:
       required: [secret, otpauth_uri]
       properties:
         secret: { type: string, description: Base32, shown once }
-        otpauth_uri: { type: string, description: "otpauth://totp/Divya:<email>?secret=…&issuer=Divya&algorithm=SHA1&digits=6&period=30" }
+        otpauth_uri: { type: string, description: "otpauth://totp/Swastik:<email>?secret=…&issuer=Swastik&algorithm=SHA1&digits=6&period=30" }
     EnrolmentResult:
       type: object
       required: [session, recovery_codes]
@@ -150,11 +150,11 @@ components:
         items: { type: array, items: { $ref: "#/components/schemas/Device" } }
   parameters:
     WebOrigin: { name: Origin, in: header, required: false, schema: { type: string } }
-    CsrfHeader: { name: X-Divya-CSRF, in: header, required: false, schema: { type: string, enum: ["1"] }, description: Required when the refresh cookie is used and for client_type=web }
-    RefreshCookie: { name: __Secure-divya_rt, in: cookie, required: false, schema: { type: string } }
+    CsrfHeader: { name: X-Swastik-CSRF, in: header, required: false, schema: { type: string, enum: ["1"] }, description: Required when the refresh cookie is used and for client_type=web }
+    RefreshCookie: { name: __Secure-swastik_rt, in: cookie, required: false, schema: { type: string } }
   headers:
     SetRefreshCookie:
-      description: "web only: __Secure-divya_rt=…; Path=/v1/auth/refresh; HttpOnly; Secure; SameSite=Strict; Max-Age=<to absolute expiry> (Max-Age=0 to clear)"
+      description: "web only: __Secure-swastik_rt=…; Path=/v1/auth/refresh; HttpOnly; Secure; SameSite=Strict; Max-Age=<to absolute expiry> (Max-Age=0 to clear)"
       schema: { type: string }
 paths:
   /healthz: { get: { operationId: health-live, security: [] } }      # existing; adds explicit empty security

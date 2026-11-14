@@ -37,7 +37,7 @@ type Verifier interface {
     Verify(ctx context.Context, token string) (Principal, error) // any error => 401 auth.unauthenticated
 }
 
-// Wiring (cmd/divya only):
+// Wiring (cmd/swastik only):
 func Install(api huma.API, verifiers map[string]Verifier) // before any huma.Register; registers security schemes + middleware
 func AssertDeclared(api huma.API)                         // after all Register calls; panics on nil Security / unknown scheme
 ```
@@ -113,7 +113,7 @@ type Throttle interface {
 
 `Fail` and `Clear` require a transaction in the context (`db.ErrNoTx` otherwise) so they commit with the caller's audit entry.
 
-## 4. `internal/auth` housekeeping (wired by `cmd/divya` into 002's scheduler; plan P-20)
+## 4. `internal/auth` housekeeping (wired by `cmd/swastik` into 002's scheduler; plan P-20)
 
 ```go
 const HousekeepingKind = "auth.housekeeping"
@@ -124,7 +124,7 @@ type PurgeCounts struct{ Throttles, Challenges, RefreshTokens int }
 func (s *Service) Housekeep(ctx context.Context, orgID uuid.UUID) (PurgeCounts, error)
 ```
 
-Wiring in `cmd/divya/main.go` (`internal/auth` does not import `internal/scheduler`):
+Wiring in `cmd/swastik/main.go` (`internal/auth` does not import `internal/scheduler`):
 
 ```go
 sch.Register(auth.HousekeepingKind,

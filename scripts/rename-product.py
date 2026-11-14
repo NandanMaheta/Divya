@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rename the product across the repository (text + file paths).
 
-Usage: python3 scripts/rename-product.py <old> <new>   e.g.  divya swastik
+Usage: python3 scripts/rename-product.py <old> <new>   e.g.  swastik swastik
 Idempotent and safe to re-run on feature branches after merging stage.
 Lockfiles are regenerated afterwards (pnpm install, uv lock), not edited.
 """
