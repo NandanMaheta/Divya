@@ -36,7 +36,7 @@
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: FR-003..005, FR-009, FR-010, FR-012, FR-043; US1, US2, US8, US9.1
   - Files (~550 lines): `apps/api/internal/ipos/store_test.go`, `apps/api/internal/ipos/model_test.go`, `apps/api/internal/ipos/suggest_test.go`, `apps/api/internal/ipos/validate_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestQueries_|TestMinApplication_FR004|TestWarning_FR005|TestEligible_BR_IPO_02|TestStatusRank|TestSuggestDates_BR_IPO_03|TestValidate_BR_IPO_01|TestValidate_PriceBand|TestValidate_Values' ./internal/ipos/`
-- [ ] S05 **backend-dev**: queries/ipos.sql (14 queries, all filter org_id) + sqlc generate/vet; store.go over dbgen; model.go (rank, eligible, exact MinApplication, warning via inr); suggest.go (istdate.AddWeekdays).
+- [x] S05 **backend-dev**: queries/ipos.sql (14 queries, all filter org_id) + sqlc generate/vet; store.go over dbgen; model.go (rank, eligible, exact MinApplication, warning via inr); suggest.go (istdate.AddWeekdays).
   - Depends on: S04, 002-merged
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: data-model 6 (generated dbgen not counted)
   - Files (~500 lines): `apps/api/queries/ipos.sql`, `apps/api/internal/ipos/store.go`, `apps/api/internal/ipos/model.go`, `apps/api/internal/ipos/suggest.go`

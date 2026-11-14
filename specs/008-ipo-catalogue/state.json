@@ -114,7 +114,7 @@
       "owner": "backend-dev",
       "title": "queries/ipos.sql (14 queries, all filter org_id) + sqlc generate/vet; store.go over dbgen; model.go (rank, eligible, exact MinApplication, warning via inr); suggest.go (istdate.AddWeekdays).",
       "done_command": "cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestQueries_|TestMinApplication_FR004|TestWarning_FR005|TestEligible_BR_IPO_02|TestStatusRank|TestSuggestDates_BR_IPO_03' ./internal/ipos/",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "S04",
         "002-merged"

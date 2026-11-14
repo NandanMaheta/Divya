@@ -1,4 +1,3 @@
-//nolint:unparam,revive,unused // S01 compile skeleton; removed as slices land
 package ipos
 
 import (
@@ -6,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/inr"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/istdate"
 )
 
@@ -21,7 +21,23 @@ const (
 )
 
 // Rank orders statuses along the lifecycle (UPCOMING lowest).
-func (s Status) Rank() int { panic(errNotImplemented) }
+func (s Status) Rank() int {
+	switch s {
+	case StatusUpcoming:
+		return 0
+	case StatusOpen:
+		return 1
+	case StatusClosed:
+		return 2
+	case StatusAllotmentOut:
+		return 3
+	case StatusListed:
+		return 4
+	case StatusSettled:
+		return 5
+	}
+	return -1
+}
 
 type StatusSource string
 
@@ -66,6 +82,7 @@ type IPO struct {
 	Status                                                  Status
 	StatusSource                                            StatusSource
 	StatusChangedAt                                         time.Time
+	LastOverrideAt                                          *time.Time
 	Source                                                  string
 	SourceRef                                               *string
 	LastSyncedAt                                            *time.Time
@@ -74,10 +91,24 @@ type IPO struct {
 }
 
 // Eligible reports Published && Flag == APPLY (FR-023).
-func (i IPO) Eligible() bool { panic(errNotImplemented) }
+func (i IPO) Eligible() bool { return i.Published && i.Flag != nil && *i.Flag == FlagApply }
 
 // MinApplicationPaise is lot x (issue price, else band cap); false when unknown (FR-004).
-func (i IPO) MinApplicationPaise() (int64, bool) { panic(errNotImplemented) }
+func (i IPO) MinApplicationPaise() (int64, bool) {
+	if i.LotSize == nil {
+		return 0, false
+	}
+	var price int64
+	switch {
+	case i.IssuePricePaise != nil:
+		price = *i.IssuePricePaise
+	case i.PriceBandCapPaise != nil:
+		price = *i.PriceBandCapPaise
+	default:
+		return 0, false
+	}
+	return int64(*i.LotSize) * price, true
+}
 
 // Draft is the editable facts (create and PUT input).
 type Draft struct {
@@ -131,4 +162,26 @@ type ClientFilter struct {
 	Status *Status
 	Cursor string
 	Limit  int
+}
+
+// Soft bounds of the minimum application value (FR-005), integer paise.
+const (
+	minApplicationLowPaise  int64 = 1_000_000
+	minApplicationHighPaise int64 = 2_000_000
+)
+
+// warnings returns the soft findings for an IPO (FR-005): the minimum application value is
+// outside Rs 10,000 to Rs 20,000. Bounds are inclusive; an unknown value gives no warning.
+func warnings(i IPO) []Warning {
+	v, ok := i.MinApplicationPaise()
+	if !ok || (v >= minApplicationLowPaise && v <= minApplicationHighPaise) {
+		return nil
+	}
+	return []Warning{{
+		Code:   "ipo.min_application_out_of_range",
+		Fields: []string{"lot_size", "issue_price_paise", "price_band_cap_paise"},
+		Detail: "minimum application value " + inr.Format(v) + " is outside " +
+			inr.Format(minApplicationLowPaise) + "–" + inr.Format(minApplicationHighPaise),
+		Params: map[string]int64{"value_paise": v, "min_paise": minApplicationLowPaise, "max_paise": minApplicationHighPaise},
+	}}
 }

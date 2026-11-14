@@ -22,6 +22,45 @@ type AuditLog struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type Ipo struct {
+	ID                   uuid.UUID          `json:"id"`
+	OrgID                uuid.UUID          `json:"org_id"`
+	Name                 string             `json:"name"`
+	Board                string             `json:"board"`
+	Exchanges            []string           `json:"exchanges"`
+	NseSymbol            pgtype.Text        `json:"nse_symbol"`
+	IssueSizePaise       pgtype.Int8        `json:"issue_size_paise"`
+	PriceBandFloorPaise  pgtype.Int8        `json:"price_band_floor_paise"`
+	PriceBandCapPaise    pgtype.Int8        `json:"price_band_cap_paise"`
+	IssuePricePaise      pgtype.Int8        `json:"issue_price_paise"`
+	LotSize              pgtype.Int4        `json:"lot_size"`
+	OpenDate             pgtype.Date        `json:"open_date"`
+	CloseDate            pgtype.Date        `json:"close_date"`
+	AllotmentDate        pgtype.Date        `json:"allotment_date"`
+	RefundDate           pgtype.Date        `json:"refund_date"`
+	DematCreditDate      pgtype.Date        `json:"demat_credit_date"`
+	ListingDate          pgtype.Date        `json:"listing_date"`
+	Registrar            pgtype.Text        `json:"registrar"`
+	LeadManagers         []string           `json:"lead_managers"`
+	OfferDocumentUrl     pgtype.Text        `json:"offer_document_url"`
+	ApplyFlag            pgtype.Text        `json:"apply_flag"`
+	FlagNote             pgtype.Text        `json:"flag_note"`
+	Published            bool               `json:"published"`
+	FirstPublishedAt     pgtype.Timestamptz `json:"first_published_at"`
+	Status               string             `json:"status"`
+	StatusSource         string             `json:"status_source"`
+	StatusChangedAt      pgtype.Timestamptz `json:"status_changed_at"`
+	LastOverrideAt       pgtype.Timestamptz `json:"last_override_at"`
+	Source               string             `json:"source"`
+	SourceRef            pgtype.Text        `json:"source_ref"`
+	LastSyncedAt         pgtype.Timestamptz `json:"last_synced_at"`
+	FieldSources         []byte             `json:"field_sources"`
+	CreateIdempotencyKey pgtype.Text        `json:"create_idempotency_key"`
+	Version              int32              `json:"version"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Org struct {
 	ID        uuid.UUID          `json:"id"`
 	Name      string             `json:"name"`

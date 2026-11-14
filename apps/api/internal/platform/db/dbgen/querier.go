@@ -31,6 +31,7 @@ type Querier interface {
 	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
 	CountJobsByState(ctx context.Context, orgID uuid.UUID) (CountJobsByStateRow, error)
 	CountMessagesByState(ctx context.Context, orgID uuid.UUID) (CountMessagesByStateRow, error)
+	DeleteIPO(ctx context.Context, arg DeleteIPOParams) (int64, error)
 	// Recurring kinds always have one active row per org; this self-heals after a dead or lost row.
 	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
 	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
@@ -42,16 +43,24 @@ type Querier interface {
 	FailJob(ctx context.Context, arg FailJobParams) (FailJobRow, error)
 	// Back to pending at available_at (already moved out of quiet hours), or dead when attempts are used up.
 	FailMessage(ctx context.Context, arg FailMessageParams) (FailMessageRow, error)
+	FindIPOAuditByIdempotencyKey(ctx context.Context, arg FindIPOAuditByIdempotencyKeyParams) (uuid.UUID, error)
 	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
 	// tick_runs is global, not per org: the retention job purges it only for the first org.
 	FirstOrgID(ctx context.Context) (uuid.UUID, error)
+	GetIPO(ctx context.Context, arg GetIPOParams) (Ipo, error)
+	GetIPOByCreateKey(ctx context.Context, arg GetIPOByCreateKeyParams) (Ipo, error)
+	GetIPOForShare(ctx context.Context, arg GetIPOForShareParams) (Ipo, error)
+	GetIPOForUpdate(ctx context.Context, arg GetIPOForUpdateParams) (Ipo, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetMessageForOrg(ctx context.Context, arg GetMessageForOrgParams) (OutboxMessage, error)
+	GetPublishedIPO(ctx context.Context, arg GetPublishedIPOParams) (Ipo, error)
 	// No row means the default window (21:30-08:00 IST).
 	GetQuietHours(ctx context.Context, orgID uuid.UUID) (GetQuietHoursRow, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// IPO catalogue (feature 008). Every query filters by org_id. Instants come from @now.
+	InsertIPO(ctx context.Context, arg InsertIPOParams) (Ipo, error)
 	// Outbox queries (feature 002). Every instant is a parameter taken from the injected clock.
 	// Add: a repeated (org, topic, dedupe_key) is ignored whatever the first row's status (FR-024).
 	// Zero rows affected means duplicate.
@@ -67,9 +76,11 @@ type Querier interface {
 	// Retrying and dead messages of one org, newest last attempt first, keyset-paginated (FR-019).
 	// state: empty for both, retrying or dead; topic: empty for every topic.
 	ListFailedMessages(ctx context.Context, arg ListFailedMessagesParams) ([]OutboxMessage, error)
+	ListIPOsAdmin(ctx context.Context, arg ListIPOsAdminParams) ([]Ipo, error)
 	// Scheduler queries (feature 002). Every instant is a parameter taken from the injected clock;
 	// nothing here calls now() (FR-032). Rows are claimed one at a time with FOR UPDATE SKIP LOCKED.
 	ListOrgIDs(ctx context.Context) ([]uuid.UUID, error)
+	ListPublishedIPOs(ctx context.Context, arg ListPublishedIPOsParams) ([]Ipo, error)
 	// A job whose lease expired more often than it has attempts left is dead without running again.
 	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
 	MarkJobsAlerted(ctx context.Context, arg MarkJobsAlertedParams) error
@@ -94,6 +105,10 @@ type Querier interface {
 	SelectUnalertedDeadJobs(ctx context.Context) ([]SelectUnalertedDeadJobsRow, error)
 	// Dead messages not yet included in an alert. Locked, so a concurrent sweep skips them.
 	SelectUnalertedDeadMessages(ctx context.Context) ([]SelectUnalertedDeadMessagesRow, error)
+	SetIPOFlag(ctx context.Context, arg SetIPOFlagParams) (Ipo, error)
+	SetIPOPublished(ctx context.Context, arg SetIPOPublishedParams) (Ipo, error)
+	SetIPOStatus(ctx context.Context, arg SetIPOStatusParams) (Ipo, error)
+	UpdateIPOFacts(ctx context.Context, arg UpdateIPOFactsParams) (Ipo, error)
 	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
 	// the latest values; a running row is flagged to run again at the new time when it finishes.
 	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)
