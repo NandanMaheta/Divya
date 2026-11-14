@@ -94,5 +94,12 @@ WHERE id IN (
     LIMIT 5000
 );
 
+-- tick_runs is global, not per org: the retention job purges it only for the first org.
+-- name: FirstOrgID :one
+SELECT id FROM orgs ORDER BY id LIMIT 1;
+
 -- name: PurgeTickRuns :execrows
-DELETE FROM tick_runs WHERE started_at < @cutoff;
+DELETE FROM tick_runs
+WHERE id IN (
+    SELECT t.id FROM tick_runs t WHERE t.started_at < @cutoff ORDER BY t.started_at LIMIT 5000
+);

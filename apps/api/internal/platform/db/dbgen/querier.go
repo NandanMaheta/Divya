@@ -43,6 +43,8 @@ type Querier interface {
 	// Back to pending at available_at (already moved out of quiet hours), or dead when attempts are used up.
 	FailMessage(ctx context.Context, arg FailMessageParams) (FailMessageRow, error)
 	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
+	// tick_runs is global, not per org: the retention job purges it only for the first org.
+	FirstOrgID(ctx context.Context) (uuid.UUID, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.

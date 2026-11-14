@@ -38,9 +38,16 @@ func (s *Service) RetentionHandler() Handler {
 		if err != nil {
 			return fmt.Errorf("scheduler: retention: %w", err)
 		}
-		runs, err := q.PurgeTickRuns(ctx, db.Timestamptz(cutoff))
+		// tick_runs is global: only the first org's retention job purges it.
+		var runs int64
+		first, err := q.FirstOrgID(ctx)
 		if err != nil {
-			return fmt.Errorf("scheduler: retention: purge tick runs: %w", err)
+			return fmt.Errorf("scheduler: retention: first org: %w", err)
+		}
+		if first == job.OrgID {
+			if runs, err = q.PurgeTickRuns(ctx, db.Timestamptz(cutoff)); err != nil {
+				return fmt.Errorf("scheduler: retention: purge tick runs: %w", err)
+			}
 		}
 		s.log.InfoContext(ctx, "scheduler: retention", "org_id", job.OrgID, "jobs", jobs, "messages", msgs, "tick_runs", runs)
 		return nil

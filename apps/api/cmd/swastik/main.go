@@ -109,7 +109,8 @@ func selectTickAuth(ctx context.Context, log *slog.Logger, cfg config.Config) ti
 		log.Warn("TICK_AUDIENCE or TICK_SERVICE_ACCOUNT is not set: the tick endpoint rejects every call")
 		return tickauth.Disabled()
 	}
-	return tickauth.NewOIDC(ctx, t.Audience, t.ServiceAccount, clock.Real)
+	return tickauth.NewOIDC(ctx, t.Audience, t.ServiceAccount, clock.Real,
+		tickauth.WithHTTPClient(&http.Client{Timeout: 10 * time.Second}))
 }
 
 func serve(ctx context.Context, log *slog.Logger, cfg config.Config, pool *pgxpool.Pool) error {
@@ -122,7 +123,7 @@ func serve(ctx context.Context, log *slog.Logger, cfg config.Config, pool *pgxpo
 	sched := scheduler.New(txr, ob, clock.Real, log, host, scheduler.DefaultOptions())
 	sched.Register(scheduler.RetentionKind, sched.RetentionHandler(), scheduler.RetentionOptions())
 
-	api := buildAPI(deps{Pool: pool, Tick: sched, TickAuth: selectTickAuth(ctx, log, cfg)})
+	api := buildAPI(deps{Pool: pool, Tick: sched, TickAuth: selectTickAuth(ctx, log, cfg)}) //nolint:contextcheck // the tick middleware takes its context from each request
 	srv := httpx.NewServer(cfg.HTTPAddr, api.Adapter(), log)
 	errCh := make(chan error, 1)
 	go func() {

@@ -188,6 +188,18 @@ func (q *Queries) FinishTickRun(ctx context.Context, arg FinishTickRunParams) er
 	return err
 }
 
+const firstOrgID = `-- name: FirstOrgID :one
+SELECT id FROM orgs ORDER BY id LIMIT 1
+`
+
+// tick_runs is global, not per org: the retention job purges it only for the first org.
+func (q *Queries) FirstOrgID(ctx context.Context) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, firstOrgID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getJobForOrg = `-- name: GetJobForOrg :one
 SELECT id, org_id, kind, dedupe_key, subject, payload, run_at, expires_at, recurring, status, attempts, max_attempts, first_attempt_at, last_attempt_at, last_error, locked_until, lock_token, locked_by, rerun, cancel_requested, alerted_at, finished_at, created_at, updated_at FROM scheduled_jobs WHERE id = $1 AND org_id = $2 FOR UPDATE
 `
@@ -394,7 +406,10 @@ func (q *Queries) PurgeFinishedJobs(ctx context.Context, arg PurgeFinishedJobsPa
 }
 
 const purgeTickRuns = `-- name: PurgeTickRuns :execrows
-DELETE FROM tick_runs WHERE started_at < $1
+DELETE FROM tick_runs
+WHERE id IN (
+    SELECT t.id FROM tick_runs t WHERE t.started_at < $1 ORDER BY t.started_at LIMIT 5000
+)
 `
 
 func (q *Queries) PurgeTickRuns(ctx context.Context, cutoff pgtype.Timestamptz) (int64, error) {

@@ -38,10 +38,15 @@ func RegisterTick(api huma.API, t Ticker, auth tickauth.Authenticator) {
 		Summary:     "Run due scheduled jobs, then relay available outbox messages",
 		Tags:        []string{"Internal"},
 		Hidden:      true,
-		Middlewares: huma.Middlewares{extendWriteDeadline},
+		Middlewares: huma.Middlewares{extendWriteDeadline(auth)},
 	}, func(ctx context.Context, in *tickInput) (*tickOutput, error) {
-		if err := auth.Authenticate(ctx, in.Authorization); err != nil {
-			return nil, rejection(ctx, err)
+		// The middleware authenticated the caller once, before extending the write deadline.
+		res, ok := ctx.Value(authResultKey{}).(authResult)
+		if !ok {
+			return nil, rejection(ctx, errors.New("authentication did not run"))
+		}
+		if res.err != nil {
+			return nil, rejection(ctx, res.err)
 		}
 		sum, err := t.Tick(ctx)
 		if err != nil {
@@ -52,13 +57,24 @@ func RegisterTick(api huma.API, t Ticker, auth tickauth.Authenticator) {
 	})
 }
 
-// extendWriteDeadline moves the write deadline for this route only. Writers without deadline
-// support (test recorders) are fine: the tick still runs.
-func extendWriteDeadline(ctx huma.Context, next func(huma.Context)) {
-	if err := httpx.ExtendWriteDeadline(ctx, tickWriteDeadline); err != nil {
-		slog.Debug("scheduler: write deadline not extended", "error", err)
+type (
+	authResultKey struct{}
+	authResult    struct{ err error }
+)
+
+// extendWriteDeadline moves the write deadline for this route only, and only for an authenticated
+// caller (authenticating once and handing the result to the handler): an unauthenticated request keeps the server's short deadline (the handler answers it
+// 401 or 403). Writers without deadline support (test recorders) are fine: the tick still runs.
+func extendWriteDeadline(auth tickauth.Authenticator) func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		err := auth.Authenticate(ctx.Context(), ctx.Header("Authorization"))
+		if err == nil {
+			if derr := httpx.ExtendWriteDeadline(ctx, tickWriteDeadline); derr != nil {
+				slog.Debug("scheduler: write deadline not extended", "error", derr)
+			}
+		}
+		next(huma.WithValue(ctx, authResultKey{}, authResult{err: err}))
 	}
-	next(ctx)
 }
 
 // rejection maps an authentication failure to 401 (with WWW-Authenticate) or 403. Only the
