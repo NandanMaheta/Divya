@@ -727,7 +727,7 @@
     "T050": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'TestAlert_|TestTick_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T049",
         "T048",

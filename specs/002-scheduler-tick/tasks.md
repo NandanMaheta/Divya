@@ -291,7 +291,7 @@
   - Files (1, ~150 lines): `apps/api/internal/scheduler/alert_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestAlert_ ./internal/scheduler/...`
   - Note (test-engineer): the sweep runs after the jobs and messages phases, so an alert recorded in a tick is relayed from the next tick on; the failed-sweep case injects a PostgreSQL trigger and accepts either a nil or an error result from Tick (the jobs phase must still have run). The retry case uses the `AdminRetryJob` query directly so T050 does not wait for T054.
-- [ ] T050 **backend-dev**: Implement scheduler alert.go: dead-item sweep in one transaction (unalerted dead jobs + outbox.SweepDead grouped by org) emitting outbox topic admin.jobs_dead with alerted_at marking; call it from Tick.
+- [x] T050 **backend-dev**: Implement scheduler alert.go: dead-item sweep in one transaction (unalerted dead jobs + outbox.SweepDead grouped by org) emitting outbox topic admin.jobs_dead with alerted_at marking; call it from Tick.
   - Depends on: T049, T048, T039
   - Rules: none (mechanism) | Refs: K8; contracts/outbox-events.md
   - Files (2, ~120 lines): `apps/api/internal/scheduler/alert.go`, `apps/api/internal/scheduler/tick.go`
