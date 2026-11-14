@@ -91,17 +91,13 @@ func fgSignEd(header, claims map[string]any, priv ed25519.PrivateKey) string {
 
 func fgSignHMAC(header, claims map[string]any, key []byte, h crypto.Hash) string {
 	in := fgB64(header) + "." + fgB64(claims)
-	var mac []byte
-	switch h {
-	case crypto.SHA512:
-		m := hmac.New(sha512.New, key)
-		m.Write([]byte(in))
-		mac = m.Sum(nil)
-	default:
-		m := hmac.New(sha256.New, key)
-		m.Write([]byte(in))
-		mac = m.Sum(nil)
+	newHash := sha256.New
+	if h == crypto.SHA512 {
+		newHash = sha512.New
 	}
+	m := hmac.New(newHash, key)
+	m.Write([]byte(in))
+	mac := m.Sum(nil)
 	return in + "." + base64.RawURLEncoding.EncodeToString(mac)
 }
 
@@ -192,7 +188,7 @@ func TestTokensReject_Table(t *testing.T) {
 			Protected string `json:"protected"`
 			Signature string `json:"signature"`
 		}
-		var out []sig
+		out := make([]sig, 0, len(sigs))
 		for _, s := range sigs {
 			out = append(out, sig{Protected: fgB64(h), Signature: s})
 		}

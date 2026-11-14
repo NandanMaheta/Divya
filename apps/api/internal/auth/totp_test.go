@@ -24,6 +24,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -53,8 +54,7 @@ func refHOTP(t testing.TB, secretB32 string, counter int64) string {
 }
 
 func totpWrong(code string) string { // a six-digit code different from the given one
-	n := 0
-	fmt.Sscanf(code, "%d", &n)
+	n, _ := strconv.Atoi(code)
 	return fmt.Sprintf("%06d", (n+1)%1_000_000)
 }
 

@@ -31,13 +31,13 @@ type clock struct{ now time.Time }
 func (c *clock) Now() time.Time          { return c.now }
 func (c *clock) Advance(d time.Duration) { c.now = c.now.Add(d) }
 
-func newLimiter(limit int, window time.Duration, maxKeys int) (*ratelimit.Limiter, *clock) {
+func newLimiter(limit, maxKeys int) (*ratelimit.Limiter, *clock) {
 	c := &clock{now: t0}
-	return ratelimit.New(limit, window, maxKeys, c.Now), c
+	return ratelimit.New(limit, time.Minute, maxKeys, c.Now), c
 }
 
 func TestRateLimit_ThirtyPerMinuteThenRejected(t *testing.T) {
-	l, _ := newLimiter(30, time.Minute, 1000)
+	l, _ := newLimiter(30, 1000)
 	for i := 1; i <= 30; i++ {
 		if !l.Allow("203.0.113.7") {
 			t.Fatalf("request %d of 30 was rejected", i)
@@ -51,7 +51,7 @@ func TestRateLimit_ThirtyPerMinuteThenRejected(t *testing.T) {
 }
 
 func TestRateLimit_KeysAreIndependent(t *testing.T) {
-	l, _ := newLimiter(2, time.Minute, 1000)
+	l, _ := newLimiter(2, 1000)
 	l.Allow("a")
 	l.Allow("a")
 	if l.Allow("a") {
@@ -63,7 +63,7 @@ func TestRateLimit_KeysAreIndependent(t *testing.T) {
 }
 
 func TestRateLimit_WindowRolloverAtExactBoundary(t *testing.T) {
-	l, c := newLimiter(3, time.Minute, 1000)
+	l, c := newLimiter(3, 1000)
 	for range 3 {
 		if !l.Allow("ip") {
 			t.Fatal("setup request rejected")
@@ -85,7 +85,7 @@ func TestRateLimit_WindowRolloverAtExactBoundary(t *testing.T) {
 }
 
 func TestRateLimit_RejectedRequestsDoNotExtendTheWindow(t *testing.T) {
-	l, c := newLimiter(1, time.Minute, 1000)
+	l, c := newLimiter(1, 1000)
 	l.Allow("ip")
 	for range 10 { // hammering during the window must not push the reset out
 		c.Advance(5 * time.Second)
@@ -98,17 +98,18 @@ func TestRateLimit_RejectedRequestsDoNotExtendTheWindow(t *testing.T) {
 }
 
 func TestRateLimit_SkippedWindowsAreFresh(t *testing.T) {
-	l, c := newLimiter(2, time.Minute, 1000)
+	l, c := newLimiter(2, 1000)
 	l.Allow("ip")
 	l.Allow("ip")
 	c.Advance(10 * time.Minute)
-	if !l.Allow("ip") || !l.Allow("ip") || l.Allow("ip") {
-		t.Fatal("after a long idle period the key must get a full fresh window")
+	first, second, third := l.Allow("ip"), l.Allow("ip"), l.Allow("ip")
+	if !first || !second || third {
+		t.Fatalf("after a long idle period the key must get a full fresh window of 2; got %v %v %v", first, second, third)
 	}
 }
 
 func TestRateLimit_SizeCapEvictsExpiredFirst(t *testing.T) {
-	l, c := newLimiter(5, time.Minute, 3)
+	l, c := newLimiter(5, 3)
 	for _, k := range []string{"k1", "k2", "k3"} {
 		l.Allow(k)
 	}
@@ -123,7 +124,7 @@ func TestRateLimit_SizeCapEvictsExpiredFirst(t *testing.T) {
 }
 
 func TestRateLimit_SizeCapHoldsUnderAFlood(t *testing.T) {
-	l, _ := newLimiter(30, time.Minute, 100)
+	l, _ := newLimiter(30, 100)
 	for i := range 10_000 {
 		l.Allow(fmt.Sprintf("10.%d.%d.%d", i/65536, (i/256)%256, i%256))
 		if got := l.Len(); got > 100 {
@@ -133,7 +134,7 @@ func TestRateLimit_SizeCapHoldsUnderAFlood(t *testing.T) {
 }
 
 func TestRateLimit_NewestKeyIsKeptWhenTableIsFull(t *testing.T) {
-	l, _ := newLimiter(30, time.Minute, 3)
+	l, _ := newLimiter(30, 3)
 	for _, k := range []string{"k1", "k2", "k3"} { // all live in the window
 		l.Allow(k)
 	}
@@ -149,7 +150,7 @@ func TestRateLimit_NewestKeyIsKeptWhenTableIsFull(t *testing.T) {
 }
 
 func TestRateLimit_ConcurrentUseAdmitsExactlyTheLimit(t *testing.T) {
-	l, _ := newLimiter(30, time.Minute, 1000)
+	l, _ := newLimiter(30, 1000)
 	var admitted atomic.Int32
 	var wg sync.WaitGroup
 	start := make(chan struct{})
@@ -171,7 +172,7 @@ func TestRateLimit_ConcurrentUseAdmitsExactlyTheLimit(t *testing.T) {
 }
 
 func TestRateLimit_ConcurrentMixedKeysUnderRace(t *testing.T) {
-	l, _ := newLimiter(5, time.Minute, 50)
+	l, _ := newLimiter(5, 50)
 	var wg sync.WaitGroup
 	for g := range 16 {
 		wg.Add(1)
@@ -192,7 +193,7 @@ func TestRateLimit_ConcurrentMixedKeysUnderRace(t *testing.T) {
 func TestRateLimit_PropertyAdmitsMinOfLimitAndRequestsPerWindow(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		limit := rapid.IntRange(1, 10).Draw(t, "limit")
-		l, c := newLimiter(limit, time.Minute, 1000)
+		l, c := newLimiter(limit, 1000)
 		minutes := rapid.IntRange(1, 8).Draw(t, "minutes")
 		for m := range minutes {
 			c.now = t0.Add(time.Duration(m) * time.Minute) // each window opens on a whole minute

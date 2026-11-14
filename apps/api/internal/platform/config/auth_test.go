@@ -385,7 +385,8 @@ func TestAuthConfig_LogValuerRedactsEveryKeyField(t *testing.T) {
 // assertNoKeyMaterial fails if out contains any secret in raw, hex, std or URL base64 form.
 func assertNoKeyMaterial(t *testing.T, out string, a config.AuthConfig) {
 	t.Helper()
-	secrets := [][]byte{seedA, seedB, pii1, pii2, blind}
+	secrets := make([][]byte, 0, 5+len(a.JWTSeeds))
+	secrets = append(secrets, seedA, seedB, pii1, pii2, blind)
 	for _, s := range a.JWTSeeds {
 		secrets = append(secrets, s)
 	}

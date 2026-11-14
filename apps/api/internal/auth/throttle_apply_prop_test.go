@@ -57,7 +57,7 @@ func TestThrottleApply_PropertyMatchesReferenceModel(t *testing.T) {
 			if started != wantStarted {
 				t.Fatalf("event %d at %v: startedLock = %v, model says %v\nstate %+v", i, now.Sub(t0), started, wantStarted, s)
 			}
-			if got, want := lockedUntil(next), m.locked; !got.Equal(want) && !(want.IsZero() && !next.Locked(now)) {
+			if got, want := lockedUntil(next), m.locked; !got.Equal(want) && (!want.IsZero() || next.Locked(now)) {
 				t.Fatalf("event %d at %v: LockedUntil = %v, model %v", i, now.Sub(t0), got, want)
 			}
 			if next.Locked(now) != now.Before(m.locked) {
