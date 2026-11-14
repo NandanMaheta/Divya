@@ -885,7 +885,7 @@
     "T061": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestLifecycle_BR_IPO_03_BR_SET_08_GS_04_TwoWeeks -v ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T048",
         "T050",
@@ -899,7 +899,10 @@
       ],
       "title": "Time-travel lifecycle test",
       "expect": "green",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/lifecycle_test.go"
+      ]
     },
     "T062": {
       "owner": "test-engineer",

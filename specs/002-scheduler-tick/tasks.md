@@ -356,7 +356,7 @@
 
 ## Phase 7 - Cross-cutting verification, docs, status
 
-- [ ] T061 [P] **test-engineer**: Time-travel lifecycle test: Sun 8 Nov to Thu 19 Nov 2026 in 5-minute ticks with sample IPO step jobs, reminder series (never in quiet hours, stop on done), payment-due job at PaymentDue(13 Nov) runs at the first tick after Tue 17 Nov 23:59 IST; listing moved to Mon 16 Nov on Thu 12 Nov gives Wed 18 Nov 23:59; clock is the only time source; runs < 60 s.
+- [x] T061 [P] **test-engineer**: Time-travel lifecycle test: Sun 8 Nov to Thu 19 Nov 2026 in 5-minute ticks with sample IPO step jobs, reminder series (never in quiet hours, stop on done), payment-due job at PaymentDue(13 Nov) runs at the first tick after Tue 17 Nov 23:59 IST; listing moved to Mon 16 Nov on Thu 12 Nov gives Wed 18 Nov 23:59; clock is the only time source; runs < 60 s.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03, BR-TASK-03, BR-SET-08, GS-04 | Refs: US9.1-9.3; SC-006
   - Files (1, ~190 lines): `apps/api/internal/scheduler/lifecycle_test.go`
