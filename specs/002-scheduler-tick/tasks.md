@@ -366,7 +366,7 @@
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: US7.1-7.5; SC-003
   - Files (1, ~170 lines): `apps/api/internal/scheduler/catchup_test.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestCatchUp_' ./internal/scheduler/...`
-- [ ] T063 [P] **test-engineer**: Overlapping-tick concurrency test: two and five concurrent Tick goroutines at the same fake instant over 10 and 100 due jobs and messages; every effect exactly once, summed counts equal totals.
+- [x] T063 [P] **test-engineer**: Overlapping-tick concurrency test: two and five concurrent Tick goroutines at the same fake instant over 10 and 100 due jobs and messages; every effect exactly once, summed counts equal totals.
   - Depends on: T048, T050, T052
   - Rules: none (mechanism) | Refs: US1.4, 3.8; FR-011, FR-026
   - Files (1, ~140 lines): `apps/api/internal/scheduler/concurrency_test.go`

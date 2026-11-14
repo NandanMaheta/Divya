@@ -927,7 +927,7 @@
     "T063": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestTick_Concurrent -count=20 ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T048",
         "T050",
@@ -936,7 +936,10 @@
       "rules": [],
       "title": "Overlapping-tick concurrency test",
       "expect": "green",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/concurrency_test.go"
+      ]
     },
     "T064": {
       "owner": "test-engineer",
