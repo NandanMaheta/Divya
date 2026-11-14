@@ -1,3 +1,5 @@
+<!-- Base branch: `stage` (release PRs: stage → main). Branch name: feat/<NNN>-<desc>, fix/<issue>-<desc>, chore/<desc>… -->
+
 ## What
 
 <!-- One paragraph. Link the spec: specs/NNN-.../spec.md -->

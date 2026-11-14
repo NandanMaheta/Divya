@@ -5,7 +5,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPI(title="Divya Worker", version="0.1.0")
+app = FastAPI(title="Swastik Worker", version="0.1.0")
 
 
 class Health(BaseModel):

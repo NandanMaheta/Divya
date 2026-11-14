@@ -24,3 +24,6 @@ apps/client/ios/
 .terraform/
 # OS
 .DS_Store
+
+# Claude Code agent scratch worktrees (runtime only)
+.claude/worktrees/

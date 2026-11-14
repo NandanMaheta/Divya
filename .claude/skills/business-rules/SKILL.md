@@ -1,10 +1,10 @@
 ---
 
 name: business-rules
-description: Divya's business rules (IPOs, clients and family accounts, deals and fixed-price quotes, tasks and reminders, settlement formulas, due dates, payments) and the golden scenarios. Load whenever work touches money, deals, settlement, ledger, tasks, approvals or reminders.
+description: Swastik's business rules (IPOs, clients and family accounts, deals and fixed-price quotes, tasks and reminders, settlement formulas, due dates, payments) and the golden scenarios. Load whenever work touches money, deals, settlement, ledger, tasks, approvals or reminders.
 ---
 
-# Divya business rules
+# Swastik business rules
 
 The authoritative list is `docs/product/business-rules.md` — read it in full before specifying, testing or reviewing anything it covers. Key formulas (I = issue price × shares, G = (NSE listing price − issue price) × shares):
 

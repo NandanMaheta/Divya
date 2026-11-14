@@ -6,7 +6,7 @@ import urllib.request
 from lib import read_input
 
 topic = os.environ.get("NTFY_TOPIC")
-message = read_input().get("message", "Divya agent needs your input")
+message = read_input().get("message", "Swastik agent needs your input")
 if topic:
     req = urllib.request.Request(f"https://ntfy.sh/{topic}", data=message.encode(), method="POST")
     try:

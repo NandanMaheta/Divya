@@ -1,6 +1,6 @@
-# Divya: automated delivery blueprint (zero → MVP)
+# Swastik: automated delivery blueprint (zero → MVP)
 
-Companion to `Product blueprint.md`. It defines how agents build Divya with minimal human involvement. It covers:
+Companion to `Product blueprint.md`. It defines how agents build Swastik with minimal human involvement. It covers:
 
 - understanding the business rules
 - spec, research and plan
@@ -211,8 +211,8 @@ Fable 5.2 can replace Opus for `architect` and `reviewer` on the riskiest module
 ## 4. Repository layout for automation
 
 ```
-divya/
-├─ CLAUDE.md                     ≤150 lines: what Divya is, commands per app, where rules live, escalation policy
+swastik/
+├─ CLAUDE.md                     ≤150 lines: what Swastik is, commands per app, where rules live, escalation policy
 ├─ .claude/
 │  ├─ settings.json              permissions (allow/deny), hooks, env, model defaults
 │  ├─ agents/                    the 16 agents above
@@ -253,7 +253,7 @@ divya/
 ### 4.2 Permissions
 
 - **Allow:** `go *`, `pnpm *`, `uv *`, `sqlc *`, `goose * (local DB)`, `maestro *`, `npx playwright *`, `gh pr *`, `gh issue *`, `git` (non-force).
-- **Deny:** `Read(.env*)`, `Bash(gcloud * --project=divya-prod*)`, `Bash(supabase db push --linked*)` outside CI, any MCP write tool against production.
+- **Deny:** `Read(.env*)`, `Bash(gcloud * --project=swastik-prod*)`, `Bash(supabase db push --linked*)` outside CI, any MCP write tool against production.
 
 ---
 
@@ -283,17 +283,17 @@ Coverage policy:
 
 ## 6. CI/CD workflows (`.github/workflows/`)
 
-| Workflow          | Trigger                                                                                                   | Steps                                                                                                                                                                                                                                                                                        |
-| ----------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pr.yml`          | PR                                                                                                        | Path-filtered (Turborepo affected + Go/Python change detection) → L0–L4, L6 → OpenAPI diff comment → BR traceability → APK size → status checks                                                                                                                                              |
-| `e2e.yml`         | PR (smoke), nightly (full)                                                                                | Spin up API + Postgres in services, build admin, Android emulator (`reactivecircus/android-emulator-runner`) → Maestro + Playwright → upload screenshots/videos                                                                                                                              |
-| `preview.yml`     | PR labelled `preview` or touching apps                                                                    | Admin → Cloudflare Pages preview URL; API → Cloud Run tagged revision on **staging**; Android **preview APK** (Gradle on Actions or `eas build --local`) → PR comment with QR codes + generated `uat.md` checklist                                                                           |
-| `claude.yml`      | `@claude` mentions, PR opened                                                                             | `anthropics/claude-code-action@v1`: advisory review with the code-review plugin; implements small requested changes on the PR branch                                                                                                                                                         |
-| `agent-build.yml` | Issue labelled `agent:build` or `agent:fix`                                                               | Headless Claude Code (`claude -p`, `--max-turns`, `--max-budget-usd`) runs `/ship-feature` or the bug extension on a branch → opens PR                                                                                                                                                       |
-| `deploy.yml`      | Push to `main` → **staging**; tag `v*` → **production** (GitHub Environment with required reviewer = you) | Build distroless Go + Python images → Artifact Registry → Cloud Run deploy via **Workload Identity Federation** (no keys) → run migrations (goose) → smoke tests → admin/PWA to Cloudflare Pages → EAS Update for JS-only client changes / new APK to R2 for native changes → Sentry release |
-| `nightly.yml`     | 02:00 IST                                                                                                 | Full E2E, mutation tests, ZAP, k6, **backup + restore drill** (pg_dump prod → R2 → restore into a temp DB → row counts match)                                                                                                                                                                |
-| `triage.yml`      | Daily 09:00 IST                                                                                           | `triage` agent: new Sentry issues → GitHub issues with severity and repro hints                                                                                                                                                                                                              |
-| `ops.yml`         | Weekly                                                                                                    | Dependency PR fixes (Renovate), tech-debt + metrics digest, release-notes draft                                                                                                                                                                                                              |
+| Workflow          | Trigger                                                                                                                             | Steps                                                                                                                                                                                                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pr.yml`          | PR                                                                                                                                  | Path-filtered (Turborepo affected + Go/Python change detection) → L0–L4, L6 → OpenAPI diff comment → BR traceability → APK size → status checks                                                                                                                                              |
+| `e2e.yml`         | PR (smoke), nightly (full)                                                                                                          | Spin up API + Postgres in services, build admin, Android emulator (`reactivecircus/android-emulator-runner`) → Maestro + Playwright → upload screenshots/videos                                                                                                                              |
+| `preview.yml`     | PR labelled `preview` or touching apps                                                                                              | Admin → Cloudflare Pages preview URL; API → Cloud Run tagged revision on **staging**; Android **preview APK** (Gradle on Actions or `eas build --local`) → PR comment with QR codes + generated `uat.md` checklist                                                                           |
+| `claude.yml`      | `@claude` mentions, PR opened                                                                                                       | `anthropics/claude-code-action@v1`: advisory review with the code-review plugin; implements small requested changes on the PR branch                                                                                                                                                         |
+| `agent-build.yml` | Issue labelled `agent:build` or `agent:fix`                                                                                         | Headless Claude Code (`claude -p`, `--max-turns`, `--max-budget-usd`) runs `/ship-feature` or the bug extension on a branch → opens PR                                                                                                                                                       |
+| `deploy.yml`      | Merge into `stage` → **staging**; merge into `main` (release PR) → **production** (GitHub Environment with required reviewer = you) | Build distroless Go + Python images → Artifact Registry → Cloud Run deploy via **Workload Identity Federation** (no keys) → run migrations (goose) → smoke tests → admin/PWA to Cloudflare Pages → EAS Update for JS-only client changes / new APK to R2 for native changes → Sentry release |
+| `nightly.yml`     | 02:00 IST                                                                                                                           | Full E2E, mutation tests, ZAP, k6, **backup + restore drill** (pg_dump prod → R2 → restore into a temp DB → row counts match)                                                                                                                                                                |
+| `triage.yml`      | Daily 09:00 IST                                                                                                                     | `triage` agent: new Sentry issues → GitHub issues with severity and repro hints                                                                                                                                                                                                              |
+| `ops.yml`         | Weekly                                                                                                                              | Dependency PR fixes (Renovate), tech-debt + metrics digest, release-notes draft                                                                                                                                                                                                              |
 
 **Environments:**
 
@@ -306,7 +306,7 @@ Coverage policy:
 
 Supabase's free plan allows exactly two projects, which covers staging and production.
 
-**Branching:** trunk-based with short feature branches, `feat/<NNN>-<slug>`. Conventional Commits; release-please creates versions and the changelog.
+**Branching:** `main` = production, `stage` = default working branch and staging. Work branches come from `stage` with human-readable names (`feat/<NNN>-<desc>`, `fix/<issue>-<desc>`, `chore/<desc>`, `refactor/<desc>`, `docs/<desc>`, `test/<desc>`; `hotfix/<issue>-<desc>` from `main`) and merge into `stage` by PR; releases are `stage` → `main` PRs, tagged `vX.Y.Z`. Parallel work uses one worktree per branch (`../swastik-<id>`). Full guide: `docs/engineering/git-workflow.md`.
 
 ---
 
@@ -344,7 +344,7 @@ Deliberately **not** connected: broker or payment MCPs (Kite, Razorpay), WhatsAp
 
 **You do once.** Agents cannot create accounts or enter card details.
 
-1. Create an empty **private GitHub repo** `divya`; give this session access (add_repo) and enable Actions.
+1. Create an empty **private GitHub repo** `swastik`; give this session access (add_repo) and enable Actions.
 2. Create accounts or projects:
    - **Google Cloud** project (billing card, ₹1 budget alert)
    - **Supabase** (2 free projects, Mumbai region if offered)
@@ -353,7 +353,7 @@ Deliberately **not** connected: broker or payment MCPs (Kite, Razorpay), WhatsAp
    - **Expo** account
    - **Sentry**
    - **Brevo or Resend** (email)
-3. Buy the domain (for example a `divya` .in or .app name; plain `divya.in` is likely taken) on Cloudflare Registrar.
+3. Buy the domain (for example a `swastik` .in or .app name; plain `swastik.in` is likely taken) on Cloudflare Registrar.
 4. Paste secrets into **GitHub Environments** (`staging`, `production`). Agents give you an exact checklist; values never go into chat.
 5. Install the plugins above in Claude Code (one-click cards below).
 

@@ -1,7 +1,7 @@
 ---
 
 name: ship-feature
-description: Conductor for one Divya feature from docs/product/modules.md — research, spec, owner approval, plan, tasks, test-first implementation by parallel agents, review, QA and PR. Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
+description: Conductor for one Swastik feature from docs/product/modules.md — research, spec, owner approval, plan, tasks, test-first implementation by parallel agents, review, QA and PR. Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
 ---
 
 # Ship one feature
@@ -11,7 +11,9 @@ You are the conductor. You coordinate agents; you do not write production code y
 ## 0. Load state
 
 1. Find the feature row `<NNN>` in `docs/product/modules.md`. Refuse if a dependency is not `done`.
-2. If `specs/<NNN>-*/state.json` exists, resume from its `phase`. Otherwise create the feature branch `feat/<NNN>-<slug>` from `main`.
+2. If `specs/<NNN>-*/state.json` exists, resume from its `phase` in its worktree. Otherwise create the branch and worktree from `stage` (see `docs/engineering/git-workflow.md`):
+   `git fetch origin && git worktree add ../swastik-<NNN> -b feat/<NNN>-<short-desc> origin/stage`
+   Use the same `<NNN>-<short-desc>` for the spec folder `specs/<NNN>-<short-desc>/` and set `.specify/feature.json` to it (Spec Kit resolves features from that file, not the branch name). Run all agents for this feature inside `../swastik-<NNN>`.
 
 ## 1. Research → `researcher`
 
@@ -48,7 +50,7 @@ If CHANGES: turn findings into fix tasks and loop through step 5 (max 2 rounds, 
 
 ## 8. PR → `release`
 
-Open the PR with evidence. CI runs. When green and a preview exists, run `qa-web` and/or `qa-mobile`. Fix any bugs found via step 5.
+Open the PR **into `stage`** with evidence. CI runs. When green and a preview exists, run `qa-web` and/or `qa-mobile`. Fix any bugs found via step 5.
 
 ## 9. **OWNER gate B — UAT / approval**
 
@@ -56,4 +58,4 @@ Post the UAT checklist (`uat-checklist` skill) on the PR. Money/auth/migration P
 
 ## 10. Close out
 
-Mark the feature `done` in `docs/product/modules.md`, set `state.json` phase `done`, and summarise for the owner in ≤8 lines: what shipped, evidence, anything deferred.
+After the PR merges into `stage` (auto-deploys to staging): remove the worktree, mark the feature `done` in `docs/product/modules.md`, set `state.json` phase `done`, and summarise for the owner in ≤8 lines: what shipped, evidence, anything deferred.
