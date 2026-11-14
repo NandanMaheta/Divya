@@ -558,3 +558,7 @@ Nothing below is added to `go.mod` by this plan; implementation tasks that need 
 | `golang.org/x/text` v0.44.0 (already in go.sum) | Indirect → **direct** | `unicode/norm` NFC for passwords (P-06) | D-07 accepts Gujarati and Hindi passphrases; without normalisation the same passphrase from a different input method can produce different bytes and fail to sign in (NIST SP 800-63B recommends normalisation). | No normalisation (real lockout risk); hand-rolled normalisation (not feasible) |
 | `github.com/google/uuid` v1.6.0 | Indirect → direct, **approved via 002** | Typed ids (C-6) | Listed for completeness; 003 adds nothing. | – |
 | `pgregory.net/rapid` v1.2.0 | **Test-only** (already in go.sum; 002 also uses it) | Property tests | Named by `.claude/rules/tests.md`; not linked into the binary. | – |
+
+## Owner approval of dependencies
+
+- **Approved 2026-11-14 by the owner**: github.com/go-jose/go-jose/v4 (direct), github.com/pquerna/otp v1.5.0 (+ boombuler/barcode), golang.org/x/crypto, golang.org/x/term, golang.org/x/text (direct).
