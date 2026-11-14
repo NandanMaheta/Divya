@@ -9,7 +9,7 @@
       "owner": "backend-dev",
       "title": "Compile skeleton: internal/ipos (model, errors, signals, service, store, validate, suggest, lifecycle_steps, handler stubs registerAdmin/Actions/Client, ipostest), internal/platform/inr Format stub, internal/ipos/schema package doc. Exported names from contracts/go-module-api.md; bodies panic(errNotImplemented). Store has one stub method per data-model section 6 query (domain types only, no dbgen).",
       "done_command": "cd apps/api && go build ./... && go vet ./internal/ipos/... ./internal/platform/inr/...",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "002-merged"
       ],

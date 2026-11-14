@@ -16,7 +16,7 @@
 
 ## Slices
 
-- [ ] S01 **backend-dev**: Compile skeleton: internal/ipos (model, errors, signals, service, store, validate, suggest, lifecycle_steps, handler stubs registerAdmin/Actions/Client, ipostest), internal/platform/inr Format stub, internal/ipos/schema package doc. Exported names from contracts/go-module-api.md; bodies panic(errNotImplemented). Store has one stub method per data-model section 6 query (domain types only, no dbgen).
+- [x] S01 **backend-dev**: Compile skeleton: internal/ipos (model, errors, signals, service, store, validate, suggest, lifecycle_steps, handler stubs registerAdmin/Actions/Client, ipostest), internal/platform/inr Format stub, internal/ipos/schema package doc. Exported names from contracts/go-module-api.md; bodies panic(errNotImplemented). Store has one stub method per data-model section 6 query (domain types only, no dbgen).
   - Depends on: 002-merged
   - Rules: none (mechanism) | Refs: contracts/go-module-api.md; delivery-pipeline 3.2
   - Files (~420 lines): `apps/api/internal/ipos/{doc,model,errors,signals,service,store,validate,suggest,lifecycle_steps,handler,handler_actions,handler_client}.go`, `apps/api/internal/ipos/ipostest/ipostest.go`, `apps/api/internal/platform/inr/inr.go`, `apps/api/internal/ipos/schema/doc.go`
