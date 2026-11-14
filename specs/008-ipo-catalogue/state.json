@@ -209,15 +209,18 @@
       "parallel": true,
       "est_lines": 550,
       "files": [
+        "apps/api/internal/ipos/service_helpers_test.go",
         "apps/api/internal/ipos/service_create_test.go",
         "apps/api/internal/ipos/service_update_test.go",
         "apps/api/internal/ipos/service_read_test.go"
       ],
       "protected_tests": [
+        "apps/api/internal/ipos/service_helpers_test.go",
         "apps/api/internal/ipos/service_create_test.go",
         "apps/api/internal/ipos/service_update_test.go",
         "apps/api/internal/ipos/service_read_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S09": {
       "owner": "test-engineer",
@@ -272,7 +275,8 @@
         "apps/api/internal/ipos/signals.go",
         "apps/api/internal/ipos/ipostest/ipostest.go"
       ],
-      "protected_tests": []
+      "protected_tests": [],
+      "tests_written": true
     },
     "S11": {
       "owner": "backend-dev",
