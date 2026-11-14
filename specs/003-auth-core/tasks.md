@@ -82,7 +82,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-17
   - Files (1, ~90 lines): `apps/api/internal/platform/ratelimit/ratelimit.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/ratelimit/...`
-- [ ] T012 [P] **test-engineer**: Tests for config auth settings and LoadDB: key-ring parsing (kid:base64 seed, id:base64 32 bytes), wrong lengths, duplicate ids, active id missing, BLIND_INDEX_KEY equal to a PII key, ephemeral keys in local/ci without values logged, staging/production fail closed when keys missing, Config LogValuer redacts every key field, WEB_ORIGINS, TRUSTED_PROXY_HOPS, ARGON2_MAX_CONCURRENCY defaults; LoadDB reads only DATABASE_URL and APP_ENV and needs no JWT or PII keys.
+- [x] T012 [P] **test-engineer**: Tests for config auth settings and LoadDB: key-ring parsing (kid:base64 seed, id:base64 32 bytes), wrong lengths, duplicate ids, active id missing, BLIND_INDEX_KEY equal to a PII key, ephemeral keys in local/ci without values logged, staging/production fail closed when keys missing, Config LogValuer redacts every key field, WEB_ORIGINS, TRUSTED_PROXY_HOPS, ARGON2_MAX_CONCURRENCY defaults; LoadDB reads only DATABASE_URL and APP_ENV and needs no JWT or PII keys.
   - Depends on: T003
   - Rules: none (mechanism) | Refs: plan P-14, P-13; Deviation 2
   - Files (2, ~190 lines): `apps/api/internal/platform/config/auth_test.go`, `apps/api/internal/platform/config/db_test.go`

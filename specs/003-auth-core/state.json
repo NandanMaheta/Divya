@@ -145,14 +145,18 @@
     "T012": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestAuthConfig|TestLoadDB' ./internal/platform/config/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T003"
       ],
       "rules": [],
       "title": "Tests for config auth settings and LoadDB: key-ring parsing (kid:base64 seed, id:base64 32 bytes), wrong lengths, duplicate ids, active id m",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/config/auth_test.go",
+        "apps/api/internal/platform/config/db_test.go"
+      ]
     },
     "T013": {
       "owner": "backend-dev",
