@@ -1127,6 +1127,7 @@
     }
   },
   "protected_tests": [
+    "apps/api/internal/scheduler/stale_takeover_test.go",
     "apps/api/internal/scheduler/recovery_test.go",
     "apps/api/internal/scheduler/model_test.go",
     "apps/api/internal/scheduler/lease_test.go",
