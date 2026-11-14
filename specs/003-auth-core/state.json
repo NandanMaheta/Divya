@@ -243,7 +243,7 @@
       "owner": "test-engineer",
       "title": "Service tests B: refresh rotation/reuse/device mismatch/expiry boundaries, concurrency (N goroutines one R1; parallel sign-in), sessions, bearer and challenge verifiers, password change.",
       "done_command": "cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "S12"
       ],
@@ -252,7 +252,17 @@
       ],
       "expect": "red",
       "parallel": false,
-      "replaces": "T059,T060,T062,T064,T068"
+      "replaces": "T059,T060,T062,T064,T068",
+      "protected_tests": [
+        "apps/api/internal/auth/svc_helpers_b_test.go",
+        "apps/api/internal/auth/refresh_test.go",
+        "apps/api/internal/auth/concurrency_test.go",
+        "apps/api/internal/auth/sessions_test.go",
+        "apps/api/internal/auth/verifier_test.go",
+        "apps/api/internal/auth/password_change_test.go"
+      ],
+      "tests_written": true,
+      "note": "Red (stubs in service_stubs.go return errNotImplemented; S14 replaces them in place). Test names also match: TestAuthz_* lives in sessions_test.go. Rejection tests carry a positive control so they cannot pass vacuously against a stub."
     },
     "S14": {
       "owner": "backend-dev",
