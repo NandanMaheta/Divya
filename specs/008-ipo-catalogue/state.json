@@ -357,7 +357,8 @@
         "apps/api/internal/ipos/override_test.go",
         "apps/api/internal/ipos/override_race_test.go",
         "apps/api/internal/ipos/idempotency_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S14": {
       "owner": "backend-dev",
