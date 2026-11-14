@@ -1,585 +1,84 @@
-# Tasks: Auth core (users, passwords, sessions, refresh rotation, device binding, admin TOTP)
+# Slices: Auth core (003) - pipeline v2, Tier A
 
-**Feature**: 003-auth-core | **Branch**: `feat/003-auth-core` | **Inputs**: spec.md, plan.md, data-model.md, contracts/*, research.md, quickstart.md
-**Business rules covered**: BR-CLI-04 (sign-in gate, status model; tests carry `BR_CLI_04`), BR-CLI-05 (boundary only: capability to replace a contact, no operation that changes one). Golden scenarios GS-01..04 are unaffected and must keep passing.
+**Branch** `feat/003-auth-core` | **Brief** `brief.md` | **Rules** BR-CLI-04, BR-CLI-05 | GS-01..04 must keep passing.
 
-## Format
+Legend: `[P]` parallel-safe (flat `internal/auth` package: develop as separate worktrees and merge, done commands use `-run`). `red->green`: tests already written and protected, implementation is the next step. `blocked`: needs `002-merged`. Each slice = one `test(...)` then one `feat(...)` commit pair. All done commands run from `/home/user/divya-003`. Tests-before-code: every implementation slice follows its test slice (or has tests written already). Owner gates: S07 (auth migration), S19 (`deploy.yml`), security review before the PR (crypto, authz, audit, handlers). Done T001 (dependencies) is kept; `replaces` in state.json maps to the old T-ids.
 
-`- [ ] T### [P] Owner: description` followed by Depends on, Rules, Files, Done command.
+- [ ] S01 **backend-dev**: Compile skeleton: exported types and signatures returning errNotImplemented for internal/auth, platform/crypto, authz, httpx (errors, cors, clientip), ratelimit, config (auth, LoadDB), auth/commonpasswords, so every existing red test compiles. Includes Service/Store/Throttle/Deps type shapes from go-capabilities.
+  - Depends on: T001-done | Rules: none (mechanism) | Expected: green | Replaces: T001 done (deps)
+  - Done command: `cd apps/api && go build ./... && go vet ./internal/auth/... ./internal/platform/...`
+- [ ] S02 [P] **backend-dev**: Implement platform/crypto (Keyring AES-256-GCM envelope, BlindIndexer, NewToken, Digest), platform/ratelimit, and config/auth.go + config/db.go. Tests already written (protected).
+  - Depends on: S01 | Rules: none (mechanism) | Expected: red->green | Replaces: T002,T003,T010-T013 (tests done)
+  - Protected tests (written, do not edit): `apps/api/internal/platform/crypto/aead_test.go`, `apps/api/internal/platform/crypto/blindindex_test.go`, `apps/api/internal/platform/crypto/token_test.go`, `apps/api/internal/platform/ratelimit/ratelimit_test.go`, `apps/api/internal/platform/config/auth_test.go`, `apps/api/internal/platform/config/db_test.go`
+  - Done command: `cd apps/api && go test -race ./internal/platform/crypto/... ./internal/platform/ratelimit/... ./internal/platform/config/...`
+- [ ] S03 [P] **backend-dev**: Implement platform/authz (Role, Principal, Verifier, Install, Require, Public, ChallengeOnly, SelfAuthenticated, AssertDeclared) and httpx errors, CORS, ClientIP. Tests already written (protected).
+  - Depends on: S01 | Rules: none (mechanism) | Expected: red->green | Replaces: T004-T009 (tests done)
+  - Protected tests (written, do not edit): `apps/api/internal/platform/authz/authz_test.go`, `apps/api/internal/platform/httpx/errors_test.go`, `apps/api/internal/platform/httpx/cors_test.go`, `apps/api/internal/platform/httpx/clientip_test.go`
+  - Done command: `cd apps/api && go test -race ./internal/platform/authz/... ./internal/platform/httpx/...`
+- [ ] S04 [P] **backend-dev**: Implement auth pure units A: normalize.go, commonpasswords list (10k.txt via proxy, SOURCE.md, embed.go), password_policy.go, hasher.go (Argon2id, PHC, semaphore, dummy verify), throttle_apply.go. Tests already written (protected). [P] with S05 as a pair in separate worktrees (flat package).
+  - Depends on: S01 | Rules: BR-CLI-04 | Expected: red->green | Replaces: T014-T023 (tests done)
+  - Protected tests (written, do not edit): `apps/api/internal/auth/normalize_test.go`, `apps/api/internal/auth/normalize_prop_test.go`, `apps/api/internal/auth/commonpasswords/commonpasswords_test.go`, `apps/api/internal/auth/password_policy_test.go`, `apps/api/internal/auth/hasher_test.go`, `apps/api/internal/auth/hasher_prop_test.go`, `apps/api/internal/auth/throttle_apply_test.go`, `apps/api/internal/auth/throttle_apply_prop_test.go`
+  - Done command: `cd apps/api && go test -race ./internal/auth/commonpasswords/... && go test -race -run 'TestNormalize|TestKindOf|TestPolicy|TestHasher|TestLockout|TestThrottleApply' ./internal/auth/`
+  - Note: Lockout rules (D-08) are covered by TestLockout.
+- [ ] S05 [P] **backend-dev**: Implement auth pure units B: tokens.go (go-jose EdDSA, kid ring, P-02 verify order), totp.go (pquerna/otp, N-1..N+1, last_used_step), recovery.go. Tests already written (protected).
+  - Depends on: S01, S02 | Rules: none (mechanism) | Expected: red->green | Replaces: T024-T030 (tests done)
+  - Protected tests (written, do not edit): `apps/api/internal/auth/tokens_test.go`, `apps/api/internal/auth/tokens_reject_test.go`, `apps/api/internal/auth/totp_test.go`, `apps/api/internal/auth/recovery_test.go`
+  - Done command: `cd apps/api && go test -race -run 'TestTokens|TestTotp|TestRecovery' ./internal/auth/`
+- [ ] S06 [P] **test-engineer**: Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.
+  - Depends on: S01 | Rules: none (mechanism) | Expected: red | Replaces: T031,T032
+  - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/`
+- [ ] S07 **backend-dev**: Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.
+  - Depends on: S06 | Rules: none (mechanism) | Expected: green | Replaces: T033,T034
+  - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...`
+  - Note: Owner approval + security-reviewer (auth schema).
+- [ ] S08 **test-engineer** [blocked: 002-merged]: Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).
+  - Depends on: S07, 002-merged | Rules: none (mechanism) | Expected: red | Replaces: T035,T037,T042-T045
+  - Done command: `cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh`
+- [ ] S09 **backend-dev** [blocked: 002-merged]: golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.
+  - Depends on: S08, 002-merged | Rules: none (mechanism) | Expected: green | Replaces: T036,T038,T039-T041
+  - Done command: `cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestAuditExt' ./internal/platform/... && golangci-lint run ./internal/platform/... && bash ../../scripts/check-lint-boundaries.sh`
+  - Note: Generated dbgen not counted toward size.
+- [ ] S10 **backend-dev** [blocked: 002-merged]: store.go interface and sentinel errors, store_pg.go (users/org, sessions/refresh, mfa/recovery/challenges/throttles; only file with pgx types), Service skeleton (service.go Deps, errors.go problem mapping, audit.go catalogue).
+  - Depends on: S09, 002-merged | Rules: none (mechanism) | Expected: green | Replaces: T046-T049
+  - Done command: `cd apps/api && go test -race -run 'TestStore|TestAuthtest' ./internal/auth/...`
+- [ ] S11 **test-engineer** [blocked: 002-merged]: Service tests A (fake clock, real Store): accounts status machine (BR_CLI_04), CreateClient/ResetPassword/Replace*/EndAllSessions, throttle service, client sign-in, sign-in gate generic failures, lockout through service.
+  - Depends on: S10, 002-merged | Rules: BR-CLI-04, BR-CLI-05 | Expected: red | Replaces: T050,T051,T054,T056,T057,T066
+  - Done command: `cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/`
+- [ ] S12 **backend-dev** [blocked: 002-merged]: accounts.go, accounts_more.go, throttle.go, signin.go (one Argon2 verify, short tx), lockout application in sign-in.
+  - Depends on: S11 | Rules: BR-CLI-04, BR-CLI-05 | Expected: green | Replaces: T052,T053,T055,T058,T067
+  - Done command: `cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/`
+- [ ] S13 **test-engineer** [blocked: 002-merged]: Service tests B: refresh rotation/reuse/device mismatch/expiry boundaries, concurrency (N goroutines one R1; parallel sign-in), sessions, bearer and challenge verifiers, password change.
+  - Depends on: S12 | Rules: BR-CLI-04 | Expected: red | Replaces: T059,T060,T062,T064,T068
+  - Done command: `cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/`
+- [ ] S14 **backend-dev** [blocked: 002-merged]: refresh.go (P-03 algorithm), sessions.go, verifiers.go, password_change.go.
+  - Depends on: S13 | Rules: BR-CLI-04 | Expected: green | Replaces: T061,T063,T065,T069
+  - Done command: `cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/`
+  - Note: Security review: crypto, authz.
+- [ ] S15 **test-engineer** [blocked: 002-merged]: Tests: admin MFA flow and management, TOTP/admin-removal concurrency, bootstrap service, CLI `swastik admin create`, housekeeping.
+  - Depends on: S14 | Rules: none (mechanism) | Expected: red | Replaces: T070-T072,T075,T077,T079
+  - Done command: `cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/`
+- [ ] S16 **backend-dev** [blocked: 002-merged]: mfa.go, mfa_manage.go, bootstrap.go (advisory lock, audit), cmd/swastik/admin.go, housekeeping.go.
+  - Depends on: S15 | Rules: none (mechanism) | Expected: green | Replaces: T073,T074,T076,T078,T080
+  - Done command: `cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/`
+  - Note: Security review: TOTP, bootstrap.
+- [ ] S17 **test-engineer** [blocked: 002-merged]: Tests: CSRF, handlers (sessions, MFA, password, admin), static and runtime contract walk, openapi/wiring tests, packages/domain auth-error-codes test.
+  - Depends on: S16 | Rules: none (mechanism) | Expected: red | Replaces: T081-T084,T089-T091,T098
+  - Done command: `cd apps/api && go test -race -run 'TestCSRF|TestHandler|TestContractWalk|TestOpenAPI|TestWiring' ./internal/auth/ ./cmd/swastik/ && pnpm --filter @swastik/domain test`
+- [ ] S18 **backend-dev** [blocked: 002-merged]: cookies.go, handler.go, handler_mfa.go, handler_admin.go (Security declared per operation, errors and rate limits).
+  - Depends on: S17 | Rules: none (mechanism) | Expected: green | Replaces: T085-T088
+  - Done command: `cd apps/api && go test -race -run 'TestCSRF|TestHandler' ./internal/auth/`
+  - Note: Security review: handlers.
+- [ ] S19 **backend-dev** [blocked: 002-merged]: Wire buildAPI and serve (InstallErrors, authz.Install, auth.Register, AssertDeclared, scheduler registration, CORS, rate limit), regenerate OpenAPI and TS client, packages/domain auth-error-codes.ts, deploy.yml secrets (OWNER GATE, no values), modules.md status.
+  - Depends on: S18 | Rules: none (mechanism) | Expected: green | Replaces: T092,T093,T097,T099,T100,T101
+  - Done command: `cd apps/api && go test -race -run 'TestContractWalk|TestOpenAPI|TestWiring' ./cmd/swastik/ && cd ../.. && pnpm --filter @swastik/domain test && pnpm --filter @swastik/api-client generate && python3 -c "import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))"`
+  - Note: Owner gate: deploy.yml (security-sensitive).
+- [ ] S20 **test-engineer** [blocked: 002-merged]: Verification tests (no-secrets scan, audit events per US-11, timing SC-003 and Argon2id benchmark) then final gate: tidy, full API -race, golangci-lint, sqlc vet, generated code current, BR traceability, JS typecheck/test/build, GS-01..04.
+  - Depends on: S19 | Rules: BR-CLI-04 | Expected: green | Replaces: T094-T096,T102
+  - Done command: `cd apps/api && go mod tidy && git diff --exit-code go.mod go.sum && go test -race ./... && golangci-lint run ./... && sqlc generate && sqlc vet && git diff --exit-code internal/platform/db/dbgen && cd ../.. && bash scripts/check-br-traceability.sh && pnpm turbo run typecheck test build`
+  - Note: Final gate. Security review before PR.
 
-- **[P]**: parallel-safe (different files or packages, no unmet dependency between tasks of the same group). Inside the flat package `internal/auth`, a red test file breaks compilation of that package's test binary, so [P] there means parallel as a *pair*: develop each test+implementation pair in its own worktree and merge the pair together; done commands use `-run` patterns so a finished pair is checked independently.
-- **Owner**: exactly one of `test-engineer` or `backend-dev`. Implementers never edit tests written by `test-engineer`.
-- **Expected**: `red` = the done command is expected to FAIL (or not compile) until the paired implementation task lands; `green` = must pass when the task is done.
-- All done commands run from the worktree root `/home/user/divya-003`. Integration tests need Docker and skip under `-short`.
-- **002-merged**: feature 002 (clock, db.TxRunner, audit, istdate, scheduler, uuid sqlc override) is not on `stage` yet. A task listing `002-merged` (directly, or through a dependency) has status `blocked` in `state.json`. Everything else can start now.
-- Generated sqlc output (`internal/platform/db/dbgen/*`) and the embedded data file `10k.txt` are not counted toward the size budget.
-- Gates: T-ids touching `migrations/00003_auth.sql` need owner approval and security review (auth schema); crypto, authz, audit, auth handlers get `security-reviewer`; `deploy.yml` is security-sensitive.
-- Failures found by Phase 11 verification tests go through the bug flow to `backend-dev`.
-- Note: `docs/engineering/git-workflow.md` is referenced by the brief; if absent, CLAUDE.md's Git workflow applies (Conventional Commits, small PRs into `stage`).
+## Order
 
-
-## Phase 1 - Setup
-
-Starts now.
-
-- [x] T001 **backend-dev**: Add approved dependencies: go-jose/v4 (direct), pquerna/otp v1.5.0 (+ boombuler/barcode), golang.org/x/crypto, x/term, x/text (indirect to direct), google/uuid (direct), pgregory.net/rapid (test-only). Owner approval recorded 2026-11-14 in plan.md. Do not run go mod tidy (it would drop requirements not imported yet; tidy is in the final gate). Expect a trivial go.mod/go.sum merge conflict with 002's T001; resolve by taking the union.
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: plan: Owner approval of dependencies
-  - Files (2, ~30 lines): `apps/api/go.mod`, `apps/api/go.sum`
-  - Done command (green): `cd apps/api && go mod verify && go list -m github.com/go-jose/go-jose/v4 github.com/pquerna/otp golang.org/x/crypto golang.org/x/term golang.org/x/text github.com/google/uuid pgregory.net/rapid && go build ./...`
-
-## Phase 2 - Pure units with no 002 dependency (tests, then implementation)
-
-Everything here compiles against the standard library, the approved modules and packages that exist on this branch. Pairs in different packages are fully parallel. Pairs inside the flat package internal/auth are parallel only as pairs: a red test file there breaks compilation of the whole package test binary, so each pair is developed in its own worktree and merged test+implementation together; done commands use -run so a finished pair stays green regardless of other red pairs once merged in order.
-
-- [x] T002 [P] **test-engineer**: Tests for platform/crypto: Seal/Open round trip, envelope layout 0x01|key_id|nonce|ct, wrong AAD and tampered bytes rejected, unknown key id, rotation (old id still opens, KeyID reports it), key length errors; BlindIndexer purpose separation and determinism; NewToken prefix, 32 random bytes, Digest = SHA-256.
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: FR-091; plan P-05, P-07, go-capabilities 5
-  - Files (3, ~170 lines): `apps/api/internal/platform/crypto/aead_test.go`, `apps/api/internal/platform/crypto/blindindex_test.go`, `apps/api/internal/platform/crypto/token_test.go`
-  - Done command (red): `cd apps/api && go test -race ./internal/platform/crypto/...`
-- [ ] T003 **backend-dev**: Implement platform/crypto: Keyring (AES-256-GCM envelope), BlindIndexer (HMAC-SHA-256), NewToken, Digest.
-  - Depends on: T002
-  - Rules: none (mechanism) | Refs: go-capabilities 5; ADR 0007
-  - Files (3, ~140 lines): `apps/api/internal/platform/crypto/aead.go`, `apps/api/internal/platform/crypto/blindindex.go`, `apps/api/internal/platform/crypto/token.go`
-  - Done command (green): `cd apps/api && go test -race ./internal/platform/crypto/...`
-- [x] T004 [P] **test-engineer**: Tests for platform/authz with a fake Verifier on humatest: nil Security answers 500 platform.security_undeclared (documented and hidden ops), empty Security passes, unknown scheme panics in Install/Register, missing/malformed Authorization gives 401 auth.unauthenticated with WWW-Authenticate, role scopes give 403 auth.forbidden, principal reaches the handler, handler never runs on failure, Require/Public/ChallengeOnly/SelfAuthenticated shapes, AssertDeclared panics (nil Security, unknown scheme, SelfAuthenticated on a documented op), middleware runs before body validation. (AuditActor is covered later with 002's audit.Actor.)
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: FR-030, FR-031, FR-032, FR-034, FR-035; plan P-09, C-8
-  - Files (1, ~190 lines): `apps/api/internal/platform/authz/authz_test.go`
-  - Done command (red): `cd apps/api && go test -race ./internal/platform/authz/...`
-- [ ] T005 **backend-dev**: Implement platform/authz: Role, Principal, Verifier, Install (schemes bearer and mfaChallenge, fail-closed middleware), Require, Public, ChallengeOnly, SelfAuthenticated, PrincipalFrom, MustPrincipal, AssertDeclared. Principal.AuditActor is added in the audit task (needs 002's audit.Actor).
-  - Depends on: T004
-  - Rules: none (mechanism) | Refs: go-capabilities 1; plan P-09
-  - Files (1, ~180 lines): `apps/api/internal/platform/authz/authz.go`
-  - Done command (green): `cd apps/api && go test -race ./internal/platform/authz/...`
-- [x] T006 [P] **test-engineer**: Tests for httpx errors: every problem carries code and type urn:swastik:problem:<code>, default codes per status, ErrorDetail.Value always dropped (malformed JSON containing a password is not echoed; validation errors do not echo field values), httpx.Problem helper, InstallErrors idempotent, schema name stays ErrorModel.
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: FR-091, FR-093; plan P-10
-  - Files (1, ~130 lines): `apps/api/internal/platform/httpx/errors_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestErrors' ./internal/platform/httpx/...`
-- [ ] T007 **backend-dev**: Implement httpx/errors.go: ErrorModel with Code, InstallErrors overriding huma.NewError/NewErrorWithContext, Problem(status, code, detail).
-  - Depends on: T006
-  - Rules: none (mechanism) | Refs: plan P-10
-  - Files (1, ~110 lines): `apps/api/internal/platform/httpx/errors.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestErrors' ./internal/platform/httpx/...`
-- [x] T008 [P] **test-engineer**: Tests for httpx CORS and ClientIP: exact-origin allowlist (never *, never pattern), Allow-Credentials true, Vary: Origin, preflight allows X-Swastik-CSRF; ClientIP with hops=0 (RemoteAddr), hops=1,2 (X-Forwarded-For entry at len-hops), spoofed leading values ignored, malformed header.
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: plan P-04, P-17
-  - Files (2, ~150 lines): `apps/api/internal/platform/httpx/cors_test.go`, `apps/api/internal/platform/httpx/clientip_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestCORS|TestClientIP' ./internal/platform/httpx/...`
-- [ ] T009 **backend-dev**: Implement httpx/cors.go (exact-origin CORS middleware) and httpx/clientip.go (ClientIP).
-  - Depends on: T008
-  - Rules: none (mechanism) | Refs: plan P-04, P-17
-  - Files (2, ~110 lines): `apps/api/internal/platform/httpx/cors.go`, `apps/api/internal/platform/httpx/clientip.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestCORS|TestClientIP' ./internal/platform/httpx/...`
-- [x] T010 [P] **test-engineer**: Tests for platform/ratelimit: fixed window per key, 30 per minute then 429 signal, window rollover with an injected clock func, size-capped eviction, concurrent use under -race.
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: plan P-17
-  - Files (1, ~110 lines): `apps/api/internal/platform/ratelimit/ratelimit_test.go`
-  - Done command (red): `cd apps/api && go test -race ./internal/platform/ratelimit/...`
-- [ ] T011 **backend-dev**: Implement platform/ratelimit (in-memory per-instance fixed window, stdlib only).
-  - Depends on: T010
-  - Rules: none (mechanism) | Refs: plan P-17
-  - Files (1, ~90 lines): `apps/api/internal/platform/ratelimit/ratelimit.go`
-  - Done command (green): `cd apps/api && go test -race ./internal/platform/ratelimit/...`
-- [x] T012 [P] **test-engineer**: Tests for config auth settings and LoadDB: key-ring parsing (kid:base64 seed, id:base64 32 bytes), wrong lengths, duplicate ids, active id missing, BLIND_INDEX_KEY equal to a PII key, ephemeral keys in local/ci without values logged, staging/production fail closed when keys missing, Config LogValuer redacts every key field, WEB_ORIGINS, TRUSTED_PROXY_HOPS, ARGON2_MAX_CONCURRENCY defaults; LoadDB reads only DATABASE_URL and APP_ENV and needs no JWT or PII keys.
-  - Depends on: T003
-  - Rules: none (mechanism) | Refs: plan P-14, P-13; Deviation 2
-  - Files (2, ~190 lines): `apps/api/internal/platform/config/auth_test.go`, `apps/api/internal/platform/config/db_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestAuthConfig|TestLoadDB' ./internal/platform/config/...`
-- [ ] T013 **backend-dev**: Implement config/auth.go (AuthConfig with decoded JWT seeds, crypto.Keyring, crypto.BlindIndexer, origins, hops, concurrency; redacting LogValuer; ephemeral keys outside staging/production) and config/db.go (LoadDB). config must not import internal/auth.
-  - Depends on: T012
-  - Rules: none (mechanism) | Refs: plan P-14, C-11
-  - Files (2, ~190 lines): `apps/api/internal/platform/config/auth.go`, `apps/api/internal/platform/config/db.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestAuthConfig|TestLoadDB' ./internal/platform/config/...`
-- [x] T014 [P] **test-engineer**: Tests for identifier normalisation: all D-17 mobile forms (10 digits, 0/91/+91 prefixes, spaces and hyphens) to +91XXXXXXXXXX, rejections (starts 0-5, wrong length, letters), email trim/lowercase/net-mail parse/254 limit/display-name rejection, identifier kind by '@'; rapid properties: idempotent normalisation, mobile grammar accepted exactly.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-003, D-16, D-17, US-1 s1-2, s11
-  - Files (2, ~180 lines): `apps/api/internal/auth/normalize_test.go`, `apps/api/internal/auth/normalize_prop_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestNormalize' ./internal/auth/`
-- [ ] T015 **backend-dev**: Implement internal/auth/normalize.go (email, mobile, identifier kind).
-  - Depends on: T014
-  - Rules: none (mechanism) | Refs: D-16, D-17
-  - Files (1, ~100 lines): `apps/api/internal/auth/normalize.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestNormalize' ./internal/auth/`
-- [x] T016 [P] **test-engineer**: Test for the embedded common-password list: loads as a lowercase de-duplicated set, contains 1234567890, qwertyuiop, password; line count and SHA-256 equal the values recorded in SOURCE.md (changes must be deliberate).
-  - Depends on: none
-  - Rules: none (mechanism) | Refs: D-07; plan P-06
-  - Files (1, ~60 lines): `apps/api/internal/auth/commonpasswords/commonpasswords_test.go`
-  - Done command (red): `cd apps/api && go test -race ./internal/auth/commonpasswords/...`
-- [ ] T017 **backend-dev**: Add the list: fetch SecLists Passwords/Common-Credentials/10k-most-common.txt (MIT) through the agent proxy, lowercase and de-duplicate into 10k.txt, write SOURCE.md (URL, retrieval date, line count, SHA-256) and embed.go (go:embed, Set()). 10k.txt is data and is excluded from the line budget.
-  - Depends on: T016
-  - Rules: none (mechanism) | Refs: D-07; plan P-06
-  - Files (3, ~40 lines): `apps/api/internal/auth/commonpasswords/10k.txt`, `apps/api/internal/auth/commonpasswords/SOURCE.md`, `apps/api/internal/auth/commonpasswords/embed.go`
-  - Done command (green): `cd apps/api && go test -race ./internal/auth/commonpasswords/...`
-  - Note: 10k.txt (~10,000 data lines) is excluded from the size budget like generated code.
-- [x] T018 [P] **test-engineer**: Tests for the password policy: rule order and codes (too_short <10, too_long >256 code points, matches_identifier by email and normalised mobile, too_common case-insensitive, unchanged), NFC equivalence of composed/decomposed Gujarati and Hindi, 64-code-point passphrase accepted, 257 rejected, counting by code points not bytes, 1234567890 and QWERTYUIOP rejected, no composition rules.
-  - Depends on: T001, T015
-  - Rules: none (mechanism) | Refs: FR-011, D-07, US-7 s3-6
-  - Files (1, ~150 lines): `apps/api/internal/auth/password_policy_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestPolicy' ./internal/auth/`
-- [ ] T019 **backend-dev**: Implement internal/auth/password_policy.go: CheckPolicy(raw, identifiers) with NFC (x/text), code-point count, first-failing PolicyError code, common-list lookup.
-  - Depends on: T018, T017
-  - Rules: none (mechanism) | Refs: FR-011, D-07; plan P-06
-  - Files (1, ~110 lines): `apps/api/internal/auth/password_policy.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestPolicy' ./internal/auth/`
-- [x] T020 [P] **test-engineer**: Tests for the Argon2id hasher: PHC encode/decode round trip, decode rejects unknown version and parameters beyond bounds (m<=256 MiB, t<=10, p<=4), constant-time verify, NeedsRehash on parameter change, dummy hash computed once and a verify always costs exactly one Argon2 run (counting hook), semaphore saturation returns ErrBusy after the wait bound, context cancel while waiting; rapid PHC round trip with cheap parameters.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-010, FR-012, SC-003; plan P-06
-  - Files (2, ~190 lines): `apps/api/internal/auth/hasher_test.go`, `apps/api/internal/auth/hasher_prop_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestHasher' ./internal/auth/`
-- [ ] T021 **backend-dev**: Implement internal/auth/hasher.go: Argon2id (m=19456,t=2,p=1), PHC codec with bounds, Verify, NeedsRehash, semaphore (ARGON2_MAX_CONCURRENCY, 2 s bound, ErrBusy), dummy verify via sync.Once. Never called inside a transaction.
-  - Depends on: T020
-  - Rules: none (mechanism) | Refs: FR-010, FR-012; plan P-06
-  - Files (1, ~190 lines): `apps/api/internal/auth/hasher.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestHasher' ./internal/auth/`
-- [x] T022 [P] **test-engineer**: Tests for the pure throttle.Apply: TestLockout_LocksAt5thFailureUntilPlus15m (T..T+4m locks until T+19m), TestLockout_LockedAt18m59s_UnlockedAt19m, TestLockout_NoExtensionDuringLock, TestLockout_SlidingWindowNotLocked (US-4 s5, outcome only), end of lock clears the counter, at most 5 failures kept; rapid property comparing Apply with a reference model that keeps every failure.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: D-08, US-4 s1-5, SC-004; plan P-07
-  - Files (2, ~180 lines): `apps/api/internal/auth/throttle_apply_test.go`, `apps/api/internal/auth/throttle_apply_prop_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestLockout_|TestThrottleApply' ./internal/auth/`
-- [ ] T023 **backend-dev**: Implement internal/auth/throttle_apply.go: State, Policy, pure Apply(state, now, policy) (state, startedLock).
-  - Depends on: T022
-  - Rules: none (mechanism) | Refs: D-08; plan P-07
-  - Files (1, ~70 lines): `apps/api/internal/auth/throttle_apply.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestLockout_|TestThrottleApply' ./internal/auth/`
-- [x] T024 [P] **test-engineer**: Tests for access tokens (issue and claims): header alg EdDSA, typ at+jwt, kid; claims iss, aud, sub, sid, org, role, iat, exp, jti; exp = min(now+15m, absolute expiry) truncated to whole seconds; two keys in the ring verify, only the active one signs; rotation.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: D-05; plan P-02
-  - Files (1, ~130 lines): `apps/api/internal/auth/tokens_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestTokens_' ./internal/auth/`
-- [x] T025 [P] **test-engineer**: Tests for access-token rejection: alg none, HS256 and RS256 tokens, unknown kid, jku/jwk/x5u headers ignored, missing or wrong typ, missing exp, missing iat, wrong iss or aud, tampered payload, expired, rejected at exactly exp (go-jose accepts it), a zero Expected.Time cannot fall back to the wall clock (pins the time.Now trap), future iat beyond skew.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-030, FR-035, SC-001; plan P-02
-  - Files (1, ~150 lines): `apps/api/internal/auth/tokens_reject_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestTokensReject_' ./internal/auth/`
-- [ ] T026 **backend-dev**: Implement internal/auth/tokens.go with go-jose/v4: SigningKeys ring, Issue, Verify in the P-02 order (allowlist EdDSA, one signature, kid in ring, typ check, signature, ValidateWithLeeway with Expected.Time from the injected func, explicit exp/iat presence and now < exp). The clock is a plain func() time.Time (clock.Func is an alias), so there is no 002 dependency.
-  - Depends on: T024, T025
-  - Rules: none (mechanism) | Refs: plan P-02
-  - Files (1, ~190 lines): `apps/api/internal/auth/tokens.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestTokens' ./internal/auth/`
-- [x] T027 [P] **test-engineer**: Tests for TOTP: RFC 6238 Appendix B SHA-1 vectors at their times, candidate steps N-1/N/N+1 accepted and N+-2 rejected, step <= last_used_step rejected, matched step returned, all candidates evaluated, 6 digits/30 s/20-byte secret, otpauth URI shape (issuer Swastik, account email), secret returned base32 without padding.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-061, US-5 s4-5; plan P-05
-  - Files (1, ~150 lines): `apps/api/internal/auth/totp_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestTotp' ./internal/auth/`
-- [ ] T028 **backend-dev**: Implement internal/auth/totp.go: GenerateSecret via pquerna/otp, VerifyStep via hotp.ValidateCustom over {N-1,N,N+1} returning the matched step.
-  - Depends on: T027
-  - Rules: none (mechanism) | Refs: plan P-05
-  - Files (1, ~110 lines): `apps/api/internal/auth/totp.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestTotp' ./internal/auth/`
-- [x] T029 [P] **test-engineer**: Tests for recovery codes: 10 codes of 80 random bits in XXXX-XXXX-XXXX-XXXX Crockford base32, all distinct, input normalisation (case, hyphens, spaces, O->0, I/L->1), SHA-256 digest stable across spellings, a wrong code never matches.
-  - Depends on: T003
-  - Rules: none (mechanism) | Refs: FR-062, US-5 s6; plan P-05
-  - Files (1, ~100 lines): `apps/api/internal/auth/recovery_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestRecovery' ./internal/auth/`
-- [ ] T030 **backend-dev**: Implement internal/auth/recovery.go: GenerateRecoveryCodes, NormalizeRecoveryCode, digest via platform/crypto.
-  - Depends on: T029
-  - Rules: none (mechanism) | Refs: plan P-05
-  - Files (1, ~80 lines): `apps/api/internal/auth/recovery.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestRecovery' ./internal/auth/`
-
-## Phase 3 - Schema (migration needs no 002 code; sqlc generation does)
-
-Migration 00003 is authored against 001's orgs table and uuidv7(). Goose tolerates the gap until 002's 00002 merges. Auth schema: owner approval and security review on the PR (constitution workflow 5 and 7); this is a stop-and-ask item.
-
-- [ ] T031 [P] **test-engineer**: Schema tests (real PostgreSQL via dbtest) for users, device_sessions, refresh_tokens: unique email and mobile (case-insensitive email), status/role/client_type CHECKs, status_before_disabled rules, partial unique (user_id, device_id) WHERE ended_at IS NULL, one unused refresh token per family (partial unique), FK to orgs/users/sessions, end_reason CHECK, goose down removes the tables.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-004, D-02, D-11, D-18, D-19; data-model 1-3
-  - Files (1, ~190 lines): `apps/api/internal/auth/schema_users_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSchemaUsers' ./internal/auth/`
-- [ ] T032 [P] **test-engineer**: Schema tests for admin_mfa, mfa_recovery_codes, mfa_challenges, auth_throttles: one admin_mfa per user, UNIQUE(user_id, code_hash), UNIQUE(token_hash), purpose CHECK, scope CHECK list (signin), cardinality(failures) <= 5, PK (org_id, scope, subject), no FK from throttles to users, no plaintext secret columns (information_schema scan for *_hash and *_enc types bytea).
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-060, FR-062, D-08, D-14; data-model 4-7
-  - Files (1, ~150 lines): `apps/api/internal/auth/schema_mfa_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSchemaMfa' ./internal/auth/`
-- [ ] T033 **backend-dev**: Write migrations/00003_auth.sql part 1 (goose Up and Down): users, device_sessions, refresh_tokens with every constraint and index in data-model.md sections 1-3.
-  - Depends on: T031
-  - Rules: none (mechanism) | Refs: data-model 1-3
-  - Files (1, ~130 lines): `apps/api/migrations/00003_auth.sql`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSchemaUsers' ./internal/auth/`
-  - Note: Schema change to auth tables: owner approval and security-reviewer on the PR.
-- [ ] T034 **backend-dev**: Append to 00003_auth.sql: admin_mfa, mfa_recovery_codes, mfa_challenges, auth_throttles and the matching Down section.
-  - Depends on: T032, T033
-  - Rules: none (mechanism) | Refs: data-model 4-7
-  - Files (1, ~110 lines): `apps/api/migrations/00003_auth.sql`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/`
-  - Note: Same file as mig_1, so not parallel with it.
-
-## Phase 4 - Extensions of 002's platform packages (blocked until 002 merges)
-
-These tasks compile against 002's clock, db, audit, istdate and scheduler packages or edit files 002 owns. Status blocked.
-
-- [ ] T035 [P] **test-engineer**: Extend scripts/check-lint-boundaries.sh with 003 cases: platform importing internal/auth, go-jose outside internal/auth and platform/tickauth, pquerna/otp and x/crypto/argon2 outside internal/auth, pgx types in internal/auth outside store_pg.go. **[blocked: 002-merged]**
-  - Depends on: 002-merged
-  - Rules: none (mechanism) | Refs: constitution IV; plan P-19
-  - Files (1, ~50 lines): `scripts/check-lint-boundaries.sh`
-  - Done command (red): `bash scripts/check-lint-boundaries.sh`
-- [ ] T036 **backend-dev**: Extend apps/api/.golangci.yml with plan P-19 depguard rules (platform-is-a-leaf adds auth; jose, otp, argon2 confinement; pgx confinement in auth). **[blocked: 002-merged]**
-  - Depends on: T035
-  - Rules: none (mechanism) | Refs: plan P-19
-  - Files (1, ~40 lines): `apps/api/.golangci.yml`
-  - Done command (green): `bash scripts/check-lint-boundaries.sh`
-- [ ] T037 [P] **test-engineer**: Tests for the audit extension and Principal.AuditActor: Entry.At stored as created_at (zero keeps default), uuid.Nil entity id and actor id stored as NULL, Write without a transaction returns db.ErrNoTx, rollback leaves no row, UPDATE and DELETE refused, 002's existing calls unchanged; AuditActor returns {ID: UserID, Kind: role}. **[blocked: 002-merged]**
-  - Depends on: 002-merged
-  - Rules: none (mechanism) | Refs: FR-090, US-11 s3; plan C-4
-  - Files (2, ~110 lines): `apps/api/internal/platform/audit/audit_at_test.go`, `apps/api/internal/platform/authz/actor_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestAuditAt|TestAuditActor' ./internal/platform/audit/... ./internal/platform/authz/...`
-- [ ] T038 **backend-dev**: Implement the additive audit change (Entry.At, Nil to NULL), queries/platform.sql InsertAuditLog with created_at parameter, sqlc regenerate, and authz.Principal.AuditActor. **[blocked: 002-merged]**
-  - Depends on: T037, T005
-  - Rules: none (mechanism) | Refs: plan C-4; go-capabilities 6
-  - Files (3, ~90 lines): `apps/api/internal/platform/audit/audit.go`, `apps/api/queries/platform.sql`, `apps/api/internal/platform/authz/actor.go`
-  - Done command (green): `cd apps/api && sqlc generate && sqlc vet && go test -race ./internal/platform/audit/... ./internal/platform/authz/...`
-
-## Phase 5 - Queries, store and fixtures (blocked on 002 for the uuid override and TxRunner)
-
-- [ ] T039 **backend-dev**: Write queries/auth.sql part 1 (users, org, sessions, refresh tokens, GetSessionPrincipal join, lock-order SELECT ... FOR UPDATE) with @now parameters only; sqlc generate and sqlc vet. **[blocked: 002-merged]**
-  - Depends on: T034, 002-merged
-  - Rules: none (mechanism) | Refs: data-model sqlc; plan P-15
-  - Files (1, ~190 lines): `apps/api/queries/auth.sql`
-  - Done command (green): `cd apps/api && sqlc generate && sqlc vet && go build ./...`
-  - Note: Generated dbgen output is excluded from the size budget.
-- [ ] T040 **backend-dev**: Write queries/auth.sql part 2 (admin_mfa incl. FOR UPDATE and last_used_step, recovery codes, mfa_challenges, auth_throttles) ; sqlc generate and sqlc vet. **[blocked: 002-merged]**
-  - Depends on: T039
-  - Rules: none (mechanism) | Refs: data-model sqlc
-  - Files (1, ~170 lines): `apps/api/queries/auth.sql`
-  - Done command (green): `cd apps/api && sqlc generate && sqlc vet && go build ./...`
-- [ ] T041 **backend-dev**: Write queries/auth.sql part 3: housekeeping deletes (1000-row batches, throttles, challenges, refresh tokens of sessions ended or expired over 30 days ago), counts for the audit summary; sqlc generate and sqlc vet. **[blocked: 002-merged]**
-  - Depends on: T040
-  - Rules: none (mechanism) | Refs: plan P-20
-  - Files (1, ~70 lines): `apps/api/queries/auth.sql`
-  - Done command (green): `cd apps/api && sqlc generate && sqlc vet && go build ./...`
-- [ ] T042 **test-engineer**: Test support package authtest: fixtures (org, users per status and role, device sessions, key rings, Service factory with clock.Fake and the real Store on dbtest), plus a self-test proving the fixtures build. **[blocked: 002-merged]**
-  - Depends on: T041, T015, T021, T026, T003
-  - Rules: none (mechanism) | Refs: plan Test strategy
-  - Files (2, ~180 lines): `apps/api/internal/auth/authtest/fixtures.go`, `apps/api/internal/auth/authtest/fixtures_test.go`
-  - Done command (red): `cd apps/api && go test -race ./internal/auth/authtest/...`
-- [ ] T043 [P] **test-engineer**: Store integration tests, users and org: concurrent CreateUser with the same email or mobile gives exactly one winner, DefaultOrg (none, one, many), status transitions persisted, lock-order helpers. **[blocked: 002-merged]**
-  - Depends on: T041, T042
-  - Rules: none (mechanism) | Refs: FR-004, D-18; plan P-12
-  - Files (1, ~150 lines): `apps/api/internal/auth/store_users_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestStoreUsers' ./internal/auth/`
-- [ ] T044 [P] **test-engineer**: Store integration tests, sessions and refresh: GetSessionPrincipal join semantics (ended, idle/absolute expiry by @now, status, role, sub mismatch), insert/rotate token rows, partial unique indexes surface as domain errors. **[blocked: 002-merged]**
-  - Depends on: T041, T042
-  - Rules: none (mechanism) | Refs: FR-040, D-11; plan P-02, P-03
-  - Files (1, ~170 lines): `apps/api/internal/auth/store_sessions_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestStoreSessions' ./internal/auth/`
-- [ ] T045 [P] **test-engineer**: Store integration tests, mfa and throttles: pending/confirmed secret handling, last_used_step under FOR UPDATE, recovery batch revoke, challenge consume once, throttle upsert and delete, no key stored as given. **[blocked: 002-merged]**
-  - Depends on: T041, T042
-  - Rules: none (mechanism) | Refs: FR-061, D-08, D-14
-  - Files (1, ~170 lines): `apps/api/internal/auth/store_mfa_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestStoreMfa' ./internal/auth/`
-- [ ] T046 **backend-dev**: Implement store.go (small Store interface, domain row types, sentinel errors) and store_pg.go part 1: users and org (only file with pgx types). **[blocked: 002-merged]**
-  - Depends on: T043
-  - Rules: none (mechanism) | Refs: plan P-01
-  - Files (2, ~190 lines): `apps/api/internal/auth/store.go`, `apps/api/internal/auth/store_pg.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestStoreUsers' ./internal/auth/`
-- [ ] T047 **backend-dev**: Extend store_pg.go: sessions and refresh tokens (lock order users, device_sessions, refresh_tokens). **[blocked: 002-merged]**
-  - Depends on: T044, T046
-  - Rules: none (mechanism) | Refs: plan P-03
-  - Files (2, ~190 lines): `apps/api/internal/auth/store_pg.go`, `apps/api/internal/auth/store_pg_sessions.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestStoreSessions' ./internal/auth/`
-- [ ] T048 **backend-dev**: Extend store_pg.go: admin_mfa, recovery codes, challenges, throttles. **[blocked: 002-merged]**
-  - Depends on: T045, T046
-  - Rules: none (mechanism) | Refs: plan P-05, P-07
-  - Files (1, ~190 lines): `apps/api/internal/auth/store_pg_mfa.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestStoreMfa' ./internal/auth/`
-- [ ] T049 **backend-dev**: Implement the Service skeleton: service.go (Deps{Store, Now clock.Func, Tx db.TxRunner, Keys, Hasher, BlindIndexer, Keyring}), errors.go (domain errors, PolicyError, problem mapping table), audit.go (action catalogue and typed Before/After payloads). Covered by the tests of the tasks that use it; done when it builds and vets. **[blocked: 002-merged]**
-  - Depends on: T046, 002-merged, T038, T013
-  - Rules: none (mechanism) | Refs: plan P-01, P-11, P-15
-  - Files (3, ~190 lines): `apps/api/internal/auth/service.go`, `apps/api/internal/auth/errors.go`, `apps/api/internal/auth/audit.go`
-  - Done command (green): `cd apps/api && go build ./... && go vet ./internal/auth/`
-
-## Phase 6 - Accounts capability (BR-CLI-04, FR-050 to FR-055)
-
-- [ ] T050 [P] **test-engineer**: Accounts status-machine tests: TestAccounts_BR_CLI_04_ActiveOnlyAfterBothVerifiedAndApproved, _VerificationOrderIndependent, _ApproveRefusedFromPendingVerification, _EnableRestoresPendingApproval; idempotent marks; disable ends sessions; last admin cannot be disabled; ErrInvalidTransition. **[blocked: 002-merged]**
-  - Depends on: T042, T049
-  - Rules: BR-CLI-04 | Refs: FR-050 to FR-052, US-8 s5-6, US-10 s3-5
-  - Files (1, ~190 lines): `apps/api/internal/auth/accounts_status_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestAccounts_BR_CLI_04|TestAccountsStatus' ./internal/auth/`
-- [ ] T051 [P] **test-engineer**: Accounts tests, remaining capabilities: CreateClient (email/mobile taken, invalid identifier, PolicyError, joins caller transaction, hashes before the transaction), ResetPassword (all sessions end, lock cleared, policy), EndAllSessions with feature name in audit, ReplaceEmail/ReplaceMobile (status unchanged, uniqueness, BR-CLI-05 boundary: capability only, no HTTP operation), GetUser never returns secrets. **[blocked: 002-merged]**
-  - Depends on: T042, T049
-  - Rules: BR-CLI-04, BR-CLI-05 | Refs: FR-050, FR-053 to FR-055, US-10
-  - Files (1, ~190 lines): `apps/api/internal/auth/accounts_contact_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestAccountsContact' ./internal/auth/`
-- [ ] T052 **backend-dev**: Implement accounts.go: CreateClient, MarkEmailVerified, MarkMobileVerified, Approve, Disable, Enable, status machine with audit in the same transaction. **[blocked: 002-merged]**
-  - Depends on: T050
-  - Rules: BR-CLI-04 | Refs: FR-050 to FR-052
-  - Files (1, ~190 lines): `apps/api/internal/auth/accounts.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestAccounts_BR_CLI_04|TestAccountsStatus' ./internal/auth/`
-- [ ] T053 **backend-dev**: Implement accounts_more.go: ResetPassword, EndAllSessions, ReplaceEmail, ReplaceMobile, GetUser. **[blocked: 002-merged]**
-  - Depends on: T051, T052, T019
-  - Rules: BR-CLI-04, BR-CLI-05 | Refs: FR-053 to FR-055
-  - Files (1, ~160 lines): `apps/api/internal/auth/accounts_more.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestAccountsContact' ./internal/auth/`
-- [ ] T054 [P] **test-engineer**: Throttle service tests: Check/Fail/Clear, Fail and Clear require a transaction (db.ErrNoTx), key passed through the blind index and never stored as given, scope outside the CHECK list rejected, concurrent Fail serialised (SELECT FOR UPDATE), startedLock reported once. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T023, T048
-  - Rules: none (mechanism) | Refs: D-08, P-07; go-capabilities 3
-  - Files (1, ~150 lines): `apps/api/internal/auth/throttle_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestThrottleSvc' ./internal/auth/`
-- [ ] T055 **backend-dev**: Implement throttle.go: the exported Throttle interface and its implementation over Store and throttle_apply.go. **[blocked: 002-merged]**
-  - Depends on: T054
-  - Rules: none (mechanism) | Refs: plan P-07
-  - Files (1, ~130 lines): `apps/api/internal/auth/throttle.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestThrottleSvc' ./internal/auth/`
-
-## Phase 7 - Sign-in, refresh, sessions, lockout (client path)
-
-- [ ] T056 [P] **test-engineer**: Sign-in tests, client: correct password creates a session and refresh token, tokens in body for mobile, same-device sign-in ends the old session (D-11), last_sign_in_at set, rehash applied when PHC params differ, exactly one Argon2 verify per attempt (unknown, wrong, locked, inactive), identifier_invalid is 422. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T021, T015, T026
-  - Rules: none (mechanism) | Refs: FR-001 to FR-003, FR-020 to FR-023, D-09, D-11, US-1
-  - Files (1, ~190 lines): `apps/api/internal/auth/signin_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSignIn_' ./internal/auth/`
-- [ ] T057 [P] **test-engineer**: Sign-in gate tests: TestSignIn_BR_CLI_04_PendingVerificationGenericFailure, _PendingApprovalGenericFailure, _DisabledGenericFailure (correct password, no session, failure not counted); generic failure bytes identical for unknown identifier, wrong password and inactive account. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T021, T015, T026
-  - Rules: BR-CLI-04 | Refs: US-1 s5-7, FR-020
-  - Files (1, ~150 lines): `apps/api/internal/auth/signin_gate_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSignIn_BR_CLI_04|TestSignInGeneric' ./internal/auth/`
-- [ ] T058 **backend-dev**: Implement signin.go: shape validation, lock-free reads, one Argon2 verify (real or dummy), decide, one short transaction for success or failure audit; client success path; admin returns a challenge hook (completed in the MFA tasks). Lockout counting is added by lock_i. **[blocked: 002-merged]**
-  - Depends on: T056, T057, T052
-  - Rules: BR-CLI-04 | Refs: plan P-08
-  - Files (1, ~190 lines): `apps/api/internal/auth/signin.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSignIn_|TestSignInGeneric' ./internal/auth/`
-- [ ] T059 [P] **test-engineer**: Refresh tests (fake clock): R1 to R2 rotation, reuse ends the family and audits once, device mismatch ends session, transport mismatch rejected without change, TestRefresh_ClientIdle30d_Boundary, TestRefresh_ClientAbsolute90d_Boundary, TestRefresh_AdminIdle12h_Boundary, TestRefresh_AdminAbsolute7d_Boundary (each +-1 minute), TestRefresh_BR_CLI_04_DisabledUserRejected, a locked account can still refresh. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058
-  - Rules: BR-CLI-04 | Refs: FR-040 to FR-043, US-3, SC-004
-  - Files (1, ~200 lines): `apps/api/internal/auth/refresh_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestRefresh' ./internal/auth/`
-- [ ] T060 [P] **test-engineer**: Concurrency tests: start barrier with N=2..8 goroutines presenting the same R1 gives exactly one success, family ended, one reuse audit; parallel sign-in from one device leaves one live session. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058
-  - Rules: none (mechanism) | Refs: D-10, D-11, US-3 s3
-  - Files (1, ~120 lines): `apps/api/internal/auth/concurrency_refresh_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestConcurrencyRefresh' ./internal/auth/`
-- [ ] T061 **backend-dev**: Implement refresh.go: the P-03 rotation algorithm (lock order, reuse, device mismatch, transport, expiry, status) and access-token issue after commit. **[blocked: 002-merged]**
-  - Depends on: T059, T060
-  - Rules: BR-CLI-04 | Refs: plan P-03
-  - Files (1, ~190 lines): `apps/api/internal/auth/refresh.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestRefresh|TestConcurrencyRefresh' ./internal/auth/`
-- [ ] T062 [P] **test-engineer**: Sessions tests: sign-out, sign-out-everywhere, list (current flag, ended and expired excluded), revoke own and other users' (404 device_not_found), admin list/revoke/end-all, TestAuthz_BR_CLI_04_DisabledUserNextRequestRejected (next request rejected at T+1s), session ends by role-specific limits. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058
-  - Rules: BR-CLI-04 | Refs: FR-047 to FR-049, US-2 s7-8, US-6, US-8, D-12, SC-002
-  - Files (1, ~200 lines): `apps/api/internal/auth/sessions_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSessions|TestAuthz_BR_CLI_04' ./internal/auth/`
-- [ ] T063 **backend-dev**: Implement sessions.go: SignOut, SignOutEverywhere, ListDevices, RevokeDevice, admin list/revoke/end-all, EndAll helper used by Disable and password change. **[blocked: 002-merged]**
-  - Depends on: T062, T061
-  - Rules: BR-CLI-04 | Refs: plan P-03, FR-047 to FR-049
-  - Files (1, ~170 lines): `apps/api/internal/auth/sessions.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSessions|TestAuthz_BR_CLI_04' ./internal/auth/`
-- [ ] T064 [P] **test-engineer**: Verifier tests: bearer verifier does JWT check then per-request session lookup (ended, idle, absolute, user not active, role or sub mismatch each give unauthenticated); refresh tokens and challenge tokens are not accepted as access tokens and vice versa (FR-035); challenge verifier checks purpose, expiry and single use. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T026, T058
-  - Rules: BR-CLI-04 | Refs: FR-030, FR-035, US-2 s9-10; plan P-02
-  - Files (1, ~160 lines): `apps/api/internal/auth/verifiers_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestVerifier' ./internal/auth/`
-- [ ] T065 **backend-dev**: Implement verifiers.go: authz.Verifier for bearer and mfaChallenge. **[blocked: 002-merged]**
-  - Depends on: T064, T005, T063
-  - Rules: BR-CLI-04 | Refs: plan P-02, P-05
-  - Files (1, ~130 lines): `apps/api/internal/auth/verifiers.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestVerifier' ./internal/auth/`
-- [ ] T066 [P] **test-engineer**: Lockout tests through the service (fake clock): 5th failure locks for 15 minutes, locked correct password still generic failure and not counted, unknown identifier x6 identical to a locked account, locked account's other session keeps working, reset password clears, admin wrong codes count on the same subject, subject is the blind-indexed user id (email and mobile share a counter). **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058, T055
-  - Rules: none (mechanism) | Refs: D-08, US-4 s6-9, US-3 s10, FR-045, FR-046
-  - Files (1, ~190 lines): `apps/api/internal/auth/lockout_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestSignInLockout' ./internal/auth/`
-- [ ] T067 **backend-dev**: Apply lockout in sign-in: failure subject selection, throttle apply and lockout audit in the failure transaction, delete the throttle row on success, no counting for non-active accounts. **[blocked: 002-merged]**
-  - Depends on: T066, T055
-  - Rules: none (mechanism) | Refs: plan P-07, P-08
-  - Files (2, ~140 lines): `apps/api/internal/auth/signin.go`, `apps/api/internal/auth/signin_lockout.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSignIn|TestSignInLockout' ./internal/auth/`
-- [ ] T068 [P] **test-engineer**: Password-change tests: other sessions end and the current one stays, wrong current gives reauth_failed and is counted, locked gives reauth_failed without verifying, safe retry (new password already stored returns success without counting), policy codes, password_unchanged, concurrent change retried once. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058, T019, T055
-  - Rules: none (mechanism) | Refs: FR-013, US-7, D-13; plan P-06
-  - Files (1, ~180 lines): `apps/api/internal/auth/password_flow_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestPasswordFlow' ./internal/auth/`
-- [ ] T069 **backend-dev**: Implement password_change.go (ChangePassword with hashing outside the transaction, row lock, others ended, audit). **[blocked: 002-merged]**
-  - Depends on: T068, T063, T067
-  - Rules: none (mechanism) | Refs: plan P-06
-  - Files (1, ~150 lines): `apps/api/internal/auth/password_change.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestPasswordFlow' ./internal/auth/`
-
-## Phase 8 - Admin second factor and bootstrap
-
-- [ ] T070 [P] **test-engineer**: MFA flow tests: admin sign-in returns mfa_required or mfa_enrolment_required and creates no session; enrolment start returns secret once, confirm with a code returns session and 10 recovery codes; verify with TOTP and with a recovery code (single use); TestMfaChallenge_ExpiredAt5m, single use, wrong purpose; enrolment cannot be skipped; TOTP required again after sign-out; clients are never asked for TOTP (FR-065). **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058, T028, T030, T055
-  - Rules: none (mechanism) | Refs: FR-060 to FR-065, US-5 s1-13, US-2 s9
-  - Files (1, ~200 lines): `apps/api/internal/auth/mfa_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestMfa_|TestMfaChallenge_' ./internal/auth/`
-- [ ] T071 [P] **test-engineer**: MFA management tests: regenerate recovery codes (password plus code, previous batch revoked), replace authenticator start and confirm (other admin sessions end, last_used_step from the new secret, recovery codes kept), lockout across factors (counter cleared only after the second factor; locked verify answers invalid_credentials even for a correct code). **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058, T028, T030, T055
-  - Rules: none (mechanism) | Refs: FR-062, FR-063, US-5 s6-13; plan P-05
-  - Files (1, ~180 lines): `apps/api/internal/auth/mfa_manage_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestMfaManage' ./internal/auth/`
-- [ ] T072 [P] **test-engineer**: Concurrency tests: two parallel submissions of one TOTP code give exactly one success; parallel disable of the last two admins leaves one active (ErrLastAdmin for the other). **[blocked: 002-merged]**
-  - Depends on: T042, T049, T058, T028, T052
-  - Rules: none (mechanism) | Refs: FR-061, D-19
-  - Files (1, ~110 lines): `apps/api/internal/auth/concurrency_mfa_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestConcurrencyMfa' ./internal/auth/`
-- [ ] T073 **backend-dev**: Implement mfa.go: admin sign-in challenge issue and consume, verify (TOTP step under FOR UPDATE, recovery code), enrolment start and confirm, session creation after the second factor, lockout integration. **[blocked: 002-merged]**
-  - Depends on: T070, T072, T067
-  - Rules: none (mechanism) | Refs: plan P-05
-  - Files (1, ~200 lines): `apps/api/internal/auth/mfa.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestMfa_|TestMfaChallenge_|TestConcurrencyMfa' ./internal/auth/`
-- [ ] T074 **backend-dev**: Implement mfa_manage.go: recovery-code regeneration, authenticator replace start and confirm (ends other admin sessions, audits). **[blocked: 002-merged]**
-  - Depends on: T071, T073, T063
-  - Rules: none (mechanism) | Refs: plan P-05
-  - Files (1, ~180 lines): `apps/api/internal/auth/mfa_manage.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestMfaManage' ./internal/auth/`
-- [ ] T075 [P] **test-engineer**: Bootstrap service tests: first admin created active with email verified and no admin_mfa row, audit auth.admin.bootstrapped with system actor in the same transaction, refusal when an admin exists (bootstrap.admin_exists), org resolution (none creates, one reuses, many needs org id: bootstrap.org_ambiguous), email/mobile taken, policy failure names the rule, two concurrent runs give exactly one success. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T019
-  - Rules: none (mechanism) | Refs: FR-080, US-9, D-15, D-19; plan P-13
-  - Files (1, ~170 lines): `apps/api/internal/auth/bootstrap_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestBootstrap' ./internal/auth/`
-- [ ] T076 **backend-dev**: Implement bootstrap.go: policy check and hash first, then one transaction with pg_advisory_xact_lock, org resolve or create, admin insert, audit. **[blocked: 002-merged]**
-  - Depends on: T075, T052
-  - Rules: none (mechanism) | Refs: plan P-13
-  - Files (1, ~150 lines): `apps/api/internal/auth/bootstrap.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestBootstrap' ./internal/auth/`
-- [ ] T077 **test-engineer**: CLI tests for `swastik admin create`: stdin pipe mode reads one line, success prints `admin created: id=<uuid> email=<email>`, refusals print `error: <code>: <message>` to stderr with exit 1, usage errors exit 2, password absent from stdout, stderr, slog output, audit and process args, no flag or env password, needs only DATABASE_URL, injected clock.Fake sets timestamps. **[blocked: 002-merged]**
-  - Depends on: T076, T013
-  - Rules: none (mechanism) | Refs: FR-080, US-9; contracts/cli.md
-  - Files (1, ~190 lines): `apps/api/cmd/swastik/admin_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestAdminCreate' ./cmd/swastik/`
-- [ ] T078 **backend-dev**: Implement cmd/swastik/admin.go (flags, TTY prompt twice with x/term, stdin one-line mode, exit codes) and dispatch the admin subcommand from main.go. **[blocked: 002-merged]**
-  - Depends on: T077
-  - Rules: none (mechanism) | Refs: plan P-13
-  - Files (2, ~150 lines): `apps/api/cmd/swastik/admin.go`, `apps/api/cmd/swastik/main.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestAdminCreate' ./cmd/swastik/`
-- [ ] T079 [P] **test-engineer**: Housekeeping tests (002's fake-clock harness): Housekeep purges stale throttles, expired challenges and refresh tokens of sessions over 30 days ended; leaves live data; one audit auth.housekeeping.purged with counts only when any count > 0; rerun purges nothing; at most 1000 rows per table per run; requires the job transaction (db.MustTx); lockout and refresh outcomes identical with and without the job; HousekeepingNext = 03:30 IST. **[blocked: 002-merged]**
-  - Depends on: T042, T049, T055, T061
-  - Rules: none (mechanism) | Refs: P-20, FR-045, C-7
-  - Files (1, ~180 lines): `apps/api/internal/auth/housekeeping_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestHousekeeping' ./internal/auth/`
-- [ ] T080 **backend-dev**: Implement housekeeping.go: HousekeepingKind, HousekeepingNext (istdate.NextDailyAt), Service.Housekeep, PurgeCounts. **[blocked: 002-merged]**
-  - Depends on: T079
-  - Rules: none (mechanism) | Refs: plan P-20
-  - Files (1, ~120 lines): `apps/api/internal/auth/housekeeping.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestHousekeeping' ./internal/auth/`
-
-## Phase 9 - HTTP handlers
-
-- [ ] T081 [P] **test-engineer**: CSRF tests (humatest): cookie refresh and web sign-in/mfa-verify/enrolment-confirm without Origin, with null, foreign or sibling origin, without X-Swastik-CSRF, or with a form content type give 403 auth.csrf_rejected; cookie attributes exact (__Secure-swastik_rt, Path=/v1/auth/refresh, HttpOnly, Secure, SameSite=Strict, no Domain); body never carries refresh_token for web; clearing cookie on sign-out. **[blocked: 002-merged]**
-  - Depends on: T042, T058, T061, T009, T007, T005
-  - Rules: none (mechanism) | Refs: plan P-04
-  - Files (1, ~170 lines): `apps/api/internal/auth/csrf_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestCSRF' ./internal/auth/`
-- [ ] T082 [P] **test-engineer**: Handler tests, sessions: sign-in (200 shapes for mobile and web, 401 byte-identical invalid_credentials body with no Retry-After, 422, 429 per-IP limit, 503 busy), refresh, sign-out, sign-out-everywhere, devices list and revoke; errors carry code and never echo secrets. **[blocked: 002-merged]**
-  - Depends on: T042, T058, T061, T063, T065, T011, T007
-  - Rules: BR-CLI-04 | Refs: US-1, US-3, US-6; openapi-auth.yaml
-  - Files (1, ~200 lines): `apps/api/internal/auth/handler_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestHandler_' ./internal/auth/`
-- [ ] T083 [P] **test-engineer**: Handler tests, MFA and password: mfa verify, enrolment start/confirm with ChallengeOnly security, password change (204, 403 reauth_failed, 422 password_* codes), recovery-code regenerate and authenticator replace (admin only, 403 forbidden for clients), 409 mfa_no_pending_secret. **[blocked: 002-merged]**
-  - Depends on: T042, T074, T069, T065, T007
-  - Rules: none (mechanism) | Refs: US-5, US-7; openapi-auth.yaml
-  - Files (1, ~190 lines): `apps/api/internal/auth/handler_mfa_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestHandlerMfa' ./internal/auth/`
-- [ ] T084 [P] **test-engineer**: Handler tests, admin: GET/DELETE /v1/admin/users/{userId}/devices and POST end-all (admin only, client token 403, unknown user 404 user_not_found, unknown session 404 device_not_found), no HTTP operation exposes FR-050 to FR-055 capabilities. **[blocked: 002-merged]**
-  - Depends on: T042, T063, T065, T007
-  - Rules: none (mechanism) | Refs: US-8, US-10 s7
-  - Files (1, ~120 lines): `apps/api/internal/auth/handler_admin_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestHandlerAdmin' ./internal/auth/`
-- [ ] T085 **backend-dev**: Implement cookies.go: cookie issue and clear, Origin and X-Swastik-CSRF checks, content-type re-check, client IP extraction for audit. **[blocked: 002-merged]**
-  - Depends on: T081, T082
-  - Rules: none (mechanism) | Refs: plan P-04
-  - Files (1, ~120 lines): `apps/api/internal/auth/cookies.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestCSRF' ./internal/auth/`
-- [ ] T086 **backend-dev**: Implement handler.go: request/response types, Register for auth-sign-in, auth-refresh, auth-sign-out, auth-sign-out-everywhere, auth-devices-list, auth-device-revoke with Security declared, Metadata idempotency=exempt, rate limit, error mapping. **[blocked: 002-merged]**
-  - Depends on: T082, T085, T067
-  - Rules: none (mechanism) | Refs: FR-030 to FR-035, FR-093
-  - Files (1, ~200 lines): `apps/api/internal/auth/handler.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestHandler_|TestCSRF' ./internal/auth/`
-- [ ] T087 **backend-dev**: Implement handler_mfa.go: auth-mfa-verify, auth-mfa-enrolment-start and -confirm, auth-password-change, auth-recovery-codes-regenerate, auth-authenticator-replace-start and -confirm. **[blocked: 002-merged]**
-  - Depends on: T083, T086, T074, T069
-  - Rules: none (mechanism) | Refs: plan API operations
-  - Files (1, ~200 lines): `apps/api/internal/auth/handler_mfa.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestHandlerMfa' ./internal/auth/`
-- [ ] T088 **backend-dev**: Implement handler_admin.go: auth-admin-user-devices-list, -device-revoke, -sessions-end-all. **[blocked: 002-merged]**
-  - Depends on: T084, T086
-  - Rules: none (mechanism) | Refs: US-8
-  - Files (1, ~110 lines): `apps/api/internal/auth/handler_admin.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestHandlerAdmin' ./internal/auth/`
-
-## Phase 10 - Wiring, contract walk, scheduler registration (blocked on 002)
-
-- [ ] T089 [P] **test-engineer**: Static contract-walk test (cmd/swastik/contract_test.go part 1) and testdata/admin-operations.txt: every operation declares Security; empty-Security operations are exactly {health-live, health-ready, auth-sign-in, auth-refresh}; mfaChallenge operations exactly the three MFA ones; admin-scoped operations equal the list file; no operation id names an FR-050 to FR-055 capability; no operation changes email or mobile (BR-CLI-05 boundary). **[blocked: 002-merged]**
-  - Depends on: T088, T087, 002-merged
-  - Rules: BR-CLI-05 | Refs: FR-034, SC-001, US-2 s2, US-10 s7
-  - Files (2, ~150 lines): `apps/api/cmd/swastik/contract_static_test.go`, `apps/api/cmd/swastik/testdata/admin-operations.txt`
-  - Done command (red): `cd apps/api && go test -race -run 'TestContractStatic' ./cmd/swastik/`
-- [ ] T090 [P] **test-engineer**: Runtime contract-walk test: for every non-public operation send no credential, a tampered JWT, an expired JWT, a JWT of a revoked session, a refresh token, a challenge token and (admin operations) a valid client JWT; assert 401/403 with the right code and, through a recording fake store, that nothing was written; random UUID path parameters, {} bodies. **[blocked: 002-merged]**
-  - Depends on: T088, T087, 002-merged
-  - Rules: BR-CLI-04 | Refs: FR-030 to FR-035, SC-001, US-2
-  - Files (1, ~190 lines): `apps/api/cmd/swastik/contract_runtime_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestContractRuntime' ./cmd/swastik/`
-- [ ] T091 [P] **test-engineer**: openapi and wiring tests: `swastik openapi` builds with no database, keys or config; /internal/tick absent from the document and still 401 without credentials; auth.housekeeping registered as a recurring kind; health operations declare Public. **[blocked: 002-merged]**
-  - Depends on: T088, T080, 002-merged
-  - Rules: none (mechanism) | Refs: C-7, C-8, R-2
-  - Files (2, ~150 lines): `apps/api/cmd/swastik/openapi_test.go`, `apps/api/cmd/swastik/wiring_test.go`
-  - Done command (red): `cd apps/api && go test -race -run 'TestOpenAPI|TestWiring' ./cmd/swastik/`
-- [ ] T092 **backend-dev**: Wire buildAPI: nil-safe deps, httpx.InstallErrors, authz.Install before any Register, auth.Register, AssertDeclared at the end; health operations Security: authz.Public(); 002's tick operation Security: authz.SelfAuthenticated() (one line). **[blocked: 002-merged]**
-  - Depends on: T089, T091, T078
-  - Rules: none (mechanism) | Refs: plan P-09, C-8
-  - Files (3, ~110 lines): `apps/api/cmd/swastik/main.go`, `apps/api/internal/health/handler.go`, `apps/api/internal/scheduler/handler.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestContractStatic|TestOpenAPI' ./cmd/swastik/`
-- [ ] T093 **backend-dev**: Wire serve: build auth.Service from config (keys, TxRunner, clock.Real), register auth.housekeeping with the scheduler adapter, CORS and rate limit middleware, TRUSTED_PROXY_HOPS. **[blocked: 002-merged]**
-  - Depends on: T092, T090
-  - Rules: none (mechanism) | Refs: plan P-20, P-17
-  - Files (2, ~110 lines): `apps/api/cmd/swastik/main.go`, `apps/api/cmd/swastik/serve_auth.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestWiring|TestContractRuntime' ./cmd/swastik/`
-
-## Phase 11 - Verification tests, generated artefacts, docs, gate
-
-Verification tests are expected green when written; failures found go through the bug flow to backend-dev (test-engineer does not patch implementation).
-
-- [ ] T094 **test-engineer**: No-secrets scan: authtest.Secrets registry plus secretscan_test.go: after the acceptance suite scan every audit_log row as text, captured slog JSON output and every response body except one-time displays for any recorded password, TOTP code or secret (base32, hex), recovery code, token or unmatched identifier. **[blocked: 002-merged]**
-  - Depends on: T093, T087
-  - Rules: none (mechanism) | Refs: FR-091, SC-006, US-11 s2
-  - Files (2, ~180 lines): `apps/api/internal/auth/authtest/secrets.go`, `apps/api/internal/auth/secretscan_test.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestSecretScan' ./internal/auth/`
-- [ ] T095 [P] **test-engineer**: Audit events test: exactly one entry per US-11 event with actor kind, actor id, user, session, action and clock time, including unknown-identifier failures with only identifier_kind and subject_ref. **[blocked: 002-merged]**
-  - Depends on: T093, T087
-  - Rules: none (mechanism) | Refs: FR-090, US-11 s1, s3
-  - Files (1, ~190 lines): `apps/api/internal/auth/audit_events_test.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestAuditEvents' ./internal/auth/`
-- [ ] T096 [P] **test-engineer**: Timing and benchmark: SC-003 test (50 attempts x 6 failure cases, medians within 10 percent, identical status and body bytes) under -run Timing for nightly, and Argon2id benchmark warning above 150 ms. **[blocked: 002-merged]**
-  - Depends on: T093
-  - Rules: none (mechanism) | Refs: SC-003, SC-007, R-6
-  - Files (2, ~150 lines): `apps/api/internal/auth/timing_test.go`, `apps/api/internal/auth/password_bench_test.go`
-  - Done command (green): `cd apps/api && go test -race -run 'TestTiming' ./internal/auth/`
-- [ ] T097 **backend-dev**: Regenerate the OpenAPI document and TS client (`pnpm --filter @swastik/api-client generate` runs `swastik openapi` itself); additive diff only. **[blocked: 002-merged]**
-  - Depends on: T093
-  - Rules: none (mechanism) | Refs: plan API operations
-  - Files (2, ~60 lines): `packages/api-client/openapi.yaml`, `packages/api-client/src/schema.ts`
-  - Done command (green): `pnpm --filter @swastik/api-client generate && pnpm --filter @swastik/api-client typecheck`
-- [ ] T098 [P] **test-engineer**: Test that packages/domain auth-error-codes lists every code in contracts/error-codes.md (parse the markdown) and exports a lookup.
-  - Depends on: T001
-  - Rules: none (mechanism) | Refs: FR-093
-  - Files (1, ~70 lines): `packages/domain/src/auth-error-codes.test.ts`
-  - Done command (red): `pnpm --filter @swastik/domain test`
-- [ ] T099 **backend-dev**: Add packages/domain/src/auth-error-codes.ts (English wording per code) and export it from the index.
-  - Depends on: T098
-  - Rules: none (mechanism) | Refs: FR-093
-  - Files (2, ~90 lines): `packages/domain/src/auth-error-codes.ts`, `packages/domain/src/index.ts`
-  - Done command (green): `pnpm --filter @swastik/domain test`
-- [ ] T100 [P] **backend-dev**: Add the auth secrets and variables to .github/workflows/deploy.yml (--set-secrets JWT_SIGNING_KEYS, PII_ENCRYPTION_KEYS, BLIND_INDEX_KEY; JWT_ACTIVE_KID, PII_ACTIVE_KEY_ID, WEB_ORIGINS variables). No secret values; owner creates them before merge.
-  - Depends on: T013
-  - Rules: none (mechanism) | Refs: plan P-14
-  - Files (1, ~25 lines): `.github/workflows/deploy.yml`
-  - Done command (green): `python3 -c "import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))" && grep -c 'jwt-signing-keys' .github/workflows/deploy.yml`
-  - Note: Security-sensitive: owner approval on the PR; agents never deploy.
-- [ ] T101 **backend-dev**: Update docs/product/modules.md: 003 status to the stage reached (review when the PR opens). **[blocked: 002-merged]**
-  - Depends on: T093
-  - Rules: none (mechanism) | Refs: CLAUDE.md git workflow
-  - Files (1, ~10 lines): `docs/product/modules.md`
-  - Done command (green): `grep -E '^\| 003 ' docs/product/modules.md`
-- [ ] T102 **test-engineer**: Final gate: tidy modules, full API suite with -race, golangci-lint, sqlc vet, generated code current, BR traceability (BR_CLI_04 tests present), JS typecheck/test/build, and golden scenarios GS-01 to GS-04 still pass. Paste the output as evidence. **[blocked: 002-merged]**
-  - Depends on: T094, T095, T096, T097, T099, T100, T101, T036, T080, T078
-  - Rules: BR-CLI-04, BR-CLI-05, GS-01, GS-02, GS-03, GS-04 | Refs: CLAUDE.md Done
-  - Files (0, ~0 lines): none
-  - Done command (green): `cd apps/api && go mod tidy && git diff --exit-code go.mod go.sum && go test -race ./... && golangci-lint run ./... && sqlc generate && sqlc vet && git diff --exit-code internal/platform/db/dbgen && cd ../.. && bash scripts/check-br-traceability.sh && pnpm turbo run typecheck test build`
-  - Note: No files changed unless go mod tidy rewrites go.mod/go.sum; if so, commit that as part of this task (<=2 files). The tidy diff check is expected to be run after tidy has been committed.
-
-## Dependencies and execution order
-
-- Start now (no 002): T001, then every Phase 2 pair (crypto, authz, httpx errors, httpx cors/clientip, ratelimit, config, normalize, common list, password policy, hasher, throttle.Apply, tokens, TOTP, recovery), Phase 3 schema pairs, and `code_t`/`code_i`.
-- Blocked on 002-merged: 65 of 102 tasks (7 list it directly; the rest inherit it).
-- Longest dependency chain (27 tasks): T001 -> T031 -> T033 -> T034 -> T039 -> T040 -> T041 -> T042 -> T043 -> T046 -> T049 -> T050 -> T052 -> T058 -> T059 -> T061 -> T063 -> T065 -> T082 -> T085 -> T086 -> T088 -> T089 -> T092 -> T093 -> T094 -> T102.
-- Owner decisions on the PR: auth migration (T033, T034), `deploy.yml`, Deviation 1 (no Idempotency-Key on credential operations), Deviation 2 (ephemeral keys in local/ci), re-authentication refused during a lock.
+- Start now: S01 (skeleton), then in parallel S02, S03, S04, S05 (tests already written) and S06 (schema tests); then S07 (migration, owner gate).
+- Blocked on 002-merged: S08 to S20 (S08 needs 002 for audit/dbtest/TxRunner).
+- Critical path: S01 -> S06 -> S07 -> S08 -> S09 -> S10 -> S11 -> S12 -> S13 -> S14 -> S15 -> S16 -> S17 -> S18 -> S19 -> S20.
