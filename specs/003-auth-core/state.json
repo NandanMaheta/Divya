@@ -1,341 +1,337 @@
 {
- "feature": "003-auth-core",
- "branch": "feat/003-auth-core",
- "worktree": "/home/user/divya-003",
- "phase": "tasks",
- "tier": "A",
- "tasks": {
-  "S01": {
-   "owner": "backend-dev",
-   "title": "Compile skeleton: exported types and signatures returning errNotImplemented for internal/auth, platform/crypto, authz, httpx (errors, cors, clientip), ratelimit, config (auth, LoadDB), auth/commonpasswords, so every existing red test compiles. Includes Service/Store/Throttle/Deps type shapes from go-capabilities.",
-   "done_command": "cd apps/api && go build ./... && go vet ./internal/auth/... ./internal/platform/...",
-   "status": "done",
-   "depends_on": [],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T001 done (deps)",
-   "note": "Skeleton folded into the S02-S05 implementations (every red test compiles); Service/Store/Deps shapes arrive with S10 (blocked on 002). Principal.AuditActor waits for 002 audit.Actor (S09)."
+  "feature": "003-auth-core",
+  "branch": "feat/003-auth-core",
+  "worktree": "/home/user/divya-003",
+  "phase": "build",
+  "tier": "A",
+  "tasks": {
+    "S01": {
+      "owner": "backend-dev",
+      "title": "Compile skeleton: exported types and signatures returning errNotImplemented for internal/auth, platform/crypto, authz, httpx (errors, cors, clientip), ratelimit, config (auth, LoadDB), auth/commonpasswords, so every existing red test compiles. Includes Service/Store/Throttle/Deps type shapes from go-capabilities.",
+      "done_command": "cd apps/api && go build ./... && go vet ./internal/auth/... ./internal/platform/...",
+      "status": "done",
+      "depends_on": [],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T001 done (deps)",
+      "note": "Skeleton folded into the S02-S05 implementations (every red test compiles); Service/Store/Deps shapes arrive with S10 (blocked on 002). Principal.AuditActor waits for 002 audit.Actor (S09)."
+    },
+    "S02": {
+      "owner": "backend-dev",
+      "title": "Implement platform/crypto (Keyring AES-256-GCM envelope, BlindIndexer, NewToken, Digest), platform/ratelimit, and config/auth.go + config/db.go. Tests already written (protected).",
+      "done_command": "cd apps/api && go test -race ./internal/platform/crypto/... ./internal/platform/ratelimit/... ./internal/platform/config/...",
+      "status": "done",
+      "depends_on": [
+        "S01"
+      ],
+      "rules": [],
+      "expect": "red->green",
+      "parallel": true,
+      "replaces": "T002,T003,T010-T013 (tests done)",
+      "protected_tests": [
+        "apps/api/internal/platform/crypto/aead_test.go",
+        "apps/api/internal/platform/crypto/blindindex_test.go",
+        "apps/api/internal/platform/crypto/token_test.go",
+        "apps/api/internal/platform/ratelimit/ratelimit_test.go",
+        "apps/api/internal/platform/config/auth_test.go",
+        "apps/api/internal/platform/config/db_test.go"
+      ],
+      "tests_written": true
+    },
+    "S03": {
+      "owner": "backend-dev",
+      "title": "Implement platform/authz (Role, Principal, Verifier, Install, Require, Public, ChallengeOnly, SelfAuthenticated, AssertDeclared) and httpx errors, CORS, ClientIP. Tests already written (protected).",
+      "done_command": "cd apps/api && go test -race ./internal/platform/authz/... ./internal/platform/httpx/...",
+      "status": "done",
+      "depends_on": [
+        "S01"
+      ],
+      "rules": [],
+      "expect": "red->green",
+      "parallel": true,
+      "replaces": "T004-T009 (tests done)",
+      "protected_tests": [
+        "apps/api/internal/platform/authz/authz_test.go",
+        "apps/api/internal/platform/httpx/errors_test.go",
+        "apps/api/internal/platform/httpx/cors_test.go",
+        "apps/api/internal/platform/httpx/clientip_test.go"
+      ],
+      "tests_written": true
+    },
+    "S04": {
+      "owner": "backend-dev",
+      "title": "Implement auth pure units A: normalize.go, commonpasswords list (10k.txt via proxy, SOURCE.md, embed.go), password_policy.go, hasher.go (Argon2id, PHC, semaphore, dummy verify), throttle_apply.go. Tests already written (protected). [P] with S05 as a pair in separate worktrees (flat package).",
+      "done_command": "cd apps/api && go test -race ./internal/auth/commonpasswords/... && go test -race -run 'TestNormalize|TestKindOf|TestPolicy|TestHasher|TestLockout|TestThrottleApply' ./internal/auth/",
+      "status": "done",
+      "depends_on": [
+        "S01"
+      ],
+      "rules": [
+        "BR-CLI-04"
+      ],
+      "expect": "red->green",
+      "parallel": true,
+      "replaces": "T014-T023 (tests done)",
+      "protected_tests": [
+        "apps/api/internal/auth/normalize_test.go",
+        "apps/api/internal/auth/normalize_prop_test.go",
+        "apps/api/internal/auth/commonpasswords/commonpasswords_test.go",
+        "apps/api/internal/auth/password_policy_test.go",
+        "apps/api/internal/auth/hasher_test.go",
+        "apps/api/internal/auth/hasher_prop_test.go",
+        "apps/api/internal/auth/throttle_apply_test.go",
+        "apps/api/internal/auth/throttle_apply_prop_test.go"
+      ],
+      "tests_written": true,
+      "note": "Lockout rules (D-08) are covered by TestLockout."
+    },
+    "S05": {
+      "owner": "backend-dev",
+      "title": "Implement auth pure units B: tokens.go (go-jose EdDSA, kid ring, P-02 verify order), totp.go (pquerna/otp, N-1..N+1, last_used_step), recovery.go. Tests already written (protected).",
+      "done_command": "cd apps/api && go test -race -run 'TestTokens|TestTotp|TestRecovery' ./internal/auth/",
+      "status": "done",
+      "depends_on": [
+        "S01",
+        "S02"
+      ],
+      "rules": [],
+      "expect": "red->green",
+      "parallel": true,
+      "replaces": "T024-T030 (tests done)",
+      "protected_tests": [
+        "apps/api/internal/auth/tokens_test.go",
+        "apps/api/internal/auth/tokens_reject_test.go",
+        "apps/api/internal/auth/totp_test.go",
+        "apps/api/internal/auth/recovery_test.go"
+      ],
+      "tests_written": true
+    },
+    "S06": {
+      "owner": "test-engineer",
+      "title": "Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.",
+      "done_command": "cd apps/api && go test -race -run 'TestSchema' ./internal/auth/",
+      "status": "done",
+      "depends_on": [
+        "S01"
+      ],
+      "rules": [
+        "BR-CLI-04"
+      ],
+      "expect": "red",
+      "parallel": true,
+      "replaces": "T031,T032",
+      "protected_tests": [
+        "apps/api/internal/auth/schema_helpers_test.go",
+        "apps/api/internal/auth/schema_structure_test.go",
+        "apps/api/internal/auth/schema_users_test.go",
+        "apps/api/internal/auth/schema_sessions_test.go",
+        "apps/api/internal/auth/schema_mfa_test.go"
+      ],
+      "tests_written": true,
+      "note": "Red for the right reason: relation does not exist (migration 00003 not written; S07 is owner-gated)."
+    },
+    "S07": {
+      "owner": "backend-dev",
+      "title": "Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.",
+      "done_command": "cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...",
+      "status": "done",
+      "depends_on": [
+        "S06"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T033,T034",
+      "note": "Migration written; TestSchema green. OWNER APPROVAL and security-reviewer required at PR review (auth schema, constitution workflow 5/7). 00003 applies on 00001 alone (goose accepts the version gap)."
+    },
+    "S08": {
+      "owner": "test-engineer",
+      "title": "Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).",
+      "done_command": "cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh",
+      "status": "todo",
+      "depends_on": [
+        "S07"
+      ],
+      "rules": [],
+      "expect": "red",
+      "parallel": false,
+      "replaces": "T035,T037,T042-T045"
+    },
+    "S09": {
+      "owner": "backend-dev",
+      "title": "golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.",
+      "done_command": "cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestAuditExt' ./internal/platform/... && golangci-lint run ./internal/platform/... && bash ../../scripts/check-lint-boundaries.sh",
+      "status": "todo",
+      "depends_on": [
+        "S08"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T036,T038,T039-T041",
+      "note": "Generated dbgen not counted toward size."
+    },
+    "S10": {
+      "owner": "backend-dev",
+      "title": "store.go interface and sentinel errors, store_pg.go (users/org, sessions/refresh, mfa/recovery/challenges/throttles; only file with pgx types), Service skeleton (service.go Deps, errors.go problem mapping, audit.go catalogue).",
+      "done_command": "cd apps/api && go test -race -run 'TestStore|TestAuthtest' ./internal/auth/...",
+      "status": "todo",
+      "depends_on": [
+        "S09"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T046-T049"
+    },
+    "S11": {
+      "owner": "test-engineer",
+      "title": "Service tests A (fake clock, real Store): accounts status machine (BR_CLI_04), CreateClient/ResetPassword/Replace*/EndAllSessions, throttle service, client sign-in, sign-in gate generic failures, lockout through service.",
+      "done_command": "cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/",
+      "status": "todo",
+      "depends_on": [
+        "S10"
+      ],
+      "rules": [
+        "BR-CLI-04",
+        "BR-CLI-05"
+      ],
+      "expect": "red",
+      "parallel": false,
+      "replaces": "T050,T051,T054,T056,T057,T066"
+    },
+    "S12": {
+      "owner": "backend-dev",
+      "title": "accounts.go, accounts_more.go, throttle.go, signin.go (one Argon2 verify, short tx), lockout application in sign-in.",
+      "done_command": "cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/",
+      "status": "todo",
+      "depends_on": [
+        "S11"
+      ],
+      "rules": [
+        "BR-CLI-04",
+        "BR-CLI-05"
+      ],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T052,T053,T055,T058,T067"
+    },
+    "S13": {
+      "owner": "test-engineer",
+      "title": "Service tests B: refresh rotation/reuse/device mismatch/expiry boundaries, concurrency (N goroutines one R1; parallel sign-in), sessions, bearer and challenge verifiers, password change.",
+      "done_command": "cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/",
+      "status": "todo",
+      "depends_on": [
+        "S12"
+      ],
+      "rules": [
+        "BR-CLI-04"
+      ],
+      "expect": "red",
+      "parallel": false,
+      "replaces": "T059,T060,T062,T064,T068"
+    },
+    "S14": {
+      "owner": "backend-dev",
+      "title": "refresh.go (P-03 algorithm), sessions.go, verifiers.go, password_change.go.",
+      "done_command": "cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/",
+      "status": "todo",
+      "depends_on": [
+        "S13"
+      ],
+      "rules": [
+        "BR-CLI-04"
+      ],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T061,T063,T065,T069",
+      "note": "Security review: crypto, authz."
+    },
+    "S15": {
+      "owner": "test-engineer",
+      "title": "Tests: admin MFA flow and management, TOTP/admin-removal concurrency, bootstrap service, CLI `swastik admin create`, housekeeping.",
+      "done_command": "cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/",
+      "status": "todo",
+      "depends_on": [
+        "S14"
+      ],
+      "rules": [],
+      "expect": "red",
+      "parallel": false,
+      "replaces": "T070-T072,T075,T077,T079"
+    },
+    "S16": {
+      "owner": "backend-dev",
+      "title": "mfa.go, mfa_manage.go, bootstrap.go (advisory lock, audit), cmd/swastik/admin.go, housekeeping.go.",
+      "done_command": "cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/",
+      "status": "todo",
+      "depends_on": [
+        "S15"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T073,T074,T076,T078,T080",
+      "note": "Security review: TOTP, bootstrap."
+    },
+    "S17": {
+      "owner": "test-engineer",
+      "title": "Tests: CSRF, handlers (sessions, MFA, password, admin), static and runtime contract walk, openapi/wiring tests, packages/domain auth-error-codes test.",
+      "done_command": "cd apps/api && go test -race -run 'TestCSRF|TestHandler|TestContractWalk|TestOpenAPI|TestWiring' ./internal/auth/ ./cmd/swastik/ && pnpm --filter @swastik/domain test",
+      "status": "todo",
+      "depends_on": [
+        "S16"
+      ],
+      "rules": [],
+      "expect": "red",
+      "parallel": false,
+      "replaces": "T081-T084,T089-T091,T098"
+    },
+    "S18": {
+      "owner": "backend-dev",
+      "title": "cookies.go, handler.go, handler_mfa.go, handler_admin.go (Security declared per operation, errors and rate limits).",
+      "done_command": "cd apps/api && go test -race -run 'TestCSRF|TestHandler' ./internal/auth/",
+      "status": "todo",
+      "depends_on": [
+        "S17"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T085-T088",
+      "note": "Security review: handlers."
+    },
+    "S19": {
+      "owner": "backend-dev",
+      "title": "Wire buildAPI and serve (InstallErrors, authz.Install, auth.Register, AssertDeclared, scheduler registration, CORS, rate limit), regenerate OpenAPI and TS client, packages/domain auth-error-codes.ts, deploy.yml secrets (OWNER GATE, no values), modules.md status.",
+      "done_command": "cd apps/api && go test -race -run 'TestContractWalk|TestOpenAPI|TestWiring' ./cmd/swastik/ && cd ../.. && pnpm --filter @swastik/domain test && pnpm --filter @swastik/api-client generate && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))\"",
+      "status": "todo",
+      "depends_on": [
+        "S18"
+      ],
+      "rules": [],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T092,T093,T097,T099,T100,T101",
+      "note": "Owner gate: deploy.yml (security-sensitive)."
+    },
+    "S20": {
+      "owner": "test-engineer",
+      "title": "Verification tests (no-secrets scan, audit events per US-11, timing SC-003 and Argon2id benchmark) then final gate: tidy, full API -race, golangci-lint, sqlc vet, generated code current, BR traceability, JS typecheck/test/build, GS-01..04.",
+      "done_command": "cd apps/api && go mod tidy && git diff --exit-code go.mod go.sum && go test -race ./... && golangci-lint run ./... && sqlc generate && sqlc vet && git diff --exit-code internal/platform/db/dbgen && cd ../.. && bash scripts/check-br-traceability.sh && pnpm turbo run typecheck test build",
+      "status": "todo",
+      "depends_on": [
+        "S19"
+      ],
+      "rules": [
+        "BR-CLI-04"
+      ],
+      "expect": "green",
+      "parallel": false,
+      "replaces": "T094-T096,T102",
+      "note": "Final gate. Security review before PR."
+    }
   },
-  "S02": {
-   "owner": "backend-dev",
-   "title": "Implement platform/crypto (Keyring AES-256-GCM envelope, BlindIndexer, NewToken, Digest), platform/ratelimit, and config/auth.go + config/db.go. Tests already written (protected).",
-   "done_command": "cd apps/api && go test -race ./internal/platform/crypto/... ./internal/platform/ratelimit/... ./internal/platform/config/...",
-   "status": "done",
-   "depends_on": [
-    "S01"
-   ],
-   "rules": [],
-   "expect": "red->green",
-   "parallel": true,
-   "replaces": "T002,T003,T010-T013 (tests done)",
-   "protected_tests": [
-    "apps/api/internal/platform/crypto/aead_test.go",
-    "apps/api/internal/platform/crypto/blindindex_test.go",
-    "apps/api/internal/platform/crypto/token_test.go",
-    "apps/api/internal/platform/ratelimit/ratelimit_test.go",
-    "apps/api/internal/platform/config/auth_test.go",
-    "apps/api/internal/platform/config/db_test.go"
-   ],
-   "tests_written": true
-  },
-  "S03": {
-   "owner": "backend-dev",
-   "title": "Implement platform/authz (Role, Principal, Verifier, Install, Require, Public, ChallengeOnly, SelfAuthenticated, AssertDeclared) and httpx errors, CORS, ClientIP. Tests already written (protected).",
-   "done_command": "cd apps/api && go test -race ./internal/platform/authz/... ./internal/platform/httpx/...",
-   "status": "done",
-   "depends_on": [
-    "S01"
-   ],
-   "rules": [],
-   "expect": "red->green",
-   "parallel": true,
-   "replaces": "T004-T009 (tests done)",
-   "protected_tests": [
-    "apps/api/internal/platform/authz/authz_test.go",
-    "apps/api/internal/platform/httpx/errors_test.go",
-    "apps/api/internal/platform/httpx/cors_test.go",
-    "apps/api/internal/platform/httpx/clientip_test.go"
-   ],
-   "tests_written": true
-  },
-  "S04": {
-   "owner": "backend-dev",
-   "title": "Implement auth pure units A: normalize.go, commonpasswords list (10k.txt via proxy, SOURCE.md, embed.go), password_policy.go, hasher.go (Argon2id, PHC, semaphore, dummy verify), throttle_apply.go. Tests already written (protected). [P] with S05 as a pair in separate worktrees (flat package).",
-   "done_command": "cd apps/api && go test -race ./internal/auth/commonpasswords/... && go test -race -run 'TestNormalize|TestKindOf|TestPolicy|TestHasher|TestLockout|TestThrottleApply' ./internal/auth/",
-   "status": "done",
-   "depends_on": [
-    "S01"
-   ],
-   "rules": [
-    "BR-CLI-04"
-   ],
-   "expect": "red->green",
-   "parallel": true,
-   "replaces": "T014-T023 (tests done)",
-   "protected_tests": [
-    "apps/api/internal/auth/normalize_test.go",
-    "apps/api/internal/auth/normalize_prop_test.go",
-    "apps/api/internal/auth/commonpasswords/commonpasswords_test.go",
-    "apps/api/internal/auth/password_policy_test.go",
-    "apps/api/internal/auth/hasher_test.go",
-    "apps/api/internal/auth/hasher_prop_test.go",
-    "apps/api/internal/auth/throttle_apply_test.go",
-    "apps/api/internal/auth/throttle_apply_prop_test.go"
-   ],
-   "tests_written": true,
-   "note": "Lockout rules (D-08) are covered by TestLockout."
-  },
-  "S05": {
-   "owner": "backend-dev",
-   "title": "Implement auth pure units B: tokens.go (go-jose EdDSA, kid ring, P-02 verify order), totp.go (pquerna/otp, N-1..N+1, last_used_step), recovery.go. Tests already written (protected).",
-   "done_command": "cd apps/api && go test -race -run 'TestTokens|TestTotp|TestRecovery' ./internal/auth/",
-   "status": "done",
-   "depends_on": [
-    "S01",
-    "S02"
-   ],
-   "rules": [],
-   "expect": "red->green",
-   "parallel": true,
-   "replaces": "T024-T030 (tests done)",
-   "protected_tests": [
-    "apps/api/internal/auth/tokens_test.go",
-    "apps/api/internal/auth/tokens_reject_test.go",
-    "apps/api/internal/auth/totp_test.go",
-    "apps/api/internal/auth/recovery_test.go"
-   ],
-   "tests_written": true
-  },
-  "S06": {
-   "owner": "test-engineer",
-   "title": "Schema tests (real PostgreSQL via dbtest) for all seven auth tables: unique/CHECK/partial-unique/FK constraints and indexes from data-model.md.",
-   "done_command": "cd apps/api && go test -race -run 'TestSchema' ./internal/auth/",
-   "status": "done",
-   "depends_on": [
-    "S01"
-   ],
-   "rules": [
-    "BR-CLI-04"
-   ],
-   "expect": "red",
-   "parallel": true,
-   "replaces": "T031,T032",
-   "protected_tests": [
-    "apps/api/internal/auth/schema_helpers_test.go",
-    "apps/api/internal/auth/schema_structure_test.go",
-    "apps/api/internal/auth/schema_users_test.go",
-    "apps/api/internal/auth/schema_sessions_test.go",
-    "apps/api/internal/auth/schema_mfa_test.go"
-   ],
-   "tests_written": true,
-   "note": "Red for the right reason: relation does not exist (migration 00003 not written; S07 is owner-gated)."
-  },
-  "S07": {
-   "owner": "backend-dev",
-   "title": "Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.",
-   "done_command": "cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...",
-   "status": "done",
-   "depends_on": [
-    "S06"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T033,T034",
-   "note": "Migration written; TestSchema green. OWNER APPROVAL and security-reviewer required at PR review (auth schema, constitution workflow 5/7). 00003 applies on 00001 alone (goose accepts the version gap)."
-  },
-  "S08": {
-   "owner": "test-engineer",
-   "title": "Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).",
-   "done_command": "cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh",
-   "status": "blocked",
-   "depends_on": [
-    "S07",
-    "002-merged"
-   ],
-   "rules": [],
-   "expect": "red",
-   "parallel": false,
-   "replaces": "T035,T037,T042-T045"
-  },
-  "S09": {
-   "owner": "backend-dev",
-   "title": "golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.",
-   "done_command": "cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestAuditExt' ./internal/platform/... && golangci-lint run ./internal/platform/... && bash ../../scripts/check-lint-boundaries.sh",
-   "status": "blocked",
-   "depends_on": [
-    "S08",
-    "002-merged"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T036,T038,T039-T041",
-   "note": "Generated dbgen not counted toward size."
-  },
-  "S10": {
-   "owner": "backend-dev",
-   "title": "store.go interface and sentinel errors, store_pg.go (users/org, sessions/refresh, mfa/recovery/challenges/throttles; only file with pgx types), Service skeleton (service.go Deps, errors.go problem mapping, audit.go catalogue).",
-   "done_command": "cd apps/api && go test -race -run 'TestStore|TestAuthtest' ./internal/auth/...",
-   "status": "blocked",
-   "depends_on": [
-    "S09",
-    "002-merged"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T046-T049"
-  },
-  "S11": {
-   "owner": "test-engineer",
-   "title": "Service tests A (fake clock, real Store): accounts status machine (BR_CLI_04), CreateClient/ResetPassword/Replace*/EndAllSessions, throttle service, client sign-in, sign-in gate generic failures, lockout through service.",
-   "done_command": "cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/",
-   "status": "blocked",
-   "depends_on": [
-    "S10",
-    "002-merged"
-   ],
-   "rules": [
-    "BR-CLI-04",
-    "BR-CLI-05"
-   ],
-   "expect": "red",
-   "parallel": false,
-   "replaces": "T050,T051,T054,T056,T057,T066"
-  },
-  "S12": {
-   "owner": "backend-dev",
-   "title": "accounts.go, accounts_more.go, throttle.go, signin.go (one Argon2 verify, short tx), lockout application in sign-in.",
-   "done_command": "cd apps/api && go test -race -run 'TestAccounts|TestThrottle|TestSignIn|TestLockoutService' ./internal/auth/",
-   "status": "blocked",
-   "depends_on": [
-    "S11"
-   ],
-   "rules": [
-    "BR-CLI-04",
-    "BR-CLI-05"
-   ],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T052,T053,T055,T058,T067"
-  },
-  "S13": {
-   "owner": "test-engineer",
-   "title": "Service tests B: refresh rotation/reuse/device mismatch/expiry boundaries, concurrency (N goroutines one R1; parallel sign-in), sessions, bearer and challenge verifiers, password change.",
-   "done_command": "cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/",
-   "status": "blocked",
-   "depends_on": [
-    "S12"
-   ],
-   "rules": [
-    "BR-CLI-04"
-   ],
-   "expect": "red",
-   "parallel": false,
-   "replaces": "T059,T060,T062,T064,T068"
-  },
-  "S14": {
-   "owner": "backend-dev",
-   "title": "refresh.go (P-03 algorithm), sessions.go, verifiers.go, password_change.go.",
-   "done_command": "cd apps/api && go test -race -run 'TestRefresh|TestConcurrency|TestSessions|TestVerifier|TestAuthz|TestPasswordChange' ./internal/auth/",
-   "status": "blocked",
-   "depends_on": [
-    "S13"
-   ],
-   "rules": [
-    "BR-CLI-04"
-   ],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T061,T063,T065,T069",
-   "note": "Security review: crypto, authz."
-  },
-  "S15": {
-   "owner": "test-engineer",
-   "title": "Tests: admin MFA flow and management, TOTP/admin-removal concurrency, bootstrap service, CLI `swastik admin create`, housekeeping.",
-   "done_command": "cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/",
-   "status": "blocked",
-   "depends_on": [
-    "S14"
-   ],
-   "rules": [],
-   "expect": "red",
-   "parallel": false,
-   "replaces": "T070-T072,T075,T077,T079"
-  },
-  "S16": {
-   "owner": "backend-dev",
-   "title": "mfa.go, mfa_manage.go, bootstrap.go (advisory lock, audit), cmd/swastik/admin.go, housekeeping.go.",
-   "done_command": "cd apps/api && go test -race -run 'TestMFA|TestBootstrap|TestAdminCreate|TestHousekeep' ./internal/auth/ ./cmd/swastik/",
-   "status": "blocked",
-   "depends_on": [
-    "S15"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T073,T074,T076,T078,T080",
-   "note": "Security review: TOTP, bootstrap."
-  },
-  "S17": {
-   "owner": "test-engineer",
-   "title": "Tests: CSRF, handlers (sessions, MFA, password, admin), static and runtime contract walk, openapi/wiring tests, packages/domain auth-error-codes test.",
-   "done_command": "cd apps/api && go test -race -run 'TestCSRF|TestHandler|TestContractWalk|TestOpenAPI|TestWiring' ./internal/auth/ ./cmd/swastik/ && pnpm --filter @swastik/domain test",
-   "status": "blocked",
-   "depends_on": [
-    "S16"
-   ],
-   "rules": [],
-   "expect": "red",
-   "parallel": false,
-   "replaces": "T081-T084,T089-T091,T098"
-  },
-  "S18": {
-   "owner": "backend-dev",
-   "title": "cookies.go, handler.go, handler_mfa.go, handler_admin.go (Security declared per operation, errors and rate limits).",
-   "done_command": "cd apps/api && go test -race -run 'TestCSRF|TestHandler' ./internal/auth/",
-   "status": "blocked",
-   "depends_on": [
-    "S17"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T085-T088",
-   "note": "Security review: handlers."
-  },
-  "S19": {
-   "owner": "backend-dev",
-   "title": "Wire buildAPI and serve (InstallErrors, authz.Install, auth.Register, AssertDeclared, scheduler registration, CORS, rate limit), regenerate OpenAPI and TS client, packages/domain auth-error-codes.ts, deploy.yml secrets (OWNER GATE, no values), modules.md status.",
-   "done_command": "cd apps/api && go test -race -run 'TestContractWalk|TestOpenAPI|TestWiring' ./cmd/swastik/ && cd ../.. && pnpm --filter @swastik/domain test && pnpm --filter @swastik/api-client generate && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))\"",
-   "status": "blocked",
-   "depends_on": [
-    "S18"
-   ],
-   "rules": [],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T092,T093,T097,T099,T100,T101",
-   "note": "Owner gate: deploy.yml (security-sensitive)."
-  },
-  "S20": {
-   "owner": "test-engineer",
-   "title": "Verification tests (no-secrets scan, audit events per US-11, timing SC-003 and Argon2id benchmark) then final gate: tidy, full API -race, golangci-lint, sqlc vet, generated code current, BR traceability, JS typecheck/test/build, GS-01..04.",
-   "done_command": "cd apps/api && go mod tidy && git diff --exit-code go.mod go.sum && go test -race ./... && golangci-lint run ./... && sqlc generate && sqlc vet && git diff --exit-code internal/platform/db/dbgen && cd ../.. && bash scripts/check-br-traceability.sh && pnpm turbo run typecheck test build",
-   "status": "blocked",
-   "depends_on": [
-    "S19"
-   ],
-   "rules": [
-    "BR-CLI-04"
-   ],
-   "expect": "green",
-   "parallel": false,
-   "replaces": "T094-T096,T102",
-   "note": "Final gate. Security review before PR."
-  }
- },
- "metrics": []
+  "metrics": []
 }
