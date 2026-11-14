@@ -86,11 +86,6 @@ func (m *model) next(now time.Time) (key string, ambiguous bool) {
 
 func (m *model) claim(key string, now time.Time) *mjob {
 	j := m.active[key]
-	if j.running {
-		// FR-010 takeover of an expired lease IS the rerun: it runs with the latest inputs, so the
-		// flag is consumed here and settle will not re-pend the job.
-		j.rerun = false
-	}
 	j.attempts++
 	j.running = true
 	j.leaseEnd = now.Add(lease)
@@ -124,6 +119,21 @@ func (m *model) settle(key string, now time.Time, failed bool) {
 // the same keys in the same order as the real handler was called; a failure is whatever the
 // handler returned.
 func (m *model) tick(rt *rapid.T, now time.Time) {
+	// Recover stale running jobs first (BR-IPO-03, FR-010, FR-014): cancel_requested, then expiry,
+	// then rerun (back to pending, fresh attempts, run_at unchanged).
+	for k, j := range m.active {
+		if !j.running || j.leaseEnd.After(now) {
+			continue
+		}
+		switch {
+		case j.cancelReq:
+			delete(m.active, k) // cancelled
+		case j.expiresAt != nil && !j.expiresAt.After(now):
+			delete(m.active, k) // expired
+		case j.rerun:
+			j.running, j.leaseEnd, j.rerun, j.attempts = false, time.Time{}, false, 0
+		}
+	}
 	for k, j := range m.active {
 		if !j.running && j.expiresAt != nil && !j.expiresAt.After(now) {
 			delete(m.active, k) // expired

@@ -48,7 +48,7 @@ func TestLoad(t *testing.T) {
 // Operational meaning (not tested here, wired in main): oidc without audience or service account
 // disables the tick; an empty dev token rejects every tick.
 
-var tickEnvKeys = []string{"DATABASE_URL", "PORT", "APP_ENV", "HTTP_ADDR", "TICK_AUTH", "TICK_AUDIENCE", "TICK_SERVICE_ACCOUNT", "TICK_DEV_TOKEN"}
+var tickEnvKeys = []string{"DATABASE_URL", "PORT", "APP_ENV", "HTTP_ADDR", "TICK_AUTH", "TICK_AUDIENCE", "TICK_SERVICE_ACCOUNT", "TICK_DEV_TOKEN", "K_SERVICE"}
 
 func loadWith(t *testing.T, env map[string]string) (Config, error) {
 	t.Helper()
@@ -205,5 +205,29 @@ func TestLoad_TickSettingsDoNotRelaxExistingValidation(t *testing.T) {
 	}
 	if _, err := Load(); err == nil {
 		t.Error("missing DATABASE_URL accepted")
+	}
+}
+
+// Cloud Run sets K_SERVICE. A missing APP_ENV there must not fall back to "local" (which would
+// default the tick to unauthenticated dev mode), and dev auth is never allowed on Cloud Run.
+func TestLoad_CloudRunGuards(t *testing.T) {
+	tests := []struct {
+		name string
+		env  map[string]string
+	}{
+		{"K_SERVICE set, APP_ENV unset", map[string]string{"K_SERVICE": "swastik-api"}},
+		{"K_SERVICE set, APP_ENV empty", map[string]string{"K_SERVICE": "swastik-api", "APP_ENV": ""}},
+		{"K_SERVICE set, TICK_AUTH=dev, APP_ENV local", map[string]string{"K_SERVICE": "swastik-api", "APP_ENV": "local", "TICK_AUTH": "dev"}},
+		{"K_SERVICE set, TICK_AUTH=dev, APP_ENV ci", map[string]string{"K_SERVICE": "swastik-api", "APP_ENV": "ci", "TICK_AUTH": "dev"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := loadWith(t, tt.env); err == nil {
+				t.Fatal("Load() succeeded, want an error on Cloud Run")
+			}
+		})
+	}
+	if _, err := loadWith(t, map[string]string{"K_SERVICE": "swastik-api", "APP_ENV": "production"}); err != nil {
+		t.Fatalf("Load() on Cloud Run with APP_ENV=production: %v", err)
 	}
 }
