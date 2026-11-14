@@ -121,5 +121,5 @@ LIMIT @row_limit;
 -- name: FindIPOAuditByIdempotencyKey :one
 SELECT id FROM audit_log
 WHERE org_id = @org_id AND entity = 'ipo' AND entity_id = @entity_id AND action = @action
-  AND after ->> 'idempotency_key' = @key::text
+  AND COALESCE(after, before) ->> 'idempotency_key' = @key::text
 LIMIT 1;

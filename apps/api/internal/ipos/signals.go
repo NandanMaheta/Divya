@@ -10,16 +10,22 @@ import (
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/audit"
 )
 
+// DatesChangedListener receives DatesChanged inside the emitting transaction.
 type DatesChangedListener interface {
 	OnIPODatesChanged(ctx context.Context, e DatesChanged) error
 }
+
+// EligibilityChangedListener receives EligibilityChanged inside the emitting transaction.
 type EligibilityChangedListener interface {
 	OnIPOEligibilityChanged(ctx context.Context, e EligibilityChanged) error
 }
+
+// StatusChangedListener receives StatusChanged inside the emitting transaction.
 type StatusChangedListener interface {
 	OnIPOStatusChanged(ctx context.Context, e StatusChanged) error
 }
 
+// DatesChanged is sent when at least one of the six dates changed (never on create).
 type DatesChanged struct {
 	OrgID, IPOID uuid.UUID
 	Old, New     Dates
@@ -27,6 +33,7 @@ type DatesChanged struct {
 	At           time.Time
 }
 
+// EligibilityChanged is sent when Eligible() flips.
 type EligibilityChanged struct {
 	OrgID, IPOID uuid.UUID
 	Eligible     bool
@@ -35,6 +42,7 @@ type EligibilityChanged struct {
 	At           time.Time
 }
 
+// StatusChanged is sent on every real status change.
 type StatusChanged struct {
 	OrgID, IPOID uuid.UUID
 	From, To     Status

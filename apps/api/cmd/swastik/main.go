@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/NandanMaheta/swastik/apps/api/internal/health"
+	"github.com/NandanMaheta/swastik/apps/api/internal/ipos"
 	"github.com/NandanMaheta/swastik/apps/api/internal/outbox"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/clock"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/config"
@@ -122,6 +123,8 @@ func serve(ctx context.Context, log *slog.Logger, cfg config.Config, pool *pgxpo
 	}
 	sched := scheduler.New(txr, ob, clock.Real, log, host, scheduler.DefaultOptions())
 	sched.Register(scheduler.RetentionKind, sched.RetentionHandler(), scheduler.RetentionOptions())
+	iposSvc := ipos.NewService(ipos.Deps{Tx: txr, Scheduler: sched, Now: clock.Real, Log: log})
+	ipos.RegisterJobs(sched, iposSvc)
 
 	api := buildAPI(deps{Pool: pool, Tick: sched, TickAuth: selectTickAuth(ctx, log, cfg)}) //nolint:contextcheck // the tick middleware takes its context from each request
 	srv := httpx.NewServer(cfg.HTTPAddr, api.Adapter(), log)

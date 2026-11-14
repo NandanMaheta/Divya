@@ -7,7 +7,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/NandanMaheta/swastik/apps/api/internal/platform/audit"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/clock"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db"
 	"github.com/NandanMaheta/swastik/apps/api/internal/scheduler"
@@ -25,6 +24,7 @@ type JobRegistrar interface {
 	Register(kind string, h scheduler.Handler, opts scheduler.KindOptions)
 }
 
+// Deps are the collaborators of the service.
 type Deps struct {
 	Tx        db.TxRunner
 	Scheduler Scheduler
@@ -32,6 +32,7 @@ type Deps struct {
 	Log       *slog.Logger
 }
 
+// Service is the IPO catalogue: mutations, reads, lifecycle steps and signals.
 type Service struct {
 	d     Deps
 	store *Store
@@ -51,19 +52,5 @@ func (s *Service) inTx(ctx context.Context, fn func(ctx context.Context) error) 
 	return s.d.Tx.InTx(ctx, fn)
 }
 
-// RegisterJobs registers ipo.open, ipo.close, ipo.allotment, ipo.list.
-func RegisterJobs(r JobRegistrar, s *Service) { panic(errNotImplemented) }
-
 // Register adds the HTTP operations (admin + client).
 func Register(api huma.API, s *Service) { panic(errNotImplemented) }
-
-func (s *Service) MarkSettled(ctx context.Context, org, id uuid.UUID) error {
-	return errNotImplemented
-}
-
-func (s *Service) OverrideStatus(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, to Status, reason string, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
-func (s *Service) Delete(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, idemKey string) (bool, error) {
-	return false, errNotImplemented
-}

@@ -82,8 +82,10 @@ func validateFlag(flag *ApplyFlag, note *string) error {
 	return &ValidationError{Code: "ipo.invalid_value", Issues: is}
 }
 
-func sameFlag(a, b *ApplyFlag) bool { return (a == nil && b == nil) || (a != nil && b != nil && *a == *b) }
-func sameText(a, b *string) bool    { return (a == nil && b == nil) || (a != nil && b != nil && *a == *b) }
+func sameFlag(a, b *ApplyFlag) bool {
+	return (a == nil && b == nil) || (a != nil && b != nil && *a == *b)
+}
+func sameText(a, b *string) bool { return (a == nil && b == nil) || (a != nil && b != nil && *a == *b) }
 
 // Publish makes the IPO visible to clients; it needs the FR-020 facts and a flag.
 func (s *Service) Publish(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, idemKey string) (Result, error) {

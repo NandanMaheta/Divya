@@ -66,7 +66,7 @@
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: FR-009, FR-051; ADR 0008; K-05, K-06
   - Files (~450 lines): `apps/api/internal/ipos/service.go`, `apps/api/internal/ipos/signals.go`, `apps/api/internal/ipos/ipostest/ipostest.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestList_FR009|TestGet_|TestSignals_FireOrder' ./internal/ipos/ && go vet ./internal/ipos/...`
-- [ ] S11 **backend-dev**: Service mutations: Create (idempotent, schedule steps), Update (lock, version, no-op, step diff, DatesChanged), SetFlag/Publish/Unpublish/RequireEligible (EligibilityChanged, ipo.no_change).
+- [x] S11 **backend-dev**: Service mutations: Create (idempotent, schedule steps), Update (lock, version, no-op, step diff, DatesChanged), SetFlag/Publish/Unpublish/RequireEligible (EligibilityChanged, ipo.no_change).
   - Depends on: S10, S08, S09, 002-merged
   - Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 | Refs: FR-001..007, FR-020..024, FR-041, FR-042; K-06, K-07, K-11
   - Files (~530 lines): `apps/api/internal/ipos/service_create.go`, `apps/api/internal/ipos/service_update.go`, `apps/api/internal/ipos/service_publish.go`

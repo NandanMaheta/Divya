@@ -34,7 +34,7 @@ func (q *Queries) DeleteIPO(ctx context.Context, arg DeleteIPOParams) (int64, er
 const findIPOAuditByIdempotencyKey = `-- name: FindIPOAuditByIdempotencyKey :one
 SELECT id FROM audit_log
 WHERE org_id = $1 AND entity = 'ipo' AND entity_id = $2 AND action = $3
-  AND after ->> 'idempotency_key' = $4::text
+  AND COALESCE(after, before) ->> 'idempotency_key' = $4::text
 LIMIT 1
 `
 
