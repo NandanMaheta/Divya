@@ -47,9 +47,11 @@ type mjob struct {
 
 func (j *mjob) dueAt(now time.Time) bool {
 	if j.running {
-		// FR-010: a stale claim is taken over only once the lease ran out AND the job's (possibly
-		// rescheduled) run_at has arrived.
-		return !j.leaseEnd.After(now) && !j.runAt.After(now)
+		// FR-010: a stale claim is taken over only once the lease ran out, and only if it is not
+		// cancelled, not marked for rerun, unexpired and its run_at has arrived; otherwise it
+		// waits for the next tick's recovery.
+		return !j.leaseEnd.After(now) && !j.cancelReq && !j.rerun &&
+			(j.expiresAt == nil || j.expiresAt.After(now)) && !j.runAt.After(now)
 	}
 	return !j.runAt.After(now) && (j.expiresAt == nil || j.expiresAt.After(now))
 }
