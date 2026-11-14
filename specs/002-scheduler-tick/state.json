@@ -632,7 +632,7 @@
     "T044": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestLease_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -640,7 +640,10 @@
       "rules": [],
       "title": "Lease and crash tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/lease_test.go"
+      ]
     },
     "T045": {
       "owner": "backend-dev",

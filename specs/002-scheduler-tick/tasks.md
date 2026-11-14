@@ -259,11 +259,12 @@
   - Rules: BR-IPO-03 | Refs: US6.1-6.3; FR-012, FR-014, FR-017, FR-018
   - Files (1, ~190 lines): `apps/api/internal/scheduler/tick_failure_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestTickFailure_' ./internal/scheduler/...`
-- [ ] T044 [P] **test-engineer**: Lease and crash tests: claim via store and never finish is skipped until lease end then rerun; effect written by a separate tx then crash gives one message via dedupe; lost lease rolls back handler effects; stale lock_token cannot complete.
+- [x] T044 [P] **test-engineer**: Lease and crash tests: claim via store and never finish is skipped until lease end then rerun; effect written by a separate tx then crash gives one message via dedupe; lost lease rolls back handler effects; stale lock_token cannot complete.
   - Depends on: T040, T022
   - Rules: none (mechanism) | Refs: US1.5, 1.6; FR-011, FR-012
   - Files (1, ~160 lines): `apps/api/internal/scheduler/lease_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestLease_' ./internal/scheduler/...`
+  - Note (test-engineer): includes the rapid property `TestLease_BR_IPO_03_ClaimAndLeaseProperties`. The tests assume the claim commits before the handler runs and the handler's transaction does not lock the job row until it completes it (another instance must be able to reclaim an expired lease mid-run); and that a claim with attempts > max_attempts ends `dead` with a "lease expired" last_error without running the handler. Green needs T047 plus T048 (tests drive everything through Tick).
 - [ ] T045 **backend-dev**: Implement scheduler registry.go and service.go: Options/DefaultOptions, New, Register (panics on duplicate), KindOptions, Job/JobSpec/TickSummary/Status types, sentinel errors.
   - Depends on: T036, T024
   - Rules: none (mechanism) | Refs: FR-008; K9
