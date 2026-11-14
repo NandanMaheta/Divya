@@ -16,6 +16,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/audit"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/httpx"
 )
 
@@ -45,6 +46,9 @@ type Principal struct {
 	UserID, OrgID, SessionID uuid.UUID
 	Role                     Role
 }
+
+// AuditActor is the principal as an audit actor. Compile skeleton (S08): no logic yet.
+func (p Principal) AuditActor() audit.Actor { return audit.Actor{} }
 
 // Verifier turns a bearer token into a Principal. Any error means 401 auth.unauthenticated.
 type Verifier interface {

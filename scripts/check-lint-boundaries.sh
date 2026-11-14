@@ -10,6 +10,13 @@
 #   depguard  go-oidc imported outside platform/tickauth         (oidc-only-in-tickauth)
 #   forbidigo time.Now / time.Since / time.Until / time.Local in business code
 #
+# Feature 003 (auth core, plan P-19) adds:
+#
+#   depguard  platform importing internal/auth                       (platform-is-a-leaf)
+#   depguard  go-jose outside internal/auth and platform/tickauth    (jose-only-in-auth-and-tickauth)
+#   depguard  x/crypto/argon2 and pquerna/otp outside internal/auth  (password-and-otp-primitives-in-auth)
+#   depguard  pgx in internal/auth outside store_pg*.go              (pgx-only-in-store-pg)
+#
 # It also asserts the negative controls: go-oidc inside platform/tickauth, and the clock,
 # httpx, cmd/ and _test.go exclusions for time.Now, are NOT reported.
 #
@@ -184,6 +191,85 @@ import (
 
 func TestNow(t *testing.T) { _ = time.Now() }
 EOF
+
+# --- feature 003 (plan P-19): auth confinement ----------------------------------------------
+JOSE_PKG="github.com/go-jose/go-jose/v4"
+ARGON_PKG="golang.org/x/crypto/argon2"
+OTP_PKG="github.com/pquerna/otp"
+PGX_PKG="github.com/jackc/pgx/v5"
+
+buildable() { (cd "$API" && go list -deps "$1" >/dev/null 2>&1); }
+
+if has_pkg internal/auth; then
+	add_case platform-imports-auth violation depguard "internal/platform/zzviol_auth/v.go" <<EOF
+package zzviol
+
+import _ "$MOD/internal/auth"
+EOF
+else
+	skip_case platform-imports-auth "internal/auth does not exist yet"
+fi
+
+# confine <id> <pkg> <allowed dir>...
+# The offender sits in internal/zzviol_<id>; each allowed directory gets a control.
+confine() {
+	local id="$1" pkg="$2"
+	shift 2
+	if ! buildable "$pkg"; then
+		skip_case "$id" "$pkg not buildable"
+		return
+	fi
+	add_case "$id" violation depguard "internal/zzviol_$id/v.go" <<EOF
+package zzviol
+
+import _ "$pkg"
+EOF
+	local dir
+	for dir in "$@"; do
+		add_case "$id-in-$(basename "$dir")" control depguard "$dir/zzctl_$id/v.go" <<EOF
+package zzctl
+
+import _ "$pkg"
+EOF
+	done
+}
+
+confine jose "$JOSE_PKG" internal/auth internal/platform/tickauth
+confine argon2 "$ARGON_PKG" internal/auth
+confine otp "$OTP_PKG" internal/auth
+
+# pgx types live only in internal/auth/store_pg*.go (non-test files directly in internal/auth).
+# Violation: any other non-test file of the package. Controls: a store_pg*.go file, a _test.go
+# file, the authtest sub-package (test support that opens pools) and other packages.
+if has_pkg internal/auth && buildable "$PGX_PKG"; then
+	add_case pgx-in-auth violation depguard "internal/auth/zzviol_pgx.go" <<EOF
+package auth
+
+import _ "$PGX_PKG"
+EOF
+	add_case pgx-in-store-pg control depguard "internal/auth/store_pg_zzctl.go" <<EOF
+package auth
+
+import _ "$PGX_PKG"
+EOF
+	add_case pgx-in-auth-test-file control depguard "internal/auth/zzctl_pgx_test.go" <<EOF
+package auth_test
+
+import _ "$PGX_PKG"
+EOF
+	add_case pgx-in-authtest control depguard "internal/auth/authtest/zzctl_pgx.go" <<EOF
+package authtest
+
+import _ "$PGX_PKG"
+EOF
+	add_case pgx-in-platform-db control depguard "internal/platform/db/zzctl_pgx.go" <<EOF
+package db
+
+import _ "$PGX_PKG"
+EOF
+else
+	skip_case pgx-in-auth "internal/auth missing or pgx not buildable"
+fi
 
 # --- one lint run over all offenders ---------------------------------------------------------
 out="$("$LINT" "${LINT_FLAGS[@]}" 2>&1)"

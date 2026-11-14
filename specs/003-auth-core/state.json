@@ -156,7 +156,20 @@
       "rules": [],
       "expect": "red",
       "parallel": false,
-      "replaces": "T035,T037,T042-T045"
+      "replaces": "T035,T037,T042-T045",
+      "protected_tests": [
+        "apps/api/internal/platform/audit/audit_ext_test.go",
+        "apps/api/internal/platform/authz/actor_test.go",
+        "apps/api/internal/auth/authtest/fixtures_test.go",
+        "apps/api/internal/auth/store_helpers_test.go",
+        "apps/api/internal/auth/store_users_test.go",
+        "apps/api/internal/auth/store_lock_test.go",
+        "apps/api/internal/auth/store_sessions_test.go",
+        "apps/api/internal/auth/store_mfa_test.go",
+        "scripts/check-lint-boundaries.sh"
+      ],
+      "tests_written": true,
+      "note": "Red. Test-support (not protected, owned by test-engineer): apps/api/internal/auth/authtest/{fixtures,secrets}.go. Compile skeleton: auth/store.go (Store contract) + store_pg.go (errNotImplemented), audit.Entry.At field, Principal.AuditActor stub. S09: depguard rules incl. pgx-only-in-store_pg*.go (authtest sub-package, _test files allowed); S10 implements Store."
     },
     "S09": {
       "owner": "backend-dev",

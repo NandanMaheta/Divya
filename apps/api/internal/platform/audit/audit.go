@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -33,6 +34,9 @@ type Entry struct {
 	EntityID      uuid.UUID
 	Action        string
 	Before, After any
+	// At is the row's created_at; the zero value keeps the column default. Compile skeleton
+	// (S08): not yet written by Write.
+	At time.Time
 }
 
 // Write inserts the entry in the transaction carried by ctx, so it commits or rolls back with the
