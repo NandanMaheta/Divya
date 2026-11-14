@@ -73,7 +73,7 @@ FROM due WHERE j.id = due.id;
 WITH c AS (
     SELECT id FROM scheduled_jobs
     WHERE (status = 'pending' AND run_at <= @now AND (expires_at IS NULL OR expires_at > @now))
-       OR (status = 'running' AND locked_until <= @now)
+       OR (status = 'running' AND run_at <= @now AND locked_until <= @now)
     ORDER BY run_at, id
     LIMIT 1
     FOR UPDATE SKIP LOCKED
@@ -86,6 +86,7 @@ UPDATE scheduled_jobs j SET
     locked_until     = @locked_until,
     lock_token       = gen_random_uuid(),
     locked_by        = @locked_by,
+    rerun            = CASE WHEN j.status = 'running' THEN false ELSE j.rerun END,
     updated_at       = @now
 FROM c WHERE j.id = c.id
 RETURNING j.*;

@@ -392,7 +392,7 @@
   - Files (3, ~80 lines): `apps/api/internal/scheduler/doc.go`, `apps/api/internal/outbox/doc.go`, `docs/product/modules.md`
   - Done command (green): `cd apps/api && go doc ./internal/scheduler >/dev/null && go doc ./internal/outbox >/dev/null && cd .. && grep -n '^| 002 ' docs/product/modules.md`
   - Note: ADR-0003 Amendment 1 is already committed with the plan; nothing to change. Adding BR-SET-08 to the Rules column of the 002 row is an owner/conductor call (plan, Traceability); left unchanged here.
-- [ ] T068 **backend-dev**: Final gate: go mod tidy leaves go.mod/go.sum unchanged, full API suite with -race, golangci-lint, sqlc vet, short tests, golden scenarios GS-01..04, traceability script. Paste output as evidence.
+- [x] T068 **backend-dev**: Final gate: go mod tidy leaves go.mod/go.sum unchanged, full API suite with -race, golangci-lint, sqlc vet, short tests, golden scenarios GS-01..04, traceability script. Paste output as evidence.
   - Depends on: T058, T060, T061, T062, T063, T064, T065, T059, T066, T067
   - Rules: BR-IPO-03, BR-TASK-03, BR-SET-08, GS-04 | Refs: SC-001-SC-008; quickstart sections 1-4, 6
   - Files (1, ~20 lines): `apps/api/go.mod`

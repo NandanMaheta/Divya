@@ -73,7 +73,7 @@ const claimJob = `-- name: ClaimJob :one
 WITH c AS (
     SELECT id FROM scheduled_jobs
     WHERE (status = 'pending' AND run_at <= $1 AND (expires_at IS NULL OR expires_at > $1))
-       OR (status = 'running' AND locked_until <= $1)
+       OR (status = 'running' AND run_at <= $1 AND locked_until <= $1)
     ORDER BY run_at, id
     LIMIT 1
     FOR UPDATE SKIP LOCKED
@@ -86,6 +86,7 @@ UPDATE scheduled_jobs j SET
     locked_until     = $2,
     lock_token       = gen_random_uuid(),
     locked_by        = $3,
+    rerun            = CASE WHEN j.status = 'running' THEN false ELSE j.rerun END,
     updated_at       = $1
 FROM c WHERE j.id = c.id
 RETURNING j.id, j.org_id, j.kind, j.dedupe_key, j.subject, j.payload, j.run_at, j.expires_at, j.recurring, j.status, j.attempts, j.max_attempts, j.first_attempt_at, j.last_attempt_at, j.last_error, j.locked_until, j.lock_token, j.locked_by, j.rerun, j.cancel_requested, j.alerted_at, j.finished_at, j.created_at, j.updated_at
