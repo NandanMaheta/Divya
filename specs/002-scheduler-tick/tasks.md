@@ -31,7 +31,7 @@
   - Rules: none (mechanism) | Refs: plan: Boundary rules; Risks (depguard negation syntax)
   - Files (1, ~90 lines): `scripts/check-lint-boundaries.sh`
   - Done command (red): `bash scripts/check-lint-boundaries.sh`
-- [ ] T003 **backend-dev**: Extend apps/api/.golangci.yml: depguard rules platform-is-a-leaf (health, scheduler, outbox), outbox-does-not-know-scheduler, oidc-only-in-tickauth; forbidigo for time.Now/Since/Until and time.Local with analyze-types, exclusions for cmd/, platform/clock, platform/httpx and _test.go.
+- [x] T003 **backend-dev**: Extend apps/api/.golangci.yml: depguard rules platform-is-a-leaf (health, scheduler, outbox), outbox-does-not-know-scheduler, oidc-only-in-tickauth; forbidigo for time.Now/Since/Until and time.Local with analyze-types, exclusions for cmd/, platform/clock, platform/httpx and _test.go.
   - Depends on: T002
   - Rules: none (mechanism) | Refs: constitution III, IV; FR-032
   - Files (1, ~40 lines): `apps/api/.golangci.yml`

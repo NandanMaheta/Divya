@@ -62,9 +62,11 @@ func TestFake_SetAndAdvance(t *testing.T) {
 
 func TestFake_NowIsUsableAsFunc(t *testing.T) {
 	f := NewFake(t0)
-	var now Func = f.Now
+	// Passing the method value where a Func is required asserts that Fake.Now satisfies Func.
+	read := func(fn Func) time.Time { return fn() }
+	now := f.Now
 	f.Advance(time.Hour)
-	if got := now(); !got.Equal(t0.Add(time.Hour)) {
+	if got := read(now); !got.Equal(t0.Add(time.Hour)) {
 		t.Fatalf("Func bound to Fake.Now = %v, want %v (it must follow the fake, not a snapshot)", got, t0.Add(time.Hour))
 	}
 }

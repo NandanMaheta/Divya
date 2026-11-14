@@ -30,7 +30,7 @@
     "T003": {
       "owner": "backend-dev",
       "done_command": "bash scripts/check-lint-boundaries.sh",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T002"
       ],

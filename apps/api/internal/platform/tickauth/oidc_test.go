@@ -224,7 +224,8 @@ func newHarness(t *testing.T, opts ...harnessOpt) *harness {
 	}))
 	t.Cleanup(h.srv.Close)
 
-	oidcOpts := []OIDCOption{WithJWKSURL(h.srv.URL)}
+	oidcOpts := make([]OIDCOption, 0, len(opts)+1)
+	oidcOpts = append(oidcOpts, WithJWKSURL(h.srv.URL))
 	for _, o := range opts {
 		oidcOpts = append(oidcOpts, o(h)...)
 	}
