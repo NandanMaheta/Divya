@@ -963,7 +963,7 @@
     "T065": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestSoak_SC_001 ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T048",
         "T050",
@@ -975,7 +975,10 @@
       ],
       "title": "Short soak test TestSoak_SC_001",
       "expect": "green",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/soak_test.go"
+      ]
     },
     "T066": {
       "owner": "backend-dev",

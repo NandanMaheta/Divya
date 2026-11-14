@@ -376,7 +376,7 @@
   - Rules: BR-IPO-03 | Refs: FR-009-FR-016
   - Files (1, ~190 lines): `apps/api/internal/scheduler/model_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties ./internal/scheduler/... -rapid.checks=50`
-- [ ] T065 [P] **test-engineer**: Short soak test TestSoak_SC_001: 3-day slice in PR (30 days, 100 clients, 10 IPOs when SWASTIK_SOAK=full) with random duplicate/overlapping/skipped ticks and crashes; skipped under -short.
+- [x] T065 [P] **test-engineer**: Short soak test TestSoak_SC_001: 3-day slice in PR (30 days, 100 clients, 10 IPOs when SWASTIK_SOAK=full) with random duplicate/overlapping/skipped ticks and crashes; skipped under -short.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: SC-001
   - Files (1, ~170 lines): `apps/api/internal/scheduler/soak_test.go`
