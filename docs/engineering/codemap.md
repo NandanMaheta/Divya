@@ -12,18 +12,71 @@ type Service struct{ ... }
 type Status struct{ ... }
 ```
 
+### `internal/outbox`
+
+```go
+var ErrInvalid = errors.New("outbox: invalid input") ...
+type Counts struct{ ... }
+type DeadGroup struct{ ... }
+type Envelope struct{ ... }
+type FailedFilter struct{ ... }
+type FailedMessage struct{ ... }
+type Message struct{ ... }
+type Options struct{ ... }
+    func DefaultOptions() Options
+type Page[T any] struct{ ... }
+type Recipient struct{ ... }
+type RelayBudget struct{ ... }
+type RelaySummary struct{ ... }
+type Sender interface{ ... }
+type Service struct{ ... }
+    func New(txr db.TxRunner, now clock.Func, log *slog.Logger, opts Options) *Service
+```
+
+### `internal/platform/audit`
+
+```go
+const KindAdmin = "admin" ...
+func Write(ctx context.Context, e Entry) error
+type Actor struct{ ... }
+type Entry struct{ ... }
+```
+
+### `internal/platform/clock`
+
+```go
+func Real() time.Time
+type Fake struct{ ... }
+    func NewFake(t time.Time) *Fake
+type Func = func() time.Time
+```
+
 ### `internal/platform/config`
 
 ```go
 type Config struct{ ... }
     func Load() (Config, error)
+type Tick struct{ ... }
 ```
 
 ### `internal/platform/db`
 
 ```go
+const MaxPayloadBytes = 8192
+var ErrNoTx = errors.New("db: operation requires a transaction in context")
+var ErrPayload = errors.New("db: invalid payload")
+func MarshalPayload(v any) ([]byte, error)
 func Migrate(ctx context.Context, pool *pgxpool.Pool, migrations embed.FS, direction string) (err error)
+func MustTx(ctx context.Context) (dbgen.DBTX, error)
+func NullTimestamptz(t *time.Time) pgtype.Timestamptz
 func Open(ctx context.Context, url string) (*pgxpool.Pool, error)
+func Text(s string) pgtype.Text
+func TextPtr(p pgtype.Text) *string
+func Time(p pgtype.Timestamptz) time.Time
+func TimePtr(p pgtype.Timestamptz) *time.Time
+func Timestamptz(t time.Time) pgtype.Timestamptz
+type TxRunner struct{ ... }
+    func NewTxRunner(pool *pgxpool.Pool) TxRunner
 ```
 
 ### `internal/platform/dbtest`
@@ -37,8 +90,71 @@ func New(t *testing.T) *pgxpool.Pool
 
 ```go
 var Version = "dev"
+func ExtendWriteDeadline(ctx huma.Context, d time.Duration) error
 func NewAPI() (*http.ServeMux, huma.API)
 func NewServer(addr string, h http.Handler, log *slog.Logger) *http.Server
+```
+
+### `internal/platform/istdate`
+
+```go
+var DefaultQuietHours = QuietHours{ ... }
+var IST = mustLoadIST()
+func NextDailyAt(now time.Time, at WallClock) time.Time
+func PaymentDue(listing Date) time.Time
+type Date struct{ ... }
+    func AddWeekdays(d Date, n int) (Date, error)
+    func DateOf(t time.Time) Date
+    func ParseDate(s string) (Date, error)
+type QuietHours struct{ ... }
+type WallClock struct{ ... }
+```
+
+### `internal/platform/retry`
+
+```go
+func Backoff(attempt int, seed string) time.Duration
+func ErrorText(err error) string
+```
+
+### `internal/platform/tickauth`
+
+```go
+var ErrForbidden = errors.New("tickauth: forbidden")
+var ErrUnauthenticated = errors.New("tickauth: unauthenticated")
+type Authenticator interface{ ... }
+    func Disabled() Authenticator
+    func NewDev(token string) Authenticator
+    func NewOIDC(ctx context.Context, audience, serviceAccount string, now func() time.Time, ...) Authenticator
+type OIDCOption func(*oidcConfig)
+    func WithHTTPClient(client *http.Client) OIDCOption
+    func WithJWKSURL(url string) OIDCOption
+```
+
+### `internal/scheduler`
+
+```go
+const AlertTopic = "admin.jobs_dead"
+const RetentionKind = "scheduler.retention"
+var ErrUnknownKind = errors.New("scheduler: unknown job kind") ...
+func RegisterTick(api huma.API, t Ticker, auth tickauth.Authenticator)
+type FailedFilter struct{ ... }
+type FailedJob struct{ ... }
+type Handler func(ctx context.Context, job Job) error
+type Job struct{ ... }
+type JobCounts struct{ ... }
+type JobSpec struct{ ... }
+type KindOptions struct{ ... }
+    func RetentionOptions() KindOptions
+type MessageCounts struct{ ... }
+type Options struct{ ... }
+    func DefaultOptions() Options
+type Page[T any] struct{ ... }
+type Service struct{ ... }
+    func New(txr db.TxRunner, ob *outbox.Service, now clock.Func, log *slog.Logger, ...) *Service
+type Status struct{ ... }
+type TickSummary struct{ ... }
+type Ticker interface{ ... }
 ```
 
 ### `migrations`

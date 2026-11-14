@@ -5,16 +5,17 @@
 package dbgen
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AuditLog struct {
-	ID        pgtype.UUID        `json:"id"`
-	OrgID     pgtype.UUID        `json:"org_id"`
-	ActorID   pgtype.UUID        `json:"actor_id"`
+	ID        uuid.UUID          `json:"id"`
+	OrgID     uuid.UUID          `json:"org_id"`
+	ActorID   uuid.NullUUID      `json:"actor_id"`
 	ActorKind string             `json:"actor_kind"`
 	Entity    string             `json:"entity"`
-	EntityID  pgtype.UUID        `json:"entity_id"`
+	EntityID  uuid.NullUUID      `json:"entity_id"`
 	Action    string             `json:"action"`
 	Before    []byte             `json:"before"`
 	After     []byte             `json:"after"`
@@ -22,7 +23,86 @@ type AuditLog struct {
 }
 
 type Org struct {
-	ID        pgtype.UUID        `json:"id"`
+	ID        uuid.UUID          `json:"id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type OutboxMessage struct {
+	ID                 uuid.UUID          `json:"id"`
+	OrgID              uuid.UUID          `json:"org_id"`
+	Topic              string             `json:"topic"`
+	RecipientKind      string             `json:"recipient_kind"`
+	RecipientID        uuid.NullUUID      `json:"recipient_id"`
+	Subject            string             `json:"subject"`
+	DedupeKey          string             `json:"dedupe_key"`
+	Payload            []byte             `json:"payload"`
+	RespectsQuietHours bool               `json:"respects_quiet_hours"`
+	AvailableAt        pgtype.Timestamptz `json:"available_at"`
+	ExpiresAt          pgtype.Timestamptz `json:"expires_at"`
+	Status             string             `json:"status"`
+	Attempts           int32              `json:"attempts"`
+	MaxAttempts        int32              `json:"max_attempts"`
+	FirstAttemptAt     pgtype.Timestamptz `json:"first_attempt_at"`
+	LastAttemptAt      pgtype.Timestamptz `json:"last_attempt_at"`
+	LastError          pgtype.Text        `json:"last_error"`
+	LockedUntil        pgtype.Timestamptz `json:"locked_until"`
+	LockToken          uuid.NullUUID      `json:"lock_token"`
+	LockedBy           pgtype.Text        `json:"locked_by"`
+	AlertedAt          pgtype.Timestamptz `json:"alerted_at"`
+	SentAt             pgtype.Timestamptz `json:"sent_at"`
+	FinishedAt         pgtype.Timestamptz `json:"finished_at"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type QuietHour struct {
+	OrgID       uuid.UUID          `json:"org_id"`
+	StartMinute int16              `json:"start_minute"`
+	EndMinute   int16              `json:"end_minute"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ScheduledJob struct {
+	ID              uuid.UUID          `json:"id"`
+	OrgID           uuid.UUID          `json:"org_id"`
+	Kind            string             `json:"kind"`
+	DedupeKey       string             `json:"dedupe_key"`
+	Subject         string             `json:"subject"`
+	Payload         []byte             `json:"payload"`
+	RunAt           pgtype.Timestamptz `json:"run_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Recurring       bool               `json:"recurring"`
+	Status          string             `json:"status"`
+	Attempts        int32              `json:"attempts"`
+	MaxAttempts     int32              `json:"max_attempts"`
+	FirstAttemptAt  pgtype.Timestamptz `json:"first_attempt_at"`
+	LastAttemptAt   pgtype.Timestamptz `json:"last_attempt_at"`
+	LastError       pgtype.Text        `json:"last_error"`
+	LockedUntil     pgtype.Timestamptz `json:"locked_until"`
+	LockToken       uuid.NullUUID      `json:"lock_token"`
+	LockedBy        pgtype.Text        `json:"locked_by"`
+	Rerun           bool               `json:"rerun"`
+	CancelRequested bool               `json:"cancel_requested"`
+	AlertedAt       pgtype.Timestamptz `json:"alerted_at"`
+	FinishedAt      pgtype.Timestamptz `json:"finished_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type TickRun struct {
+	ID              uuid.UUID          `json:"id"`
+	StartedAt       pgtype.Timestamptz `json:"started_at"`
+	FinishedAt      pgtype.Timestamptz `json:"finished_at"`
+	Status          string             `json:"status"`
+	Instance        string             `json:"instance"`
+	JobsRun         int32              `json:"jobs_run"`
+	JobsFailed      int32              `json:"jobs_failed"`
+	JobsDead        int32              `json:"jobs_dead"`
+	JobsExpired     int32              `json:"jobs_expired"`
+	MsgsSent        int32              `json:"msgs_sent"`
+	MsgsFailed      int32              `json:"msgs_failed"`
+	MsgsDead        int32              `json:"msgs_dead"`
+	MsgsExpired     int32              `json:"msgs_expired"`
+	BudgetExhausted bool               `json:"budget_exhausted"`
 }

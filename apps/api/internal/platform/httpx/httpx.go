@@ -2,6 +2,7 @@
 package httpx
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -42,6 +43,22 @@ type statusRecorder struct {
 func (r *statusRecorder) WriteHeader(code int) {
 	r.status = code
 	r.ResponseWriter.WriteHeader(code)
+}
+
+// Unwrap lets http.NewResponseController reach the real writer (deadlines, flushing) through
+// the logging wrapper.
+func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
+
+// ExtendWriteDeadline moves the response write deadline to d from now, for the few routes that
+// legitimately outlive the global 30 s WriteTimeout (the scheduler tick). It returns an error
+// wrapping http.ErrNotSupported when the underlying writer has no deadline support. It must be
+// called with a context created by the humago adapter, the only adapter in use.
+func ExtendWriteDeadline(ctx huma.Context, d time.Duration) error {
+	_, w := humago.Unwrap(ctx)
+	if err := http.NewResponseController(w).SetWriteDeadline(time.Now().Add(d)); err != nil {
+		return fmt.Errorf("httpx: extend write deadline: %w", err)
+	}
+	return nil
 }
 
 func logRequests(next http.Handler, log *slog.Logger) http.Handler {

@@ -1,0 +1,74 @@
+# Internal-only operation. Registered with huma.Operation{Hidden: true}: it is NOT part of
+# packages/api-client/openapi.yaml and NOT in the generated TS client (FR-004, US2.6).
+# This file documents the contract for the Cloud Scheduler job (feature 027) and for tests.
+openapi: 3.1.0
+info:
+  title: Swastik internal tick
+  version: "1"
+paths:
+  /internal/tick:
+    post:
+      operationId: scheduler-tick
+      summary: Run due scheduled jobs, then relay available outbox messages (ADR-0003)
+      description: |
+        Called by Cloud Scheduler every 5 minutes with a Google-signed OIDC ID token.
+        Runs synchronously inside the request (Cloud Run CPU is only allocated during requests).
+        Returns 200 whenever processing ran, even if individual jobs or messages failed (FR-007);
+        those are retried by the queue. Non-2xx only when the tick could not run at all.
+        No request body. Credential contents are never logged.
+      parameters:
+        - name: Authorization
+          in: header
+          required: false   # absence is answered with 401, not 422
+          schema: { type: string }
+          description: "Bearer <Google OIDC ID token> (staging/production) or Bearer <TICK_DEV_TOKEN> (local/ci)"
+      responses:
+        "200":
+          description: Tick ran (possibly with individual failures or a budget cut-off)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TickSummary" }
+        "401":
+          description: Missing, malformed, expired, wrong-audience or non-Google credentials; or tick auth not configured. Generic body, header `WWW-Authenticate: Bearer`.
+          content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+        "403":
+          description: Valid Google token for a different identity than TICK_SERVICE_ACCOUNT.
+          content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+        "503":
+          description: Database unreachable; nothing was processed or the tick stopped before finishing (each committed job is still atomic).
+          content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+components:
+  schemas:
+    TickSummary:
+      type: object
+      additionalProperties: false
+      required: [tick_id, started_at, finished_at, jobs, messages, budget_exhausted]
+      properties:
+        tick_id: { type: string, format: uuid }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+        jobs:
+          type: object
+          required: [run, failed, dead, expired]
+          properties:
+            run: { type: integer, minimum: 0, description: "completed successfully" }
+            failed: { type: integer, minimum: 0, description: "failed and scheduled for retry" }
+            dead: { type: integer, minimum: 0 }
+            expired: { type: integer, minimum: 0 }
+        messages:
+          type: object
+          required: [sent, failed, dead, expired]
+          properties:
+            sent: { type: integer, minimum: 0 }
+            failed: { type: integer, minimum: 0 }
+            dead: { type: integer, minimum: 0 }
+            expired: { type: integer, minimum: 0 }
+        budget_exhausted: { type: boolean, description: "true when caps or the time budget stopped the tick early; the rest waits for the next tick" }
+    Problem:
+      type: object
+      description: RFC 9457 problem details (Huma default error model)
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
