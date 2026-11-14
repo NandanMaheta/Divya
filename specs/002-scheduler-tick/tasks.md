@@ -381,7 +381,7 @@
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: SC-001
   - Files (1, ~170 lines): `apps/api/internal/scheduler/soak_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestSoak_SC_001 ./internal/scheduler/...`
-- [ ] T066 [P] **backend-dev**: nightly.yml: add a job running SWASTIK_SOAK=full go test -run TestSoak_SC_001 -timeout 20m ./internal/scheduler/...
+- [x] T066 [P] **backend-dev**: nightly.yml: add a job running SWASTIK_SOAK=full go test -run TestSoak_SC_001 -timeout 20m ./internal/scheduler/...
   - Depends on: T065
   - Rules: none (mechanism) | Refs: quickstart section 3
   - Files (1, ~30 lines): `.github/workflows/nightly.yml`

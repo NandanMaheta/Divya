@@ -983,7 +983,7 @@
     "T066": {
       "owner": "backend-dev",
       "done_command": "grep -q 'SWASTIK_SOAK=full' .github/workflows/nightly.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))\"",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T065"
       ],
