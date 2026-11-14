@@ -1,127 +1,164 @@
 # Swastik
 
-**Swastik is a private operations platform for managing IPO applications across many family accounts.** One operator lists upcoming mainboard IPOs, decides which to apply for, offers each client a deal (profit share or fixed amount), reminds every account to apply on time, records allotments and the listing price, and settles the money — with a complete history and financial-year reports for everyone involved.
+**A private IPO operations platform: one operator, about 100 invited clients and their family accounts, every IPO from "apply" to "settled".**
 
-It replaces a manual process of WhatsApp messages, spreadsheets and mental arithmetic with:
+Built by **[Nandan Maheta](https://github.com/NandanMaheta)**. It's an AI-native engineering project: specified, planned, tested and built by a pipeline of Claude Code agents under one owner's direction.
 
-- an **admin web panel** for the operator (approvals, IPOs, deals, task board, allotment, settlements, reports);
-- a **client app** — Android app and iPhone web app from one codebase — where clients and their family accounts see tasks, deals, allotments, amounts due and earnings;
-- a **Go API** with a double-entry ledger, a 5-minute scheduler for reminders and deadlines, and strict audit history;
-- a small **Python worker** for IPO data and AI-written company summaries.
+> Internal use only: invite-only users, no public sign-up, no automated IPO applying, no WhatsApp.
 
-> Internal use only: invited users, no public sign-up, no automated IPO applying, no WhatsApp. See `docs/product/` for the full product and legal context.
+---
 
-## Status
+## 1. The problem
 
-| Stage                                               | State       |
-| --------------------------------------------------- | ----------- |
-| Stage 0 — repository, toolchain, agent pipeline, CI | ✅ Done     |
-| Features 002 (scheduler) and 003 (sign-in)          | 🛠 Planning  |
-| MVP (27 features, see `docs/product/modules.md`)    | ⏳ ~8 weeks |
+An operator funds IPO applications for a circle of clients, many of whom manage several family demat accounts. Today the operator does it all by hand:
+- WhatsApp messages: "apply for X before 5 pm";
+- chasing who applied;
+- checking allotments one PAN at a time;
+- working out each person's share on listing day;
+- tracking who has paid.
 
-## How it works (business flow)
+It's slow and easy to get wrong, and there's no reliable history.
 
-```
-Operator adds IPO ─► marks APPLY / DO NOT APPLY ─► publishes deals (profit share by default, fixed price optional)
-     │
-     ├─► clients pick a deal per family account (fixed picks need operator approval)
-     ├─► "Apply" tasks with UPI ID + time window → push reminders every 1–2 h until marked applied
-     ├─► allotment day: operator marks allotted / not allotted
-     ├─► listing day: operator enters the NSE listing price → every amount is calculated automatically
-     └─► client pays (due listing day + 2 weekdays) → taps "Payment done" → operator confirms → settled ✅
-```
-
-The exact rules (formulas, due dates, approvals) live in [`docs/product/business-rules.md`](docs/product/business-rules.md) and are enforced by named tests.
-
-## Tech stack
-
-| Area                      | Choice                                                                                              |
-| ------------------------- | --------------------------------------------------------------------------------------------------- |
-| API                       | Go 1.27 · Huma v2 (OpenAPI 3.1) · pgx v5 · sqlc · goose                                             |
-| Database                  | PostgreSQL 18 (Supabase), integer-paise double-entry ledger, append-only audit log                  |
-| Worker                    | Python 3.13 · FastAPI · uv · Ruff · pyright (strict)                                                |
-| Admin web                 | Vite · React 19 · TanStack Router/Query/Table · Tailwind v4                                         |
-| Client app                | Expo SDK 58 · React Native 0.88 · Expo Router (Android APK + iPhone PWA)                            |
-| Shared                    | pnpm + Turborepo · TypeScript 7 · Biome 2 · generated TypeScript API client                         |
-| Testing                   | Go tests + testcontainers (real Postgres) + property tests · Vitest · pytest · Playwright · Maestro |
-| Hosting (₹0/month target) | Google Cloud Run (Mumbai) · Cloud Scheduler · Supabase · Cloudflare Pages, Access and R2            |
-| Delivery                  | Spec Kit + Claude Code agents · GitHub Actions                                                      |
-
-## Repository layout
+## 2. What Swastik does
 
 ```
-apps/
-  api/        Go modular monolith — one folder per module under internal/ (health is the reference module)
-  worker/     Python data/AI worker
-  admin/      Admin web panel
-  client/     Client app (Android + web/PWA)
-packages/
-  domain/     Shared formatting (₹ in paise, Indian grouping) and status vocabulary
-  tokens/     Design tokens (colours, radius, spacing) for web and mobile
-  api-client/ TypeScript client generated from the API's OpenAPI spec
-docs/
-  product/    Product blueprint, automation blueprint, business rules, module map, research report
-  engineering/git-workflow.md   Branches, naming, releases, worktrees
-  adr/        Architecture decision records
-specs/        One folder per feature: research, spec, plan, tasks (Spec Kit)
-.claude/      AI agents, skills, hooks and path rules
-.specify/     Spec Kit config and the project constitution
-.github/      CI/CD workflows, PR template, CODEOWNERS
-infra/        Docker Compose for local Postgres; infrastructure-as-code (later)
+Admin adds IPO ──► marks APPLY / DO NOT APPLY ──► publishes deals
+     │                                              (profit share by default, fixed price optional)
+     ├─► Client picks a deal per family account ──► fixed-price picks need admin approval
+     ├─► "Apply" task per account (UPI ID + time window) ──► push reminders every 1–2 h until marked applied
+     ├─► Allotment day: admin marks allotted / not allotted (bulk)
+     ├─► Listing day: admin enters the NSE listing price ──► every amount is calculated automatically
+     └─► Client pays (due listing day + 2 weekdays) ──► "Payment done" ──► admin confirms ──► Settled ✅
 ```
 
-## Getting started
+**Deals and settlement.** I = issue price × shares; G = listing gain = (listing price − issue price) × shares.
+
+| Deal | Not allotted | Allotted with profit | Allotted at a loss |
+|---|---|---|---|
+| **Profit share p%** (default) | nothing either way | client returns **I + G − p·G** | client returns **I + G** (operator bears the loss) |
+| **Fixed ₹F** (+ ₹40 brokerage B) | operator pays client **F** | client returns **I + G − F − B** | client returns **I + G − F** |
+
+Example: investment ₹15,000, profit ₹3,000. A 30% share means the client returns **₹17,100**; a fixed ₹500 deal means **₹17,460**. All rules live in [`docs/product/business-rules.md`](docs/product/business-rules.md) and are enforced by named tests ("golden scenarios").
+
+**Two apps:**
+
+| Admin web panel (operator) | Client app (Android + iPhone web app) |
+|---|---|
+| Today dashboard, approvals queue, IPOs, deals and live fixed-price quotes, task board, allotment, settlements, clients, FY / quarter reports, audit log | Sign-up with email + SMS OTP, festival greetings, IPO list, deals, tasks with reminders, allotment, payments, earnings reports, up to 10 family accounts |
+
+## 3. Architecture
+
+```
+  Admin panel (Vite + React) ── Cloudflare Pages + Access ──┐
+  Client app (Expo: Android APK + iPhone PWA) ──────────────┤
+                                                            ▼
+                     ┌──────────────────────────────────────────────┐
+                     │ Go API: modular monolith (Cloud Run, Mumbai)   │
+                     │ auth · clients · IPOs · deals · tasks ·        │
+                     │ allotment · settlement ledger · payments ·     │
+                     │ notifications · reports · scheduler            │
+                     └──────┬──────────────────────────┬──────────────┘
+                            │                          │
+  Cloud Scheduler ─ 5 min ─► /internal/tick      PostgreSQL 18 (Supabase, Mumbai)
+  (reminders, deadlines,                         append-only ledger + audit log
+   status changes, outbox relay)
+                            │
+  Push (FCM / Web Push) · Email (Resend) · SMS OTP (Firebase) ◄── outbox
+  Python worker (FastAPI): IPO data import, prospectus → AI company brief
+```
+
+Key design decisions (see [`docs/adr/`](docs/adr/)):
+- **Modular monolith in Go:** one binary, hard module boundaries enforced by lint, easy to split later.
+- **Money in integer paise, double-entry ledger:** append-only; corrections are reversals; every change is audited.
+- **Tick-driven scheduler:** one 5-minute tick drives every reminder and deadline, so it runs on scale-to-zero hosting at about ₹0 a month.
+- **One Expo codebase:** the Android app and the iPhone PWA come from the same code.
+- **Contract-first API:** the OpenAPI 3.1 spec is generated from Go, and the TypeScript client is generated from the spec.
+
+## 4. Tech stack
+
+| Area | Technology |
+|---|---|
+| API | **Go 1.27**, Huma v2 (OpenAPI 3.1, RFC 9457 errors), pgx v5, sqlc, goose |
+| Database | **PostgreSQL 18** on Supabase (Mumbai), integer-paise ledger, append-only audit |
+| Worker | **Python 3.13**, FastAPI, uv, Ruff, pyright (strict) |
+| Admin web | **React 19**, Vite, TanStack Router / Query / Table, Tailwind CSS v4 |
+| Client app | **Expo SDK 58**, React Native 0.88, Expo Router (Android + PWA) |
+| Shared | pnpm + Turborepo monorepo, TypeScript 7, Biome 2, generated API client, design tokens |
+| Auth | Argon2id, EdDSA JWT + rotating device-bound refresh tokens, admin TOTP 2FA |
+| Testing | Go tests + testcontainers (real Postgres) + property tests (rapid) + mutation tests; Vitest; pytest; Playwright; Maestro |
+| Infra (~₹0/month) | Google Cloud Run + Cloud Scheduler (Mumbai), Supabase, Cloudflare (DNS, Pages, Access, R2), Firebase, Resend, Sentry |
+| CI/CD | GitHub Actions: lint, tests, contract and secret checks; OIDC deploys (no stored cloud keys) |
+
+## 5. AI-native delivery workflow
+
+Swastik is built by **Claude Code agents** following **GitHub Spec Kit**. The owner approves; the agents do the rest.
+
+```
+idea ─► researcher ─► spec-writer ─► OWNER approves spec ─► architect (plan + ADRs) ─► planner (small tasks)
+     ─► test-engineer writes FAILING tests ─► developers make them pass (parallel git worktrees)
+     ─► reviewer + security-reviewer (fresh context) ─► PR into stage ─► CI ─► QA agents
+     ─► OWNER tests on staging ─► release PR stage → main ─► OWNER approves production deploy
+```
+
+- **17 role agents** in [`.claude/agents/`](.claude/agents/): researcher, spec-writer, architect, planner, test-engineer, backend/admin/mobile/data developers, designer, reviewer, security-reviewer, QA web/mobile, release, triage, ops.
+- **Guard-rail hooks** in [`.claude/hooks/`](.claude/hooks/):
+  - every edit is formatted and type-checked;
+  - developers can't edit the tests written for them;
+  - secrets, production and force-pushes are blocked;
+  - an agent isn't done until its task's tests pass.
+- **Constitution** in [`.specify/memory/constitution.md`](.specify/memory/constitution.md): non-negotiable rules (exact money, test-first, module boundaries, security, performance budgets).
+- **Traceability:** every business rule has a named test; CI fails if one is missing.
+- The full pipeline is described in [`docs/product/automation-blueprint.md`](docs/product/automation-blueprint.md).
+
+## 6. Repository layout
+
+```
+apps/api          Go API (one folder per module in internal/; health = reference module)
+apps/worker       Python data/AI worker
+apps/admin        Admin web panel
+apps/client       Client app (Android + web/PWA)
+packages/         domain (₹ formatting, statuses) · tokens (design) · api-client (generated)
+docs/product      Blueprints, business rules, module map (build order), research
+docs/adr          Architecture decisions · docs/design: design direction + screen specs
+docs/engineering  Git workflow: branches, PRs, releases, worktrees
+specs/NNN-*       Per feature: research, spec, plan, tasks, state (Spec Kit)
+.claude/ .specify/  Agents, skills, hooks, rules; Spec Kit + constitution
+.github/          CI/CD workflows, PR template, CODEOWNERS
+```
+
+## 7. Branches and releases
+
+- `main` = **production**; `stage` = **default working branch** (auto-deploys to staging).
+- Work happens on short-lived branches from `stage`: `feat/016-settlement-engine`, `fix/41-otp-resend-timer`, `chore/…`. Changes merge by PR, with CI required.
+- Releases are a PR from `stage` → `main`; production deploys wait for the owner's approval.
+- Details: [`docs/engineering/git-workflow.md`](docs/engineering/git-workflow.md).
+
+## 8. Run it locally
 
 Prerequisites: Go 1.27, Node 22 + pnpm 10, Python 3.13 + uv, Docker.
 
 ```bash
-git clone https://github.com/NandanMaheta/Swastik.git swastik && cd swastik
-git switch stage                       # stage is the working branch
-make setup                             # pnpm install, go mod download, uv sync
-make db-up                             # PostgreSQL 18 in Docker
-cp .env.example .env                   # local settings only; never commit real secrets
-make migrate
+git clone https://github.com/NandanMaheta/Swastik.git swastik && cd swastik && git switch stage
+make setup && make db-up && cp .env.example .env && make migrate
 make api                               # API on http://localhost:8080 (docs at /docs)
-pnpm --filter @swastik/admin dev         # admin panel on http://localhost:5173
-pnpm --filter @swastik/client start      # client app (press w for web, a for Android)
+pnpm --filter @swastik/admin dev       # admin panel on http://localhost:5173
+pnpm --filter @swastik/client start    # client app (press w for web, or scan with Expo Go)
+make test && make lint                 # all tests and linters
 ```
 
-Checks before pushing:
+## 9. Status
 
-```bash
-make test          # Go (incl. Postgres integration), Python, JS tests
-make lint          # golangci-lint, Ruff, Biome
-pnpm turbo run typecheck build
-scripts/check-br-traceability.sh
-```
+| Stage | State |
+|---|---|
+| Foundation: monorepo, CI/CD, agent pipeline, design direction | ✅ Done |
+| 002 Scheduler · 003 Sign-in · 008 IPO catalogue | 🛠 In progress |
+| MVP: 27 features (see [`docs/product/modules.md`](docs/product/modules.md)) | ⏳ Planned |
 
-## Branches and releases
+## 10. Key documents
 
-`main` is **production**, `stage` is the **default working branch** (auto-deployed to staging). All work happens on short-lived branches from `stage` with readable names — `feat/016-settlement-engine`, `fix/41-otp-resend-timer`, `chore/upgrade-expo-sdk-59` — merged by pull request. Releases are pull requests from `stage` to `main`. Details, hotfixes and parallel work with git worktrees: [`docs/engineering/git-workflow.md`](docs/engineering/git-workflow.md).
+[Product blueprint](docs/product/product-blueprint.md) · [Business rules](docs/product/business-rules.md) · [Module map](docs/product/modules.md) · [Automation blueprint](docs/product/automation-blueprint.md) · [Design direction](docs/design/design-direction.md) · [Git workflow](docs/engineering/git-workflow.md) · [ADRs](docs/adr/)
 
-## How features get built
+---
 
-Every feature goes through the same pipeline, run by Claude Code agents with the owner approving at a few gates:
-
-1. **Research** → 2. **Spec** (user stories, acceptance criteria, business-rule IDs) → **owner approves** → 3. **Plan** (data model, API contract, test strategy) → 4. **Tasks** (small, parallelisable) → 5. **Tests first**, then implementation in parallel worktrees → 6. **Independent review** + security review → 7. **PR into `stage`**, CI, QA agents → **owner UAT on staging** → 8. **Release** to `main`.
-
-```text
-/ship-feature 016      # one feature end to end
-/ship-module M7        # every ready feature of a module, with batched approvals
-/speckit-bug-assess    # bugs: reproduce → failing test → fix
-```
-
-Read [`docs/product/automation-blueprint.md`](docs/product/automation-blueprint.md) for the full pipeline and [`.specify/memory/constitution.md`](.specify/memory/constitution.md) for the non-negotiable engineering rules.
-
-## Key documents
-
-- [Product blueprint](docs/product/product-blueprint.md) — screens, flows, settlement maths, hosting
-- [Business rules](docs/product/business-rules.md) — the source of truth for behaviour
-- [Module map](docs/product/modules.md) — the 27 features and their build order
-- [Automation blueprint](docs/product/automation-blueprint.md) — agents, gates, testing, CI/CD
-- [Git workflow](docs/engineering/git-workflow.md) — branches, naming, releases
-- [ADRs](docs/adr/) — architecture decisions
-
-## License
-
+Built by **Nandan Maheta**: product, architecture and direction; implementation by an AI agent pipeline under his review.
 Private and proprietary. All rights reserved.
