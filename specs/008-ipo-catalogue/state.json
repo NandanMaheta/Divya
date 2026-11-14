@@ -249,7 +249,8 @@
         "apps/api/internal/ipos/eligible_test.go",
         "apps/api/internal/ipos/signals_test.go",
         "apps/api/internal/ipos/signals_status_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S10": {
       "owner": "backend-dev",
