@@ -270,7 +270,7 @@
   - Rules: none (mechanism) | Refs: FR-008; K9
   - Files (2, ~150 lines): `apps/api/internal/scheduler/registry.go`, `apps/api/internal/scheduler/service.go`
   - Done command (green): `cd apps/api && go build ./internal/scheduler/...`
-- [ ] T046 **backend-dev**: Implement scheduler store.go and schedule.go: Schedule (upsert, requires tx, payload <= 8 KB), Reschedule (never creates; rerun when running), Cancel, CancelSubject.
+- [x] T046 **backend-dev**: Implement scheduler store.go and schedule.go: Schedule (upsert, requires tx, payload <= 8 KB), Reschedule (never creates; rerun when running), Cancel, CancelSubject.
   - Depends on: T041, T045, T027
   - Rules: BR-IPO-03 | Refs: FR-008, FR-009, FR-013; K3
   - Files (2, ~190 lines): `apps/api/internal/scheduler/store.go`, `apps/api/internal/scheduler/schedule.go`

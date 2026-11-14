@@ -661,7 +661,7 @@
     "T046": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T041",
         "T045",

@@ -1,12 +1,11 @@
 package scheduler
 
-// Compile skeleton (T045): every exported name the harness and tests use, so the package builds.
-// T046-T056 replace each stub with the real implementation and this file disappears.
+// Compile skeleton (T045): exported names still to be implemented. T047-T056 replace each stub
+// and this file disappears.
 
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
@@ -17,14 +16,6 @@ import (
 
 var errTodo = errors.New("scheduler: not implemented")
 
-func (s *Service) Schedule(context.Context, JobSpec) error { return errTodo }
-func (s *Service) Reschedule(context.Context, uuid.UUID, string, string, time.Time) (bool, error) {
-	return false, errTodo
-}
-func (s *Service) Cancel(context.Context, uuid.UUID, string, string) (int, error) { return 0, errTodo }
-func (s *Service) CancelSubject(context.Context, uuid.UUID, string) (int, error) {
-	return 0, errTodo
-}
 func (s *Service) Tick(context.Context) (TickSummary, error) { return TickSummary{}, errTodo }
 
 type Status struct{}
