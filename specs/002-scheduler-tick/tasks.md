@@ -175,7 +175,7 @@
   - Rules: BR-TASK-03 | Refs: data-model 2-3; FR-023-FR-031
   - Files (1, ~170 lines): `apps/api/queries/outbox.sql`
   - Done command (green): `cd apps/api && sqlc vet && sqlc generate && go build ./...`
-- [ ] T030 **backend-dev**: queries/outbox_admin.sql: ListFailedMessages, CountMessagesByState, GetMessageForOrg, AdminRetryMessage, AdminCancelMessage, SelectUnalertedDeadMessages, MarkMessagesAlerted, PurgeFinishedMessages.
+- [x] T030 **backend-dev**: queries/outbox_admin.sql: ListFailedMessages, CountMessagesByState, GetMessageForOrg, AdminRetryMessage, AdminCancelMessage, SelectUnalertedDeadMessages, MarkMessagesAlerted, PurgeFinishedMessages.
   - Depends on: T029
   - Rules: none (mechanism) | Refs: data-model 2; FR-019, FR-020, FR-035
   - Files (1, ~130 lines): `apps/api/queries/outbox_admin.sql`
