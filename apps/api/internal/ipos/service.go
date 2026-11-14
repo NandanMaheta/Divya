@@ -1,4 +1,3 @@
-//nolint:unparam,revive,unused // S01 compile skeleton; removed as slices land
 package ipos
 
 import (
@@ -36,9 +35,21 @@ type Deps struct {
 type Service struct {
 	d     Deps
 	store *Store
+	sig   listeners
 }
 
-func NewService(d Deps) *Service { return &Service{d: d} }
+// NewService builds the service; it needs no other wiring (the Store is stateless).
+func NewService(d Deps) *Service {
+	if d.Log == nil {
+		d.Log = slog.Default()
+	}
+	return &Service{d: d, store: &Store{}}
+}
+
+// inTx runs fn in the caller's transaction, or in a new one when ctx has none.
+func (s *Service) inTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	return s.d.Tx.InTx(ctx, fn)
+}
 
 // RegisterJobs registers ipo.open, ipo.close, ipo.allotment, ipo.list.
 func RegisterJobs(r JobRegistrar, s *Service) { panic(errNotImplemented) }
@@ -46,9 +57,6 @@ func RegisterJobs(r JobRegistrar, s *Service) { panic(errNotImplemented) }
 // Register adds the HTTP operations (admin + client).
 func Register(api huma.API, s *Service) { panic(errNotImplemented) }
 
-func (s *Service) Get(ctx context.Context, org, id uuid.UUID) (IPO, error) {
-	return IPO{}, errNotImplemented
-}
 func (s *Service) RequireEligible(ctx context.Context, org, id uuid.UUID) (IPO, error) {
 	return IPO{}, errNotImplemented
 }
@@ -76,13 +84,4 @@ func (s *Service) OverrideStatus(ctx context.Context, by audit.Actor, org, id uu
 }
 func (s *Service) Delete(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, idemKey string) (bool, error) {
 	return false, errNotImplemented
-}
-func (s *Service) List(ctx context.Context, org uuid.UUID, f AdminFilter) (Page[IPO], error) {
-	return Page[IPO]{}, errNotImplemented
-}
-func (s *Service) ListPublished(ctx context.Context, org uuid.UUID, f ClientFilter) (Page[IPO], error) {
-	return Page[IPO]{}, errNotImplemented
-}
-func (s *Service) GetPublished(ctx context.Context, org, id uuid.UUID) (IPO, error) {
-	return IPO{}, errNotImplemented
 }
