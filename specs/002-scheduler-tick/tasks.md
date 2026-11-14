@@ -265,7 +265,7 @@
   - Files (1, ~160 lines): `apps/api/internal/scheduler/lease_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestLease_' ./internal/scheduler/...`
   - Note (test-engineer): includes the rapid property `TestLease_BR_IPO_03_ClaimAndLeaseProperties`. The tests assume the claim commits before the handler runs and the handler's transaction does not lock the job row until it completes it (another instance must be able to reclaim an expired lease mid-run); and that a claim with attempts > max_attempts ends `dead` with a "lease expired" last_error without running the handler. Green needs T047 plus T048 (tests drive everything through Tick).
-- [ ] T045 **backend-dev**: Implement scheduler registry.go and service.go: Options/DefaultOptions, New, Register (panics on duplicate), KindOptions, Job/JobSpec/TickSummary/Status types, sentinel errors.
+- [x] T045 **backend-dev**: Implement scheduler registry.go and service.go: Options/DefaultOptions, New, Register (panics on duplicate), KindOptions, Job/JobSpec/TickSummary/Status types, sentinel errors.
   - Depends on: T036, T024
   - Rules: none (mechanism) | Refs: FR-008; K9
   - Files (2, ~150 lines): `apps/api/internal/scheduler/registry.go`, `apps/api/internal/scheduler/service.go`

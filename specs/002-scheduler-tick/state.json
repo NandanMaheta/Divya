@@ -648,7 +648,7 @@
     "T045": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go build ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T036",
         "T024"
