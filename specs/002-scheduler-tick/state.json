@@ -711,7 +711,7 @@
     "T049": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestAlert_ ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -719,7 +719,10 @@
       "rules": [],
       "title": "Dead-alert tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/alert_test.go"
+      ]
     },
     "T050": {
       "owner": "backend-dev",
