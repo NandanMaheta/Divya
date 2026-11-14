@@ -143,12 +143,12 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: D-08; plan P-07
   - Files (1, ~70 lines): `apps/api/internal/auth/throttle_apply.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestLockout_|TestThrottleApply' ./internal/auth/`
-- [ ] T024 [P] **test-engineer**: Tests for access tokens (issue and claims): header alg EdDSA, typ at+jwt, kid; claims iss, aud, sub, sid, org, role, iat, exp, jti; exp = min(now+15m, absolute expiry) truncated to whole seconds; two keys in the ring verify, only the active one signs; rotation.
+- [x] T024 [P] **test-engineer**: Tests for access tokens (issue and claims): header alg EdDSA, typ at+jwt, kid; claims iss, aud, sub, sid, org, role, iat, exp, jti; exp = min(now+15m, absolute expiry) truncated to whole seconds; two keys in the ring verify, only the active one signs; rotation.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: D-05; plan P-02
   - Files (1, ~130 lines): `apps/api/internal/auth/tokens_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestTokens_' ./internal/auth/`
-- [ ] T025 [P] **test-engineer**: Tests for access-token rejection: alg none, HS256 and RS256 tokens, unknown kid, jku/jwk/x5u headers ignored, missing or wrong typ, missing exp, missing iat, wrong iss or aud, tampered payload, expired, rejected at exactly exp (go-jose accepts it), a zero Expected.Time cannot fall back to the wall clock (pins the time.Now trap), future iat beyond skew.
+- [x] T025 [P] **test-engineer**: Tests for access-token rejection: alg none, HS256 and RS256 tokens, unknown kid, jku/jwk/x5u headers ignored, missing or wrong typ, missing exp, missing iat, wrong iss or aud, tampered payload, expired, rejected at exactly exp (go-jose accepts it), a zero Expected.Time cannot fall back to the wall clock (pins the time.Now trap), future iat beyond skew.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-030, FR-035, SC-001; plan P-02
   - Files (1, ~150 lines): `apps/api/internal/auth/tokens_reject_test.go`
@@ -158,7 +158,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-02
   - Files (1, ~190 lines): `apps/api/internal/auth/tokens.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestTokens' ./internal/auth/`
-- [ ] T027 [P] **test-engineer**: Tests for TOTP: RFC 6238 Appendix B SHA-1 vectors at their times, candidate steps N-1/N/N+1 accepted and N+-2 rejected, step <= last_used_step rejected, matched step returned, all candidates evaluated, 6 digits/30 s/20-byte secret, otpauth URI shape (issuer Swastik, account email), secret returned base32 without padding.
+- [x] T027 [P] **test-engineer**: Tests for TOTP: RFC 6238 Appendix B SHA-1 vectors at their times, candidate steps N-1/N/N+1 accepted and N+-2 rejected, step <= last_used_step rejected, matched step returned, all candidates evaluated, 6 digits/30 s/20-byte secret, otpauth URI shape (issuer Swastik, account email), secret returned base32 without padding.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-061, US-5 s4-5; plan P-05
   - Files (1, ~150 lines): `apps/api/internal/auth/totp_test.go`
@@ -168,7 +168,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-05
   - Files (1, ~110 lines): `apps/api/internal/auth/totp.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestTotp' ./internal/auth/`
-- [ ] T029 [P] **test-engineer**: Tests for recovery codes: 10 codes of 80 random bits in XXXX-XXXX-XXXX-XXXX Crockford base32, all distinct, input normalisation (case, hyphens, spaces, O->0, I/L->1), SHA-256 digest stable across spellings, a wrong code never matches.
+- [x] T029 [P] **test-engineer**: Tests for recovery codes: 10 codes of 80 random bits in XXXX-XXXX-XXXX-XXXX Crockford base32, all distinct, input normalisation (case, hyphens, spaces, O->0, I/L->1), SHA-256 digest stable across spellings, a wrong code never matches.
   - Depends on: T003
   - Rules: none (mechanism) | Refs: FR-062, US-5 s6; plan P-05
   - Files (1, ~100 lines): `apps/api/internal/auth/recovery_test.go`

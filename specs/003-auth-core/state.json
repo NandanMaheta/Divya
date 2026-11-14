@@ -311,26 +311,32 @@
     "T024": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestTokens_' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for access tokens (issue and claims): header alg EdDSA, typ at+jwt, kid; claims iss, aud, sub, sid, org, role, iat, exp, jti; exp = mi",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/tokens_test.go"
+      ]
     },
     "T025": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestTokensReject_' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for access-token rejection: alg none, HS256 and RS256 tokens, unknown kid, jku/jwk/x5u headers ignored, missing or wrong typ, missing ",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/tokens_reject_test.go"
+      ]
     },
     "T026": {
       "owner": "backend-dev",
@@ -348,14 +354,17 @@
     "T027": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestTotp' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for TOTP: RFC 6238 Appendix B SHA-1 vectors at their times, candidate steps N-1/N/N+1 accepted and N+-2 rejected, step <= last_used_st",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/totp_test.go"
+      ]
     },
     "T028": {
       "owner": "backend-dev",
@@ -372,14 +381,17 @@
     "T029": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestRecovery' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T003"
       ],
       "rules": [],
       "title": "Tests for recovery codes: 10 codes of 80 random bits in XXXX-XXXX-XXXX-XXXX Crockford base32, all distinct, input normalisation (case, hyphe",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/recovery_test.go"
+      ]
     },
     "T030": {
       "owner": "backend-dev",
