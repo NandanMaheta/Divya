@@ -14,7 +14,7 @@ Common rules:
 // Clock is the single source of "now" (constitution III). Production: clock.Real.
 type Func = func() time.Time
 
-func Real() time.Time                    // time.Now().UTC(); only wired in cmd/divya
+func Real() time.Time                    // time.Now().UTC(); only wired in cmd/swastik
 
 type Fake struct{ /* mutex-guarded */ }
 func NewFake(t time.Time) *Fake

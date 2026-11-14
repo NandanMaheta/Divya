@@ -49,8 +49,8 @@ import (
 )
 
 const (
-	testAudience       = "https://divya-api-abc123-el.a.run.app"
-	testServiceAccount = "scheduler@divya-test.iam.gserviceaccount.com"
+	testAudience       = "https://swastik-api-abc123-el.a.run.app"
+	testServiceAccount = "scheduler@swastik-test.iam.gserviceaccount.com"
 	googleIssuer       = "https://accounts.google.com"
 )
 
@@ -356,7 +356,7 @@ func TestOIDC_ValidTokenForAnotherIdentityIsForbidden(t *testing.T) {
 		name   string
 		claims map[string]any
 	}{
-		{"different service account", claimsWith(set("email", "someone-else@divya-test.iam.gserviceaccount.com"))},
+		{"different service account", claimsWith(set("email", "someone-else@swastik-test.iam.gserviceaccount.com"))},
 		{"a human at the same domain", claimsWith(set("email", "owner@example.com"))},
 		{"email is a superstring of ours", claimsWith(set("email", "x"+testServiceAccount))},
 		{"email is a substring of ours", claimsWith(set("email", testServiceAccount[1:]))},

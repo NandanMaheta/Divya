@@ -35,14 +35,14 @@ linters:
           deny:
             - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/health"
               desc: platform packages must not import business modules
-            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler"
+            - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/scheduler"
               desc: platform packages must not import business modules
-            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/outbox"
+            - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/outbox"
               desc: platform packages must not import business modules
         outbox-does-not-know-scheduler:
           files: ["**/internal/outbox/**"]
           deny:
-            - pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler"
+            - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/scheduler"
               desc: scheduler depends on outbox, never the reverse
         oidc-only-in-tickauth:
           files: ["$all", "!**/internal/platform/tickauth/**"]

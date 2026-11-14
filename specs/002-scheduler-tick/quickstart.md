@@ -37,7 +37,7 @@ Expected: all pass; the lifecycle test logs its elapsed time; no real sleeps any
 Nightly / on demand soak (SC-001, 30 simulated days, 100 clients, 10 IPOs, random duplicate/overlapping/skipped ticks and crashes):
 
 ```bash
-DIVYA_SOAK=full go test -race -run 'TestSoak_SC_001' -timeout 20m ./internal/scheduler/...
+SWASTIK_SOAK=full go test -race -run 'TestSoak_SC_001' -timeout 20m ./internal/scheduler/...
 ```
 
 (PR CI runs the same test with a 3-day slice.)
@@ -45,11 +45,11 @@ DIVYA_SOAK=full go test -race -run 'TestSoak_SC_001' -timeout 20m ./internal/sch
 ## 4. Contract check
 
 ```bash
-go test -run 'TestOpenAPI_NoInternalOperations' ./cmd/divya/...
-go run ./cmd/divya openapi > /tmp/openapi.yaml && diff -u ../../packages/api-client/openapi.yaml /tmp/openapi.yaml
+go test -run 'TestOpenAPI_NoInternalOperations' ./cmd/swastik/...
+go run ./cmd/swastik openapi > /tmp/openapi.yaml && diff -u ../../packages/api-client/openapi.yaml /tmp/openapi.yaml
 ```
 
-Expected (Phase A): no `/internal` path in the document and no diff at all, because the tick is hidden and admin operations are not registered yet. Phase B (after 003): the diff shows only the additive `/v1/admin/scheduler/*` and `/v1/admin/outbox/*` paths from `contracts/admin-scheduler.openapi.yaml`; regenerate with `pnpm --filter @divya/api-client generate`.
+Expected (Phase A): no `/internal` path in the document and no diff at all, because the tick is hidden and admin operations are not registered yet. Phase B (after 003): the diff shows only the additive `/v1/admin/scheduler/*` and `/v1/admin/outbox/*` paths from `contracts/admin-scheduler.openapi.yaml`; regenerate with `pnpm --filter @swastik/api-client generate`.
 
 ## 5. Manual smoke on a local database
 
@@ -57,7 +57,7 @@ Expected (Phase A): no `/internal` path in the document and no diff at all, beca
 make db-up && make migrate
 cd apps/api
 APP_ENV=local TICK_AUTH=dev TICK_DEV_TOKEN=local-dev-token-123 DATABASE_URL=<local url from infra/docker/compose.yaml> \
-  go run ./cmd/divya serve
+  go run ./cmd/swastik serve
 # another shell:
 curl -s -X POST localhost:8080/internal/tick                                              # 401, generic problem body
 curl -s -X POST -H 'Authorization: Bearer wrong' localhost:8080/internal/tick             # 401
@@ -69,7 +69,7 @@ Then in `psql`: `SELECT started_at, status FROM tick_runs ORDER BY started_at DE
 Fail-closed check:
 
 ```bash
-APP_ENV=staging TICK_AUTH=dev DATABASE_URL=... go run ./cmd/divya serve   # exits non-zero: dev tick auth not allowed in staging
+APP_ENV=staging TICK_AUTH=dev DATABASE_URL=... go run ./cmd/swastik serve   # exits non-zero: dev tick auth not allowed in staging
 ```
 
 ## 6. Done criteria for the feature

@@ -141,17 +141,17 @@ func TestLoad_TickValuesAreRead(t *testing.T) {
 	cfg, err := loadWith(t, map[string]string{
 		"APP_ENV":              "production",
 		"TICK_AUTH":            "oidc",
-		"TICK_AUDIENCE":        "https://divya-api-abc123-el.a.run.app",
-		"TICK_SERVICE_ACCOUNT": "scheduler@divya-prod.iam.gserviceaccount.com",
+		"TICK_AUDIENCE":        "https://swastik-api-abc123-el.a.run.app",
+		"TICK_SERVICE_ACCOUNT": "scheduler@swastik-prod.iam.gserviceaccount.com",
 		"TICK_DEV_TOKEN":       "ignored-in-oidc-mode",
 	})
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if cfg.Tick.Audience != "https://divya-api-abc123-el.a.run.app" {
+	if cfg.Tick.Audience != "https://swastik-api-abc123-el.a.run.app" {
 		t.Errorf("Tick.Audience = %q", cfg.Tick.Audience)
 	}
-	if cfg.Tick.ServiceAccount != "scheduler@divya-prod.iam.gserviceaccount.com" {
+	if cfg.Tick.ServiceAccount != "scheduler@swastik-prod.iam.gserviceaccount.com" {
 		t.Errorf("Tick.ServiceAccount = %q", cfg.Tick.ServiceAccount)
 	}
 	if cfg.Tick.DevToken != "ignored-in-oidc-mode" {

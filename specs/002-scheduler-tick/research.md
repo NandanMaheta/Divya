@@ -148,17 +148,17 @@ Recommendation: no third-party clock. Define in `internal/platform/clock`:
 
 ## 4. Existing code to reuse; golden reference
 
-Golden module: `/home/user/divya-002/apps/api/internal/health` (`health.go` service with injected `now func() time.Time`, `handler.go` `Register(api huma.API, svc *Service)`, `health_test.go`). Copy that shape: new module `/home/user/divya-002/apps/api/internal/scheduler` with `service.go`, `handler.go`, `queries via sqlc`, tests; the clock/bizdate packages go under `internal/platform/` (must import no business module).
+Golden module: `/home/user/swastik-002/apps/api/internal/health` (`health.go` service with injected `now func() time.Time`, `handler.go` `Register(api huma.API, svc *Service)`, `health_test.go`). Copy that shape: new module `/home/user/swastik-002/apps/api/internal/scheduler` with `service.go`, `handler.go`, `queries via sqlc`, tests; the clock/bizdate packages go under `internal/platform/` (must import no business module).
 
 Reuse:
-- `/home/user/divya-002/apps/api/cmd/divya/main.go`: `buildAPI` (register tick route there) and `serve` (ctx cancel on SIGTERM).
-- `/home/user/divya-002/apps/api/internal/platform/httpx/httpx.go`: `NewAPI`, `NewServer`.
-- `/home/user/divya-002/apps/api/internal/platform/config/config.go`: add `TickAudience`, `TickServiceAccount`, auth-mode validation (bypass only in `local|ci`).
-- `/home/user/divya-002/apps/api/internal/platform/db/db.go`: pool (MaxConns 5); add exec-mode option for transaction pooler.
-- `/home/user/divya-002/apps/api/internal/platform/dbtest/dbtest.go`: `dbtest.New(t)` (postgres:18-alpine, migrations applied) for claim/lease/time-travel tests.
-- `/home/user/divya-002/apps/api/migrations/00001_platform.sql` (`orgs`, `audit_log`, `forbid_mutation()`); new migration `00002_scheduler.sql` (goose Up/Down, `uuidv7()`, `org_id`).
-- `/home/user/divya-002/apps/api/queries/platform.sql` and `sqlc.yaml` (add `scheduler.sql`, regenerate `internal/platform/db/dbgen` or a module-local package per sqlc.yaml).
-- Rules: `/home/user/divya-002/.claude/rules/api.md`, `/home/user/divya-002/.claude/rules/sql.md`.
+- `/home/user/swastik-002/apps/api/cmd/swastik/main.go`: `buildAPI` (register tick route there) and `serve` (ctx cancel on SIGTERM).
+- `/home/user/swastik-002/apps/api/internal/platform/httpx/httpx.go`: `NewAPI`, `NewServer`.
+- `/home/user/swastik-002/apps/api/internal/platform/config/config.go`: add `TickAudience`, `TickServiceAccount`, auth-mode validation (bypass only in `local|ci`).
+- `/home/user/swastik-002/apps/api/internal/platform/db/db.go`: pool (MaxConns 5); add exec-mode option for transaction pooler.
+- `/home/user/swastik-002/apps/api/internal/platform/dbtest/dbtest.go`: `dbtest.New(t)` (postgres:18-alpine, migrations applied) for claim/lease/time-travel tests.
+- `/home/user/swastik-002/apps/api/migrations/00001_platform.sql` (`orgs`, `audit_log`, `forbid_mutation()`); new migration `00002_scheduler.sql` (goose Up/Down, `uuidv7()`, `org_id`).
+- `/home/user/swastik-002/apps/api/queries/platform.sql` and `sqlc.yaml` (add `scheduler.sql`, regenerate `internal/platform/db/dbgen` or a module-local package per sqlc.yaml).
+- Rules: `/home/user/swastik-002/.claude/rules/api.md`, `/home/user/swastik-002/.claude/rules/sql.md`.
 
 ## 5. Open questions for the owner
 

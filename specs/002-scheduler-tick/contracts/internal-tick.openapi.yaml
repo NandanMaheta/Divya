@@ -3,7 +3,7 @@
 # This file documents the contract for the Cloud Scheduler job (feature 027) and for tests.
 openapi: 3.1.0
 info:
-  title: Divya internal tick
+  title: Swastik internal tick
   version: "1"
 paths:
   /internal/tick:

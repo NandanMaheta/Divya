@@ -27,7 +27,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API="$ROOT/apps/api"
 LINT="${GOLANGCI_LINT:-golangci-lint}"
-MOD="github.com/NandanMaheta/divya/apps/api"
+MOD="github.com/NandanMaheta/swastik/apps/api"
 OIDC_PKG="github.com/coreos/go-oidc/v3/oidc"
 
 WORK="$(mktemp -d)"

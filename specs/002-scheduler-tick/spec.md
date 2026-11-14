@@ -55,7 +55,7 @@ Actors: the **operator/admin** (sees and repairs failed work), **clients** (indi
 
 Every 5 minutes the trusted scheduler triggers a tick. The tick finds every job whose due time has arrived, runs it, and records the outcome. Ticks may be late, skipped, duplicated or overlapping; whatever happens, each job's business effect happens exactly once.
 
-**Why this priority**: Every time-driven behaviour in Divya (IPO status by dates, apply windows, reminders, due dates, overdue escalation) depends on this. Nothing else in the module works without it.
+**Why this priority**: Every time-driven behaviour in Swastik (IPO status by dates, apply windows, reminders, due dates, overdue escalation) depends on this. Nothing else in the module works without it.
 
 **Independent Test**: With a fake clock and sample job kinds, schedule jobs at different times, run ticks at chosen instants (including two ticks at the same instant and one tick that "crashes" mid-job) and check each job's recorded outcome and side effects.
 
@@ -162,7 +162,7 @@ When the admin changes an IPO date (open, close, allotment or listing), all jobs
 
 A job or message that fails is tried again later with increasing delays. After a maximum number of attempts it stops in a "dead" state. The admin can list failed and dead items, see why they failed, retry them, or cancel them.
 
-**Why this priority**: The operator runs Divya alone; silent failures would mean missed reminders or IPO statuses that never move. The screens come in 022/023, but the capability must exist now.
+**Why this priority**: The operator runs Swastik alone; silent failures would mean missed reminders or IPO statuses that never move. The screens come in 022/023, but the capability must exist now.
 
 **Independent Test**: Use sample job kinds and a fake sender that fail on demand; advance the fake clock through the retry schedule; then perform admin retry and cancel and check outcomes and audit entries.
 

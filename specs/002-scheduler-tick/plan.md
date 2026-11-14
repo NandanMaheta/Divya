@@ -68,7 +68,7 @@ Post-design re-check (after data-model and contracts): no new violations; `tick_
 ## Module placement and dependencies
 
 ```
-cmd/divya ──► scheduler ──► outbox ──► platform/{db, audit, clock, istdate, retry}
+cmd/swastik ──► scheduler ──► outbox ──► platform/{db, audit, clock, istdate, retry}
      │            └──────────────────► platform/{db, audit, clock, istdate, retry}
      ├──► platform/tickauth ──► go-oidc/v3 (only here)
      ├──► platform/{config, httpx, db}
@@ -97,13 +97,13 @@ depguard:
     platform-is-a-leaf:
       files: ["**/internal/platform/**"]
       deny:
-        - { pkg: "github.com/NandanMaheta/divya/apps/api/internal/health",    desc: platform packages must not import business modules }
-        - { pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler", desc: platform packages must not import business modules }
-        - { pkg: "github.com/NandanMaheta/divya/apps/api/internal/outbox",    desc: platform packages must not import business modules }
+        - { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/health",    desc: platform packages must not import business modules }
+        - { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/scheduler", desc: platform packages must not import business modules }
+        - { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/outbox",    desc: platform packages must not import business modules }
     outbox-does-not-know-scheduler:
       files: ["**/internal/outbox/**"]
       deny:
-        - { pkg: "github.com/NandanMaheta/divya/apps/api/internal/scheduler", desc: scheduler depends on outbox, never the reverse }
+        - { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/scheduler", desc: scheduler depends on outbox, never the reverse }
     oidc-only-in-tickauth:
       files: ["$all", "!**/internal/platform/tickauth/**"]
       deny:
@@ -160,7 +160,7 @@ Contract: [contracts/internal-tick.openapi.yaml](./contracts/internal-tick.opena
 | POST | `/v1/admin/outbox/messages/{id}/retry` | `outbox-retry-message` | `FailedMessage` | 401, 403, 404, 409 | same |
 | POST | `/v1/admin/outbox/messages/{id}/cancel` | `outbox-cancel-message` | `FailedMessage` | 401, 403, 404, 409 | same |
 
-Phase B steps: `admin_handler.go` in each module, wire in `buildAPI`, `go run ./cmd/divya openapi`, `pnpm --filter @divya/api-client generate`, commit `openapi.yaml` + `schema.ts`; oasdiff must report no breaking change. If 003 lands first, Phase B can be part of the same PR; the tasks for it are marked blocked on 003.
+Phase B steps: `admin_handler.go` in each module, wire in `buildAPI`, `go run ./cmd/swastik openapi`, `pnpm --filter @swastik/api-client generate`, commit `openapi.yaml` + `schema.ts`; oasdiff must report no breaking change. If 003 lands first, Phase B can be part of the same PR; the tasks for it are marked blocked on 003.
 
 ## Tick algorithm (scheduler.Tick)
 
@@ -194,9 +194,9 @@ No other kinds or topics are created by this feature; 008/012/013/018/019/021 re
 
 `oidc` with empty audience or service account → `tickauth.Disabled()` plus a startup WARN `tick auth not configured; /internal/tick will reject all calls`. `.github/workflows/deploy.yml` gains `TICK_AUDIENCE=${{ vars.TICK_AUDIENCE }},TICK_SERVICE_ACCOUNT=${{ vars.TICK_SERVICE_ACCOUNT }}` in `--set-env-vars` (owner sets the repository variables; empty values keep the tick disabled). Operational constants (lease, budgets, caps, backoff, retention) live in `scheduler.Options`/`outbox.Options` with defaults from data-model §7, not env.
 
-## Wiring (`apps/api/cmd/divya/main.go`)
+## Wiring (`apps/api/cmd/swastik/main.go`)
 
-- `buildAPI(deps)` takes a small struct (`pool`, `cfg`, `log`, `tickAuth`, services) so `divya openapi` still builds with zero deps and never touches a DB or the network.
+- `buildAPI(deps)` takes a small struct (`pool`, `cfg`, `log`, `tickAuth`, services) so `swastik openapi` still builds with zero deps and never touches a DB or the network.
 - `serve`: `txr := db.NewTxRunner(pool)`; `ob := outbox.New(txr, clock.Real, log, outbox.DefaultOptions())`; `sch := scheduler.New(txr, ob, clock.Real, log, hostname, scheduler.DefaultOptions())`; `sch.Register("scheduler.retention", sch.RetentionHandler(), …)`; `tickAuth := selectTickAuth(ctx, cfg)` (go-oidc key set bound to the long-lived serve context, not a request context); `scheduler.RegisterTick(api, sch, tickAuth)`.
 - `run`: `config.Load()` errors (dev auth in staging/production) stop the process before listening.
 - Phase B adds `scheduler.RegisterAdmin(api, sch)` and `outbox.RegisterAdmin(api, ob)` after 003's middleware.
@@ -228,7 +228,7 @@ No other kinds or topics are created by this feature; 008/012/013/018/019/021 re
 | Unit | `platform/config/config_test.go` | `TICK_AUTH=dev` refused in staging/production; defaults per `APP_ENV`; invalid value | US2.5, FR-003 |
 | Unit (offline crypto) | `platform/tickauth` | httptest JWKS + locally minted RS256 tokens: missing header, not Bearer, malformed, bad signature, unknown key, expired (fake clock), wrong audience, wrong issuer, `alg=none`/HS256, valid but wrong email → `ErrForbidden`, `email_verified=false` → forbidden, valid → nil; dev mode constant-time compare and empty token; Disabled | US2.1–2.4, SC-004 |
 | Handler (humatest) | `scheduler/handler_test.go` | 401/403 do zero work (fake ticker counts calls), 200 body shape, 503 on DB error, `WWW-Authenticate` header, no token in captured logs | US2.1–2.4, US2.7, FR-002, FR-007 |
-| Contract | `cmd/divya/main_test.go` | generated OpenAPI has no path starting with `/internal` and no `scheduler-tick` operation; Phase B: admin operations present with `security` admin; CI diff of `openapi.yaml` + oasdiff | US2.6, FR-004, constitution V |
+| Contract | `cmd/swastik/main_test.go` | generated OpenAPI has no path starting with `/internal` and no `scheduler-tick` operation; Phase B: admin operations present with `security` admin; CI diff of `openapi.yaml` + oasdiff | US2.6, FR-004, constitution V |
 | Integration (dbtest) | `platform/db/tx_test.go`, `platform/audit/audit_test.go` | InTx commit/rollback/nesting; `MustTx` without tx → `ErrNoTx`; audit row written in tx | FR-008, FR-020 |
 | Integration | `scheduler/schedule_test.go` | upsert latest wins (US1.9); rollback leaves no job (US1.10); done key → new row (US5.6); reschedule/cancel/cancel-subject, commit vs rollback, into the past, no-op on missing (US5.1–5.4, 5.7); reschedule while running → pending at new time (US5.5) | `TestSchedule_BR_IPO_03_*` |
 | Integration | `scheduler/tick_test.go` | US1.1–1.3, 1.7, 1.8 (caps, oldest first); expiry vs state-change (FR-014); unknown kind; handler panic; retries with growing waits then dead (US6.1–6.3); recurring catch-up once (US7.6, FR-015); tick record and status overdue at 15 min (US6.8, FR-021) | `TestTick_*`, `TestTick_BR_IPO_03_LateNotSkipped` |
@@ -241,7 +241,7 @@ No other kinds or topics are created by this feature; 008/012/013/018/019/021 re
 | Integration | `scheduler/alert_test.go` | one `admin.jobs_dead` per org per tick with correct payload; not repeated next tick; `admin.*` dead messages never alert; failed sweep retried next tick; retry then dies again → alerts again | owner Q1 decision |
 | Time travel (L2) | `scheduler/lifecycle_test.go` | US9.1 Sun 8 Nov → Thu 19 Nov 2026 in 5-min ticks with sample IPO step jobs, reminder series (never in quiet hours), payment-due job at `PaymentDue(13 Nov)` running at the first tick after Tue 17 Nov 23:59 IST; US9.2 listing moved to Mon 16 Nov on Thu 12 Nov → payment-due Wed 18 Nov 23:59; US9.3 clock is the only time source; asserts runtime < 60 s | `TestLifecycle_BR_IPO_03_BR_SET_08_GS_04_TwoWeeks` |
 | Catch-up | `scheduler/catchup_test.go` | US7.1–7.5; SC-003 (500-job backlog, 6-hour outage, state-change jobs done within 3 ticks, zero expired messages sent) | `TestCatchUp_BR_TASK_03_*`, `TestCatchUp_BR_IPO_03_*` |
-| Soak | `scheduler/soak_test.go` | SC-001: 30 simulated days, 100 clients, 10 IPOs, random duplicate/overlap/skip/crash; PR runs a 3-day slice; `DIVYA_SOAK=full` nightly | SC-001 |
+| Soak | `scheduler/soak_test.go` | SC-001: 30 simulated days, 100 clients, 10 IPOs, random duplicate/overlap/skip/crash; PR runs a 3-day slice; `SWASTIK_SOAK=full` nightly | SC-001 |
 | Component / E2E | n/a | No UI in 002; admin screens and Playwright flows come with 022/023 | |
 | Golden | `platform/istdate` | GS-04 test is the golden scenario for this feature and is reused by 018; GS-01..03 untouched and must keep passing | GS-04 |
 
@@ -341,7 +341,7 @@ apps/api/
 │   retention.go, admin.go, handler.go, *_test.go                                 # new
 ├── internal/scheduler/schedulertest/harness.go                                   # new (test harness)
 ├── internal/scheduler/admin_handler.go, internal/outbox/admin_handler.go         # Phase B
-├── cmd/divya/main.go, main_test.go                                               # changed / new
+├── cmd/swastik/main.go, main_test.go                                               # changed / new
 ├── .golangci.yml                                                                 # depguard + forbidigo
 └── go.mod, go.sum                                                                # after owner approval
 .github/workflows/deploy.yml                          # TICK_* env vars

@@ -10,7 +10,7 @@
 - **[P]**: parallel-safe (different files, no unmet dependency between the tasks in the same group).
 - **Owner**: exactly one of `test-engineer` or `backend-dev`. Implementers never edit tests written by `test-engineer`.
 - **Expected**: `red` = the done command is expected to FAIL (or not compile) until the paired implementation task lands; `green` = must pass when the task is done. Test tasks are done when the tests are written, fail for the right reason, and are committed.
-- All done commands run from the worktree root `/home/user/divya-002`. Integration tests need Docker and skip under `-short`.
+- All done commands run from the worktree root `/home/user/swastik-002`. Integration tests need Docker and skip under `-short`.
 - Generated sqlc output (`internal/platform/db/dbgen/*`) is not counted toward the size budget.
 - Where a rule is "none", the task is mechanism and traces to FR/US ids listed in `Refs`.
 - Gates from the plan: T022 touches `migrations/` (owner approval on the PR); T018 and T058 are security-sensitive (security reviewer on the PR).
@@ -320,16 +320,16 @@
 
 ## Phase 6 - Wiring, lint, deploy variables
 
-- [ ] T057 [P] **test-engineer**: Contract test in cmd/divya: generated OpenAPI contains no /internal path and no scheduler-tick operation; document builds with zero dependencies (no DB, no network).
+- [ ] T057 [P] **test-engineer**: Contract test in cmd/swastik: generated OpenAPI contains no /internal path and no scheduler-tick operation; document builds with zero dependencies (no DB, no network).
   - Depends on: none
   - Rules: none (mechanism) | Refs: US2.6; FR-004; constitution V
-  - Files (1, ~70 lines): `apps/api/cmd/divya/main_test.go`
-  - Done command (red): `cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/divya/...`
-- [ ] T058 **backend-dev**: Wire cmd/divya/main.go: buildAPI takes a deps struct, serve builds TxRunner, outbox, scheduler (register scheduler.retention), selectTickAuth (go-oidc bound to serve context; Disabled + WARN when unconfigured), RegisterTick; config errors stop the process.
+  - Files (1, ~70 lines): `apps/api/cmd/swastik/main_test.go`
+  - Done command (red): `cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/swastik/...`
+- [ ] T058 **backend-dev**: Wire cmd/swastik/main.go: buildAPI takes a deps struct, serve builds TxRunner, outbox, scheduler (register scheduler.retention), selectTickAuth (go-oidc bound to serve context; Disabled + WARN when unconfigured), RegisterTick; config errors stop the process.
   - Depends on: T057, T056, T052, T014, T018, T005, T020
   - Rules: none (mechanism) | Refs: K6; plan: Wiring; FR-001-FR-004
-  - Files (1, ~150 lines): `apps/api/cmd/divya/main.go`
-  - Done command (green): `cd apps/api && go build ./... && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml`
+  - Files (1, ~150 lines): `apps/api/cmd/swastik/main.go`
+  - Done command (green): `cd apps/api && go build ./... && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml`
 - [ ] T059 [P] **backend-dev**: deploy.yml: add TICK_AUDIENCE and TICK_SERVICE_ACCOUNT from repository variables to --set-env-vars (empty values keep the tick disabled).
   - Depends on: T014
   - Rules: none (mechanism) | Refs: plan: Configuration; K6
@@ -364,16 +364,16 @@
   - Rules: BR-IPO-03 | Refs: FR-009-FR-016
   - Files (1, ~190 lines): `apps/api/internal/scheduler/model_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestScheduler_BR_IPO_03_ModelProperties -rapid.checks=50 ./internal/scheduler/...`
-- [ ] T065 [P] **test-engineer**: Short soak test TestSoak_SC_001: 3-day slice in PR (30 days, 100 clients, 10 IPOs when DIVYA_SOAK=full) with random duplicate/overlapping/skipped ticks and crashes; skipped under -short.
+- [ ] T065 [P] **test-engineer**: Short soak test TestSoak_SC_001: 3-day slice in PR (30 days, 100 clients, 10 IPOs when SWASTIK_SOAK=full) with random duplicate/overlapping/skipped ticks and crashes; skipped under -short.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: SC-001
   - Files (1, ~170 lines): `apps/api/internal/scheduler/soak_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestSoak_SC_001 ./internal/scheduler/...`
-- [ ] T066 [P] **backend-dev**: nightly.yml: add a job running DIVYA_SOAK=full go test -run TestSoak_SC_001 -timeout 20m ./internal/scheduler/...
+- [ ] T066 [P] **backend-dev**: nightly.yml: add a job running SWASTIK_SOAK=full go test -run TestSoak_SC_001 -timeout 20m ./internal/scheduler/...
   - Depends on: T065
   - Rules: none (mechanism) | Refs: quickstart section 3
   - Files (1, ~30 lines): `.github/workflows/nightly.yml`
-  - Done command (green): `grep -q 'DIVYA_SOAK=full' .github/workflows/nightly.yml && python3 -c "import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))"`
+  - Done command (green): `grep -q 'SWASTIK_SOAK=full' .github/workflows/nightly.yml && python3 -c "import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))"`
 - [ ] T067 [P] **backend-dev**: Docs and status: package docs (doc.go) for scheduler and outbox showing how owning features call Schedule/Add inside a transaction, handler idempotency contract; docs/product/modules.md row 002 status moved to match the pipeline.
   - Depends on: T058
   - Rules: none (mechanism) | Refs: CLAUDE.md: update modules.md status
@@ -418,13 +418,13 @@ Status of every task below: `blocked` (needs 003 auth merged to main; admin role
 - [ ] T074 [P] **test-engineer** (blocked): Contract test: admin operations present with security admin; /internal still absent; additive-only OpenAPI diff (oasdiff).
   - Depends on: T068 and 003 merged
   - Rules: none (mechanism) | Refs: constitution V; Phase B
-  - Files (1, ~80 lines): `apps/api/cmd/divya/admin_contract_test.go`
-  - Done command (red): `cd apps/api && go test -race -run TestOpenAPI_AdminOperations ./cmd/divya/...`
+  - Files (1, ~80 lines): `apps/api/cmd/swastik/admin_contract_test.go`
+  - Done command (red): `cd apps/api && go test -race -run TestOpenAPI_AdminOperations ./cmd/swastik/...`
 - [ ] T075 **backend-dev** (blocked): Wire RegisterAdmin for both modules after 003 middleware, regenerate packages/api-client/openapi.yaml and src/schema.ts.
   - Depends on: T072, T073, T074 and 003 merged
   - Rules: none (mechanism) | Refs: Phase B; constitution V
-  - Files (3, ~60 lines): `apps/api/cmd/divya/main.go`, `packages/api-client/openapi.yaml`, `packages/api-client/src/schema.ts`
-  - Done command (green): `cd apps/api && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml && cd .. && pnpm --filter @divya/api-client generate && pnpm turbo run typecheck`
+  - Files (3, ~60 lines): `apps/api/cmd/swastik/main.go`, `packages/api-client/openapi.yaml`, `packages/api-client/src/schema.ts`
+  - Done command (green): `cd apps/api && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml && cd .. && pnpm --filter @swastik/api-client generate && pnpm turbo run typecheck`
 
 ## Dependencies and execution order
 

@@ -1,7 +1,7 @@
 {
   "feature": "002-scheduler-tick",
   "branch": "feat/002-scheduler-tick",
-  "worktree": "/home/user/divya-002",
+  "worktree": "/home/user/swastik-002",
   "phase": "building",
   "tasks": {
     "T001": {
@@ -775,17 +775,17 @@
     },
     "T057": {
       "owner": "test-engineer",
-      "done_command": "cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/divya/...",
+      "done_command": "cd apps/api && go test -race -run TestOpenAPI_NoInternalOperations ./cmd/swastik/...",
       "status": "todo",
       "depends_on": [],
       "rules": [],
-      "title": "Contract test in cmd/divya",
+      "title": "Contract test in cmd/swastik",
       "expect": "red",
       "parallel": true
     },
     "T058": {
       "owner": "backend-dev",
-      "done_command": "cd apps/api && go build ./... && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml",
+      "done_command": "cd apps/api && go build ./... && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml",
       "status": "todo",
       "depends_on": [
         "T057",
@@ -797,7 +797,7 @@
         "T020"
       ],
       "rules": [],
-      "title": "Wire cmd/divya/main.go",
+      "title": "Wire cmd/swastik/main.go",
       "expect": "green",
       "parallel": false
     },
@@ -911,7 +911,7 @@
     },
     "T066": {
       "owner": "backend-dev",
-      "done_command": "grep -q 'DIVYA_SOAK=full' .github/workflows/nightly.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))\"",
+      "done_command": "grep -q 'SWASTIK_SOAK=full' .github/workflows/nightly.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/nightly.yml'))\"",
       "status": "todo",
       "depends_on": [
         "T065"
@@ -1028,7 +1028,7 @@
     },
     "T074": {
       "owner": "test-engineer",
-      "done_command": "cd apps/api && go test -race -run TestOpenAPI_AdminOperations ./cmd/divya/...",
+      "done_command": "cd apps/api && go test -race -run TestOpenAPI_AdminOperations ./cmd/swastik/...",
       "status": "blocked",
       "depends_on": [
         "T068",
@@ -1041,7 +1041,7 @@
     },
     "T075": {
       "owner": "backend-dev",
-      "done_command": "cd apps/api && go test -race ./cmd/divya/... && go run ./cmd/divya openapi | diff - ../../packages/api-client/openapi.yaml && cd .. && pnpm --filter @divya/api-client generate && pnpm turbo run typecheck",
+      "done_command": "cd apps/api && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml && cd .. && pnpm --filter @swastik/api-client generate && pnpm turbo run typecheck",
       "status": "blocked",
       "depends_on": [
         "T072",
