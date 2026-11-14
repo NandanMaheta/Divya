@@ -386,6 +386,8 @@ swastik/
 
 ## 10. AI-agent build pipeline (unchanged from v1, summary)
 
+> Updated by **delivery pipeline v2** (`docs/engineering/delivery-pipeline.md`): risk tiers, one-page briefs, slices, batched test/code passes, per-role models. Quality gates unchanged.
+
 1. **Idea → spec:** `/speckit-specify`, then you approve the spec.
 2. **Plan:** `/speckit-plan`, then you approve the plan.
 3. **Build:** `/speckit-tasks`, then backend, admin and mobile agents work in parallel worktrees.

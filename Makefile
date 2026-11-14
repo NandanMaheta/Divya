@@ -1,4 +1,6 @@
-.PHONY: setup db-up db-down migrate api worker test lint fmt
+.PHONY: setup db-up db-down migrate api worker test lint lint-go fmt codemap
+
+GOLANGCI_LINT ?= GOTOOLCHAIN=go1.27.4 go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 setup:            ## Install all dependencies
 	pnpm install
@@ -25,8 +27,11 @@ test:             ## Run every test suite
 	cd apps/worker && uv run pytest -q
 	pnpm test
 
+lint-go:          ## Lint Go with the pinned golangci-lint
+	cd apps/api && $(GOLANGCI_LINT) run ./...
+
 lint:             ## Lint everything
-	cd apps/api && golangci-lint run ./...
+	cd apps/api && $(GOLANGCI_LINT) run ./...
 	cd apps/worker && uv run ruff check . && uv run ruff format --check .
 	pnpm lint
 
@@ -34,3 +39,6 @@ fmt:
 	cd apps/api && gofmt -w .
 	cd apps/worker && uv run ruff format .
 	pnpm lint:fix
+
+codemap:          ## Regenerate docs/engineering/codemap.md
+	scripts/gen-codemap.sh
