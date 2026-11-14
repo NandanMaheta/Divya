@@ -342,7 +342,7 @@
   - Rules: none (mechanism) | Refs: K6; plan: Wiring; FR-001-FR-004
   - Files (1, ~150 lines): `apps/api/cmd/swastik/main.go`
   - Done command (green): `cd apps/api && go build ./... && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml`
-- [ ] T059 [P] **backend-dev**: deploy.yml: add TICK_AUDIENCE and TICK_SERVICE_ACCOUNT from repository variables to --set-env-vars (empty values keep the tick disabled).
+- [x] T059 [P] **backend-dev**: deploy.yml: add TICK_AUDIENCE and TICK_SERVICE_ACCOUNT from repository variables to --set-env-vars (empty values keep the tick disabled).
   - Depends on: T014
   - Rules: none (mechanism) | Refs: plan: Configuration; K6
   - Files (1, ~10 lines): `.github/workflows/deploy.yml`

@@ -860,7 +860,7 @@
     "T059": {
       "owner": "backend-dev",
       "done_command": "grep -q 'TICK_AUDIENCE=${{ vars.TICK_AUDIENCE }}' .github/workflows/deploy.yml && grep -q 'TICK_SERVICE_ACCOUNT=${{ vars.TICK_SERVICE_ACCOUNT }}' .github/workflows/deploy.yml && python3 -c \"import yaml;yaml.safe_load(open('.github/workflows/deploy.yml'))\"",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T014"
       ],
