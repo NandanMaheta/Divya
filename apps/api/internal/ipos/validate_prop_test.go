@@ -144,10 +144,7 @@ func TestMinApplication_Properties(t *testing.T) {
 	})
 }
 
-var (
-	mainboardTokens = []Exchange{ExchangeNSE, ExchangeBSE}
-	smeTokens       = []Exchange{"NSE_EMERGE", "BSE_SME"}
-)
+var smeTokens = []Exchange{"NSE_EMERGE", "BSE_SME"}
 
 // BR-IPO-01 / FR-010 / FR-012: any segment list containing an SME token is rejected with
 // ipo.sme_not_allowed, whatever else it contains; a list without one is accepted iff it is a

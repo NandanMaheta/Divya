@@ -104,9 +104,6 @@ linters:
         linters: [gosec, wrapcheck, noctx, prealloc, contextcheck]
       - path: cmd/
         linters: [wrapcheck]
-      # Protected RED tests (feature 008) carry two nits we may not edit; tests only.
-      - path: internal/ipos/(step_prop|validate_prop)_test\.go
-        linters: [staticcheck, unused]
       # Real clock and request timing are the only places allowed to read the machine clock.
       - path: (cmd/|internal/platform/clock/|internal/platform/httpx/)
         linters: [forbidigo]
