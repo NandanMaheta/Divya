@@ -416,12 +416,15 @@
     "T031": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && gofmt -l internal/outbox/outboxtest/ | (! grep .)",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "outboxtest.Sender test double",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/outbox/outboxtest/sender.go"
+      ]
     },
     "T032": {
       "owner": "test-engineer",

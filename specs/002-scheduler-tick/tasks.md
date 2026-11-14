@@ -182,17 +182,19 @@
 
 ## Phase 4 - Outbox module
 
-- [ ] T031 [P] **test-engineer**: outboxtest.Sender test double: records envelopes, FailNext(n), FailAlways(), counts deliveries per dedupe key.
+- [x] T031 [P] **test-engineer**: outboxtest.Sender test double: records envelopes, FailNext(n), FailAlways(), counts deliveries per dedupe key.
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-029
   - Files (1, ~70 lines): `apps/api/internal/outbox/outboxtest/sender.go`
   - Done command (red): `cd apps/api && gofmt -l internal/outbox/outboxtest/ | (! grep .)`
+  - Note (test-engineer): outboxtest.Sender also has OnSend(hook), FailWith(err), Calls(), Count(), Recover(), Reset(). Because it is a non-test file that imports `internal/outbox`, `go build ./...` fails until T036 adds Envelope/Sender; backend tasks whose done command is `go build ./...` before T036 must exclude it (`go build $(go list ./... | grep -v /outboxtest)`).
   - Note: Compiles only after Envelope/Sender exist (T036); gofmt check is the standalone done command, full compile is exercised by T032-T034.
 - [ ] T032 **test-engineer**: Outbox record/withdraw tests: Add commits with the caller and vanishes on rollback, ErrNoTx, duplicate key ignored (also after sent), withdraw by key and by subject (stop-on-complete), channel-agnostic topics.
   - Depends on: T031, T022
   - Rules: BR-TASK-03 | Refs: US3.1, 3.3, 3.5, 3.7, 8.6; FR-023, FR-024, FR-027
   - Files (1, ~180 lines): `apps/api/internal/outbox/outbox_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...`
+  - Note (test-engineer): also owns `apps/api/internal/outbox/helpers_test.go` (shared fixtures; T033, T034, T038 compile against it and against `errChange`/`jsonEqual` in outbox_test.go). All outbox tests are one compile unit: T036 must also provide compiling stubs for Relay, RelayBudget, RelaySummary, SweepDead, CountDead, ListFailedMessages, RetryMessage, CancelMessage, FailedFilter, FailedMessage, Page, DeadGroup, ErrInvalid/ErrNotFound/ErrConflict so that its done command can run before T037/T039. Assumed names are listed at the top of helpers_test.go and admin_test.go.
 - [ ] T033 **test-engineer**: Outbox relay tests: relay once and sent_at, crash between send and mark resends with same key, no sender fails, retry grows and is re-deferred out of quiet hours, expiry never sent, per-recipient order, overlapping relay never double-sends.
   - Depends on: T031, T022
   - Rules: BR-TASK-03 | Refs: US3.2, 3.4, 3.6, 7.3, 8.7; FR-017, FR-025, FR-026, FR-028, FR-030; SC-008
