@@ -329,7 +329,8 @@
         "apps/api/internal/ipos/lifecycle_test.go",
         "apps/api/internal/ipos/lifecycle_catchup_test.go",
         "apps/api/internal/ipos/reschedule_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S13": {
       "owner": "test-engineer",
