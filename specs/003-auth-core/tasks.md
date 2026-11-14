@@ -22,7 +22,7 @@
 
 Starts now.
 
-- [ ] T001 **backend-dev**: Add approved dependencies: go-jose/v4 (direct), pquerna/otp v1.5.0 (+ boombuler/barcode), golang.org/x/crypto, x/term, x/text (indirect to direct), google/uuid (direct), pgregory.net/rapid (test-only). Owner approval recorded 2026-11-14 in plan.md. Do not run go mod tidy (it would drop requirements not imported yet; tidy is in the final gate). Expect a trivial go.mod/go.sum merge conflict with 002's T001; resolve by taking the union.
+- [x] T001 **backend-dev**: Add approved dependencies: go-jose/v4 (direct), pquerna/otp v1.5.0 (+ boombuler/barcode), golang.org/x/crypto, x/term, x/text (indirect to direct), google/uuid (direct), pgregory.net/rapid (test-only). Owner approval recorded 2026-11-14 in plan.md. Do not run go mod tidy (it would drop requirements not imported yet; tidy is in the final gate). Expect a trivial go.mod/go.sum merge conflict with 002's T001; resolve by taking the union.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan: Owner approval of dependencies
   - Files (2, ~30 lines): `apps/api/go.mod`, `apps/api/go.sum`
