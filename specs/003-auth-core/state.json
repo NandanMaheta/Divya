@@ -255,14 +255,18 @@
     "T020": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestHasher' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001"
       ],
       "rules": [],
       "title": "Tests for the Argon2id hasher: PHC encode/decode round trip, decode rejects unknown version and parameters beyond bounds (m<=256 MiB, t<=10,",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/hasher_test.go",
+        "apps/api/internal/auth/hasher_prop_test.go"
+      ]
     },
     "T021": {
       "owner": "backend-dev",

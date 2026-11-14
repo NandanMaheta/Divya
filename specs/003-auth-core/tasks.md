@@ -123,7 +123,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: FR-011, D-07; plan P-06
   - Files (1, ~110 lines): `apps/api/internal/auth/password_policy.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestPolicy' ./internal/auth/`
-- [ ] T020 [P] **test-engineer**: Tests for the Argon2id hasher: PHC encode/decode round trip, decode rejects unknown version and parameters beyond bounds (m<=256 MiB, t<=10, p<=4), constant-time verify, NeedsRehash on parameter change, dummy hash computed once and a verify always costs exactly one Argon2 run (counting hook), semaphore saturation returns ErrBusy after the wait bound, context cancel while waiting; rapid PHC round trip with cheap parameters.
+- [x] T020 [P] **test-engineer**: Tests for the Argon2id hasher: PHC encode/decode round trip, decode rejects unknown version and parameters beyond bounds (m<=256 MiB, t<=10, p<=4), constant-time verify, NeedsRehash on parameter change, dummy hash computed once and a verify always costs exactly one Argon2 run (counting hook), semaphore saturation returns ErrBusy after the wait bound, context cancel while waiting; rapid PHC round trip with cheap parameters.
   - Depends on: T001
   - Rules: none (mechanism) | Refs: FR-010, FR-012, SC-003; plan P-06
   - Files (2, ~190 lines): `apps/api/internal/auth/hasher_test.go`, `apps/api/internal/auth/hasher_prop_test.go`
