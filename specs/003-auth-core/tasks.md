@@ -28,10 +28,10 @@ Legend: `[P]` parallel-safe (flat `internal/auth` package: develop as separate w
   - Depends on: S01 | Rules: none (mechanism) | Expected: red | Replaces: T031,T032
   - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/`
   - Protected tests (written, do not edit): `apps/api/internal/auth/schema_helpers_test.go`, `schema_structure_test.go`, `schema_users_test.go`, `schema_sessions_test.go`, `schema_mfa_test.go`
-- [ ] S07 **backend-dev**: Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.
+- [x] S07 **backend-dev**: Write migrations/00003_auth.sql (Up and Down) with every table, constraint and index in data-model.md. OWNER GATE: auth schema approval and security review.
   - Depends on: S06 | Rules: none (mechanism) | Expected: green | Replaces: T033,T034
   - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...`
-  - Note: Owner approval + security-reviewer (auth schema).
+  - Note: Done; owner approval + security-reviewer (auth schema) are REQUIRED at PR review.
 - [ ] S08 **test-engineer** [blocked: 002-merged]: Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).
   - Depends on: S07, 002-merged | Rules: none (mechanism) | Expected: red | Replaces: T035,T037,T042-T045
   - Done command: `cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh`
