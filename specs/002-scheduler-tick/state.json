@@ -448,7 +448,7 @@
     "T033": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay' ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T031",
         "T022"
@@ -458,7 +458,10 @@
       ],
       "title": "Outbox relay tests",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/outbox/relay_test.go"
+      ]
     },
     "T034": {
       "owner": "test-engineer",

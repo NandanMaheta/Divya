@@ -195,7 +195,7 @@
   - Files (1, ~180 lines): `apps/api/internal/outbox/outbox_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...`
   - Note (test-engineer): also owns `apps/api/internal/outbox/helpers_test.go` (shared fixtures; T033, T034, T038 compile against it and against `errChange`/`jsonEqual` in outbox_test.go). All outbox tests are one compile unit: T036 must also provide compiling stubs for Relay, RelayBudget, RelaySummary, SweepDead, CountDead, ListFailedMessages, RetryMessage, CancelMessage, FailedFilter, FailedMessage, Page, DeadGroup, ErrInvalid/ErrNotFound/ErrConflict so that its done command can run before T037/T039. Assumed names are listed at the top of helpers_test.go and admin_test.go.
-- [ ] T033 **test-engineer**: Outbox relay tests: relay once and sent_at, crash between send and mark resends with same key, no sender fails, retry grows and is re-deferred out of quiet hours, expiry never sent, per-recipient order, overlapping relay never double-sends.
+- [x] T033 **test-engineer**: Outbox relay tests: relay once and sent_at, crash between send and mark resends with same key, no sender fails, retry grows and is re-deferred out of quiet hours, expiry never sent, per-recipient order, overlapping relay never double-sends.
   - Depends on: T031, T022
   - Rules: BR-TASK-03 | Refs: US3.2, 3.4, 3.6, 7.3, 8.7; FR-017, FR-025, FR-026, FR-028, FR-030; SC-008
   - Files (1, ~190 lines): `apps/api/internal/outbox/relay_test.go`
@@ -205,6 +205,7 @@
   - Rules: BR-TASK-03 | Refs: US8.1-8.9; FR-031
   - Files (1, ~150 lines): `apps/api/internal/outbox/quiet_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestQuietHours_BR_TASK_03 ./internal/outbox/...`
+  - Note (test-engineer): the file splits by implementation task. `TestQuietHours_BR_TASK_03_*` (settings: QuietHours/SetQuietHours + audit) is what T035's done command runs; `TestQuietHoursAvailability_BR_TASK_03_*` (Add computes available_at, incl. a rapid property for SC-008) needs T036; `TestQuietHoursRelay_BR_TASK_03_*` needs T037. T037's done command (`...|TestQuietHours`) covers all three. T035 cannot compile before the Service type from T036 exists; implement T035 and T036 together.
 - [ ] T035 **backend-dev**: Implement outbox/quiet.go: QuietHours(org) with default, SetQuietHours with audit in same transaction, availableAt helper using istdate.QuietHours.Defer.
   - Depends on: T034, T010, T026, T029
   - Rules: BR-TASK-03 | Refs: FR-031
