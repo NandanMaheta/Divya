@@ -19,6 +19,9 @@ type Querier interface {
 	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
 	// Claim one due job (or one whose lease ran out) under a fresh lease and fencing token.
 	ClaimJob(ctx context.Context, arg ClaimJobParams) (ScheduledJob, error)
+	// Claim one available message (or one whose send lease ran out), oldest id first, so messages
+	// of one recipient are relayed in the order they were recorded (FR-030).
+	ClaimMessage(ctx context.Context, arg ClaimMessageParams) (OutboxMessage, error)
 	// Complete runs inside the handler's transaction and is fenced by the lock token: zero rows
 	// means the lease was lost and the caller rolls the whole transaction back.
 	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
@@ -27,13 +30,23 @@ type Querier interface {
 	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
 	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
 	ExpireDueJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Expiry sweep: a message past its expiry is never handed to a sender (FR-028). Bounded per tick.
+	ExpireDueMessages(ctx context.Context, now pgtype.Timestamptz) (int64, error)
 	// Fail: back to pending after a backoff, dead when attempts are used up, cancelled when a cancel
 	// was requested during the run, pending again at the new time when it was rescheduled meanwhile.
 	FailJob(ctx context.Context, arg FailJobParams) (FailJobRow, error)
+	// Back to pending at available_at (already moved out of quiet hours), or dead when attempts are used up.
+	FailMessage(ctx context.Context, arg FailMessageParams) (FailMessageRow, error)
 	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
+	// No row means the default window (21:30-08:00 IST).
+	GetQuietHours(ctx context.Context, orgID uuid.UUID) (GetQuietHoursRow, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// Outbox queries (feature 002). Every instant is a parameter taken from the injected clock.
+	// Add: a repeated (org, topic, dedupe_key) is ignored whatever the first row's status (FR-024).
+	// Zero rows affected means duplicate.
+	InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error)
 	// Scheduler status, admin and retention queries (feature 002).
 	InsertTickRun(ctx context.Context, arg InsertTickRunParams) (uuid.UUID, error)
 	// The most recent tick, whatever its outcome (FR-021).
@@ -47,6 +60,10 @@ type Querier interface {
 	// A job whose lease expired more often than it has attempts left is dead without running again.
 	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
 	MarkJobsAlerted(ctx context.Context, arg MarkJobsAlertedParams) error
+	// A message whose lease expired more often than it has attempts left is dead without being sent again.
+	MarkMessageDead(ctx context.Context, arg MarkMessageDeadParams) (int64, error)
+	// Fenced by the lock token: zero rows means another claimant took over and this mark must not win.
+	MarkMessageSent(ctx context.Context, arg MarkMessageSentParams) (int64, error)
 	Ping(ctx context.Context) (int32, error)
 	// Retention (FR-035): finished jobs older than the cutoff; dead jobs are kept until an admin acts.
 	PurgeFinishedJobs(ctx context.Context, arg PurgeFinishedJobsParams) (int64, error)
@@ -58,6 +75,10 @@ type Querier interface {
 	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
 	// the latest values; a running row is flagged to run again at the new time when it finishes.
 	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)
+	UpsertQuietHours(ctx context.Context, arg UpsertQuietHoursParams) error
+	// Only pending messages are withdrawn; a message being sent is at-least-once and not stopped.
+	WithdrawByKey(ctx context.Context, arg WithdrawByKeyParams) (int64, error)
+	WithdrawBySubject(ctx context.Context, arg WithdrawBySubjectParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

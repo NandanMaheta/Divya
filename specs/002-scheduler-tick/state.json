@@ -390,7 +390,7 @@
     "T029": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && sqlc vet && sqlc generate && go build ./...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T028"
       ],

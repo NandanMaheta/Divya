@@ -170,7 +170,7 @@
   - Files (1, ~170 lines): `apps/api/queries/scheduler_admin.sql`
   - Done command (green): `cd apps/api && sqlc vet && sqlc generate && go build ./...`
   - Note: Split from scheduler.sql in plan to keep each task under 200 lines; same sqlc directory. Query tasks are chained because sqlc generate rewrites shared dbgen files.
-- [ ] T029 **backend-dev**: queries/outbox.sql: InsertMessage (ON CONFLICT DO NOTHING), WithdrawByKey, WithdrawBySubject, ExpireDueMessages, ClaimMessage (ordered), MarkMessageSent, FailMessage, MarkMessageDead, GetQuietHours, UpsertQuietHours.
+- [x] T029 **backend-dev**: queries/outbox.sql: InsertMessage (ON CONFLICT DO NOTHING), WithdrawByKey, WithdrawBySubject, ExpireDueMessages, ClaimMessage (ordered), MarkMessageSent, FailMessage, MarkMessageDead, GetQuietHours, UpsertQuietHours.
   - Depends on: T028
   - Rules: BR-TASK-03 | Refs: data-model 2-3; FR-023-FR-031
   - Files (1, ~170 lines): `apps/api/queries/outbox.sql`
