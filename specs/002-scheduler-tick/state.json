@@ -534,14 +534,17 @@
     "T038": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run Admin ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T022"
       ],
       "rules": [],
       "title": "Outbox admin tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/outbox/admin_test.go"
+      ]
     },
     "T039": {
       "owner": "backend-dev",

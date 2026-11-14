@@ -221,7 +221,7 @@
   - Rules: BR-TASK-03 | Refs: FR-017, FR-025, FR-026, FR-028
   - Files (1, ~190 lines): `apps/api/internal/outbox/relay.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay|TestQuietHours' ./internal/outbox/...`
-- [ ] T038 [P] **test-engineer**: Outbox admin tests: list retrying/dead with required fields and no secrets, retry (fresh attempts + audit), cancel + audit, retry of expired still expires, other org invisible (404), non-dead conflict, dead counts, SweepDead groups per org and excludes admin.* topics.
+- [x] T038 [P] **test-engineer**: Outbox admin tests: list retrying/dead with required fields and no secrets, retry (fresh attempts + audit), cancel + audit, retry of expired still expires, other org invisible (404), non-dead conflict, dead counts, SweepDead groups per org and excludes admin.* topics.
   - Depends on: T022
   - Rules: none (mechanism) | Refs: US6.4-6.9; FR-019, FR-020; SC-007
   - Files (1, ~190 lines): `apps/api/internal/outbox/admin_test.go`
