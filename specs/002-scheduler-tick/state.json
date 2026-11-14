@@ -842,7 +842,7 @@
     "T058": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go build ./... && go test -race ./cmd/swastik/... && go run ./cmd/swastik openapi | diff - ../../packages/api-client/openapi.yaml",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T057",
         "T056",

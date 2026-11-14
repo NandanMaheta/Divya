@@ -13,11 +13,16 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/NandanMaheta/swastik/apps/api/internal/health"
+	"github.com/NandanMaheta/swastik/apps/api/internal/outbox"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/clock"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/config"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/httpx"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/tickauth"
+	"github.com/NandanMaheta/swastik/apps/api/internal/scheduler"
 	"github.com/NandanMaheta/swastik/apps/api/migrations"
 )
 
@@ -35,7 +40,9 @@ func run(log *slog.Logger, args []string) error {
 	}
 	if args[0] == "openapi" {
 		// Prints the OpenAPI 3.1 spec without needing a database; used to generate the TS client.
-		spec, err := buildAPI(nil).OpenAPI().YAML()
+		// The tick is registered (hidden) with a ticker that is never called, so the command
+		// proves the public document stays free of it.
+		spec, err := buildAPI(deps{Tick: (*scheduler.Service)(nil), TickAuth: tickauth.Disabled()}).OpenAPI().YAML()
 		if err != nil {
 			return err
 		}
@@ -69,15 +76,53 @@ func run(log *slog.Logger, args []string) error {
 	}
 }
 
+// deps are the collaborators the API's operations need. The zero value registers only the
+// operations that need none.
+type deps struct {
+	Pool     health.Pinger
+	Tick     scheduler.Ticker
+	TickAuth tickauth.Authenticator
+}
+
 // buildAPI registers every module's operations. New modules are wired here.
-func buildAPI(pool health.Pinger) huma.API {
+func buildAPI(d deps) huma.API {
 	_, api := httpx.NewAPI()
-	health.Register(api, health.NewService(pool, httpx.Version, time.Now))
+	health.Register(api, health.NewService(d.Pool, httpx.Version, time.Now))
+	if d.Tick != nil {
+		scheduler.RegisterTick(api, d.Tick, d.TickAuth)
+	}
 	return api
 }
 
-func serve(ctx context.Context, log *slog.Logger, cfg config.Config, pool health.Pinger) error {
-	api := buildAPI(pool)
+// selectTickAuth picks the tick authenticator from the configuration. Production verifies a
+// Google-signed ID token; without audience and service account the tick is closed (every call
+// is rejected) and a warning says so.
+func selectTickAuth(ctx context.Context, log *slog.Logger, cfg config.Config) tickauth.Authenticator {
+	t := cfg.Tick
+	if t.Auth == "dev" {
+		if t.DevToken == "" {
+			log.Warn("tick auth is dev but TICK_DEV_TOKEN is empty: the tick endpoint rejects every call")
+		}
+		return tickauth.NewDev(t.DevToken)
+	}
+	if t.Audience == "" || t.ServiceAccount == "" {
+		log.Warn("TICK_AUDIENCE or TICK_SERVICE_ACCOUNT is not set: the tick endpoint rejects every call")
+		return tickauth.Disabled()
+	}
+	return tickauth.NewOIDC(ctx, t.Audience, t.ServiceAccount, clock.Real)
+}
+
+func serve(ctx context.Context, log *slog.Logger, cfg config.Config, pool *pgxpool.Pool) error {
+	txr := db.NewTxRunner(pool)
+	ob := outbox.New(txr, clock.Real, log, outbox.DefaultOptions())
+	host, err := os.Hostname()
+	if err != nil || host == "" {
+		host = "unknown"
+	}
+	sched := scheduler.New(txr, ob, clock.Real, log, host, scheduler.DefaultOptions())
+	sched.Register(scheduler.RetentionKind, sched.RetentionHandler(), scheduler.RetentionOptions())
+
+	api := buildAPI(deps{Pool: pool, Tick: sched, TickAuth: selectTickAuth(ctx, log, cfg)})
 	srv := httpx.NewServer(cfg.HTTPAddr, api.Adapter(), log)
 	errCh := make(chan error, 1)
 	go func() {
