@@ -201,12 +201,15 @@
     "T016": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/auth/commonpasswords/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Test for the embedded common-password list: loads as a lowercase de-duplicated set, contains 1234567890, qwertyuiop, password; line count an",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/commonpasswords/commonpasswords_test.go"
+      ]
     },
     "T017": {
       "owner": "backend-dev",

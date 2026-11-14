@@ -102,7 +102,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: D-16, D-17
   - Files (1, ~100 lines): `apps/api/internal/auth/normalize.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestNormalize' ./internal/auth/`
-- [ ] T016 [P] **test-engineer**: Test for the embedded common-password list: loads as a lowercase de-duplicated set, contains 1234567890, qwertyuiop, password; line count and SHA-256 equal the values recorded in SOURCE.md (changes must be deliberate).
+- [x] T016 [P] **test-engineer**: Test for the embedded common-password list: loads as a lowercase de-duplicated set, contains 1234567890, qwertyuiop, password; line count and SHA-256 equal the values recorded in SOURCE.md (changes must be deliberate).
   - Depends on: none
   - Rules: none (mechanism) | Refs: D-07; plan P-06
   - Files (1, ~60 lines): `apps/api/internal/auth/commonpasswords/commonpasswords_test.go`
