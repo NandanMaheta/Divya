@@ -107,7 +107,8 @@
         "apps/api/internal/ipos/model_test.go",
         "apps/api/internal/ipos/suggest_test.go",
         "apps/api/internal/ipos/validate_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S05": {
       "owner": "backend-dev",
