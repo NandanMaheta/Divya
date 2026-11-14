@@ -907,7 +907,7 @@
     "T062": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestCatchUp_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T048",
         "T050",
@@ -919,7 +919,10 @@
       ],
       "title": "Catch-up tests",
       "expect": "green",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/catchup_test.go"
+      ]
     },
     "T063": {
       "owner": "test-engineer",

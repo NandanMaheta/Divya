@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	lifeFrom = schedulertest.Nov(8, 0, 0)   // Sunday 00:00
+	lifeFrom = schedulertest.Nov(8, 0, 0)    // Sunday 00:00
 	lifeTo   = schedulertest.Nov(19, 23, 55) // last tick of Thursday 19 Nov
 
 	lifeOpen    = schedulertest.Nov(9, 10, 0)

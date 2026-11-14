@@ -361,7 +361,7 @@
   - Rules: BR-IPO-03, BR-TASK-03, BR-SET-08, GS-04 | Refs: US9.1-9.3; SC-006
   - Files (1, ~190 lines): `apps/api/internal/scheduler/lifecycle_test.go`
   - Done command (green): `cd apps/api && go test -race -run TestLifecycle_BR_IPO_03_BR_SET_08_GS_04_TwoWeeks -v ./internal/scheduler/...`
-- [ ] T062 [P] **test-engineer**: Catch-up tests: 6-hour outage and 500-job backlog drained within 3 ticks, state-change jobs done, stale reminders expire and are never sent, recurring runs once.
+- [x] T062 [P] **test-engineer**: Catch-up tests: 6-hour outage and 500-job backlog drained within 3 ticks, state-change jobs done, stale reminders expire and are never sent, recurring runs once.
   - Depends on: T048, T050, T052
   - Rules: BR-IPO-03, BR-TASK-03 | Refs: US7.1-7.5; SC-003
   - Files (1, ~170 lines): `apps/api/internal/scheduler/catchup_test.go`
