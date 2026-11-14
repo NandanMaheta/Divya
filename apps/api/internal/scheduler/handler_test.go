@@ -211,11 +211,9 @@ func TestHandler_AuthenticatedTickReturns200WithTheTickSummary(t *testing.T) {
 	if err := json.Unmarshal(resp.Body.Bytes(), &body); err != nil {
 		t.Fatalf("body %s: %v", resp.Body.String(), err)
 	}
-	if _, hasSchema := body["$schema"]; hasSchema {
-		delete(body, "$schema") // Huma may link the schema; it is not part of the contract
-	}
+	delete(body, "$schema") // Huma may link the schema; it is not part of the contract
 	wantKeys := []string{"budget_exhausted", "finished_at", "jobs", "messages", "started_at", "tick_id"}
-	var keys []string
+	keys := make([]string, 0, len(body))
 	for k := range body {
 		keys = append(keys, k)
 	}

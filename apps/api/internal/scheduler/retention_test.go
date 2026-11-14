@@ -63,7 +63,7 @@ func TestRetention_PurgesFinishedWorkOlderThan30DaysAndKeepsDeadItems(t *testing
 
 		runAt := schedulertest.Nov(15, 3, 0)
 		old, recent := runAt.Add(-retentionDays-time.Minute), runAt.Add(-retentionDays+time.Hour)
-		var gone, kept []uuid.UUID
+		gone, kept := make([]uuid.UUID, 0, 6), make([]uuid.UUID, 0, 10)
 		for _, org := range []uuid.UUID{h.Org, other} {
 			for _, st := range []string{"done", "cancelled", "expired"} {
 				gone = append(gone, h.SeedJob(schedulertest.JobSeed{Org: org, Kind: "sample.step", Key: "old-" + st, Status: st, FinishedAt: &old}))
@@ -73,7 +73,7 @@ func TestRetention_PurgesFinishedWorkOlderThan30DaysAndKeepsDeadItems(t *testing
 				h.SeedJob(schedulertest.JobSeed{Org: org, Kind: "sample.step", Key: "old-dead", Status: "dead", Attempts: 8, FinishedAt: &old}),
 				h.SeedJob(schedulertest.JobSeed{Org: org, Kind: "sample.step", Key: "old-pending", RunAt: runAt.Add(24 * time.Hour)}))
 		}
-		var goneMsgs, keptMsgs []uuid.UUID
+		goneMsgs, keptMsgs := make([]uuid.UUID, 0, 6), make([]uuid.UUID, 0, 8)
 		for _, org := range []uuid.UUID{h.Org, other} {
 			for _, st := range []string{"sent", "withdrawn", "expired"} {
 				goneMsgs = append(goneMsgs, h.SeedMessage(schedulertest.MessageSeed{Org: org, Key: "old-" + st, Status: st, FinishedAt: &old}))

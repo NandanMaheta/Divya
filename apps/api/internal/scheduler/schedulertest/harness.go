@@ -24,6 +24,7 @@ package schedulertest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -304,7 +305,10 @@ func scanJob(row pgx.Row) (JobRow, error) {
 	err := row.Scan(&r.ID, &r.Org, &r.Kind, &r.Key, &r.Subject, &r.Payload, &r.RunAt, &r.ExpiresAt, &r.Recurring, &r.Status,
 		&r.Attempts, &r.MaxAttempts, &r.FirstAttemptAt, &r.LastAttemptAt, &r.LastError, &r.LockedUntil, &r.LockToken,
 		&r.Rerun, &r.CancelRequested, &r.AlertedAt, &r.FinishedAt)
-	return r, err
+	if err != nil {
+		return r, fmt.Errorf("scan job: %w", err)
+	}
+	return r, nil
 }
 
 // Jobs returns every row for (harness org, kind, key), oldest first (done rows stay as history).

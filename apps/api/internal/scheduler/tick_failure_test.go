@@ -246,8 +246,8 @@ func TestTickFailure_CompletionIsAtomicWithTheHandlersEffects(t *testing.T) {
 				return err
 			}
 			// Seen from another connection while the handler is still running.
-			midEffects = h.Count("sample_effects", "key = $1", job.Key)
-			midRunning = h.Count("scheduled_jobs", "dedupe_key = $1 AND status = 'running'", job.Key)
+			midEffects = h.Count("sample_effects", "key = $1", job.Key)                               //nolint:contextcheck // read from another connection on purpose
+			midRunning = h.Count("scheduled_jobs", "dedupe_key = $1 AND status = 'running'", job.Key) //nolint:contextcheck // read from another connection on purpose
 			return nil
 		})
 		h.Schedule(h.Spec("sample.step", "k", start))

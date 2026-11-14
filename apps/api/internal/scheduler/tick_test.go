@@ -197,7 +197,7 @@ func TestTick_PerTickCapsAndBudgetsLeaveTheRestForTheNextTick(t *testing.T) {
 		t := h.T
 		rec := &recorder{}
 		h.Handle("sample.bulk", func(_ context.Context, job scheduler.Job) error { rec.add(job.Key); return nil })
-		var want []string
+		want := make([]string, 0, 260)
 		for i := range 260 {
 			key := "job-" + strconv.Itoa(1000+i)
 			want = append(want, key)

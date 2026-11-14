@@ -170,8 +170,9 @@ func TestAdmin_ListShowsRetryingAndDeadJobsWithTheRequiredFieldsOnly(t *testing.
 		seedDead(h, h.Org, "ipo.close", "d2")
 		seedRetrying(h, "ipo.open", "r1")
 		keys := func(f scheduler.FailedFilter) []string {
-			var out []string
-			for _, it := range listJobs(t, h, h.Org, f) {
+			items := listJobs(t, h, h.Org, f)
+			out := make([]string, 0, len(items))
+			for _, it := range items {
 				out = append(out, it["dedupe_key"].(string))
 			}
 			slices.Sort(out)

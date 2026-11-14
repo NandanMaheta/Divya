@@ -108,8 +108,8 @@ func stealDuringRun(t *testing.T, h *schedulertest.Harness, kind string, result 
 			if _, err := h.Outbox.Add(ctx, outboxMessage(h, "msg:"+job.Key)); err != nil {
 				return err
 			}
-			h.Clock.Advance(lease) // this run took too long ...
-			stolen, ok := h.ClaimOnly()
+			h.Clock.Advance(lease)      // this run took too long ...
+			stolen, ok := h.ClaimOnly() //nolint:contextcheck // another instance, outside the job transaction
 			if !ok {
 				t.Error("the expired lease could not be reclaimed: the handler's transaction must not lock the job row while it runs")
 				return result

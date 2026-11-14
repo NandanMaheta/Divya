@@ -398,7 +398,7 @@ func TestSchedule_BR_IPO_03_ChangesWhileRunningAreKept(t *testing.T) {
 		h.Handle(kind, func(ctx context.Context, job scheduler.Job) error {
 			rec.add(job.Key)
 			if rec.Count() == 1 {
-				if err := h.InTx(change); err != nil {
+				if err := h.InTx(change); err != nil { //nolint:contextcheck // another request, its own transaction
 					t.Errorf("concurrent change failed: %v", err)
 				}
 			}
