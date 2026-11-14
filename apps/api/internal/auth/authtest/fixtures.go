@@ -31,6 +31,9 @@ var T0 = time.Date(2026, time.July, 1, 10, 0, 0, 0, time.UTC)
 // the password policy and is registered with Env.Secrets.
 const Password = "river-lantern-42-monsoon"
 
+// poolConns is the test pool size (production uses five).
+const poolConns = 32
+
 // CheapHasherParams keep Argon2 fast in tests; Env.Hasher uses them as its "current" parameters.
 var CheapHasherParams = auth.HasherParams{MemoryKiB: 8, Time: 1, Threads: 1}
 
@@ -52,7 +55,9 @@ type Env struct {
 // real Store.
 func New(t *testing.T) *Env {
 	t.Helper()
-	pool := dbtest.New(t)
+	// A larger pool than production's: concurrent store tests hold a transaction and also read
+	// through the pool, which would exhaust five connections and hang.
+	pool := dbtest.NewSized(t, poolConns)
 	e := &Env{
 		Pool:    pool,
 		Tx:      db.NewTxRunner(pool),

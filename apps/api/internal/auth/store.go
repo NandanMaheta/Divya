@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// Compile skeleton (S08): the Store contract the S08 tests are written against. S10 implements
-// it (store_pg.go is the only file that may import pgx). Semantics, shared by every method:
+// The Store contract; store_pg.go implements it and is the only file that may import pgx.
+// Semantics, shared by every method:
 //
 //   - IDs are uuid.UUID; every time comes from the caller (an @now parameter), never the database.
 //   - Reads run on the transaction in ctx when there is one, otherwise on the pool.
@@ -105,8 +105,10 @@ type SessionPrincipal struct {
 
 // Live reports whether the session may authenticate a request at now: not ended, now before both
 // expiry instants (a request at exactly an expiry instant is expired) and the user active.
-// Compile skeleton (S08): no logic yet.
-func (p SessionPrincipal) Live(now time.Time) bool { return false }
+func (p SessionPrincipal) Live(now time.Time) bool {
+	return p.EndedAt == nil && p.Status == StatusActive &&
+		now.Before(p.IdleExpiresAt) && now.Before(p.AbsoluteExpiresAt)
+}
 
 // RefreshRow is one refresh_tokens row. ReplacedBy is uuid.Nil when NULL.
 type RefreshRow struct {
@@ -229,7 +231,7 @@ type Store interface {
 	AdvanceStep(ctx context.Context, userID uuid.UUID, step int64, now time.Time) (bool, error)
 
 	// ReplaceRecoveryCodes revokes every unrevoked code of the user (revoked_at = now) and inserts
-	// the new batch; it returns how many usable (unused) codes it revoked.
+	// the new batch; it returns how many usable (unused) codes it revoked. Requires a transaction.
 	ReplaceRecoveryCodes(ctx context.Context, orgID, userID, batchID uuid.UUID, hashes [][]byte, now time.Time) (int, error)
 	// UseRecoveryCode marks one unused, unrevoked code used and reports ok, with the number of
 	// usable codes left. An unknown, used or revoked code is ok=false and changes nothing.

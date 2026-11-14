@@ -40,7 +40,17 @@ var (
 
 // New returns a pool to a fresh database with all migrations applied. The database is dropped
 // when the test ends.
-func New(t *testing.T) *pgxpool.Pool {
+func New(t *testing.T) *pgxpool.Pool { return newPool(t, 0) }
+
+// NewSized is New with a pool of up to maxConns connections instead of db.Open's small production
+// pool. Tests that run many concurrent transactions, each also touching the pool directly, need
+// more connections than transactions or they exhaust the pool and hang.
+func NewSized(t *testing.T, maxConns int32) *pgxpool.Pool {
+	t.Helper()
+	return newPool(t, maxConns)
+}
+
+func newPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("integration test: skipped in -short mode")
@@ -57,7 +67,7 @@ func New(t *testing.T) *pgxpool.Pool {
 	if _, err := admin.Exec(ctx, fmt.Sprintf(`CREATE DATABASE %q TEMPLATE %q`, name, templateDB)); err != nil {
 		t.Fatalf("dbtest: create database: %v", err)
 	}
-	pool, err := db.Open(ctx, withDatabase(name))
+	pool, err := openPool(ctx, withDatabase(name), maxConns)
 	if err != nil {
 		t.Fatalf("dbtest: open: %v", err)
 	}
@@ -115,6 +125,22 @@ func start() {
 	if err != nil {
 		initErr = fmt.Errorf("migrate template: %w", err)
 	}
+}
+
+func openPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, error) {
+	if maxConns == 0 {
+		return db.Open(ctx, url)
+	}
+	cfg, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+	cfg.MaxConns = maxConns
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("connect: %w", err)
+	}
+	return pool, nil
 }
 
 func withDatabase(name string) string {
