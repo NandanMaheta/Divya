@@ -1,6 +1,6 @@
 # Research: 008 IPO catalogue (CRUD, mainboard only, APPLY / DO NOT APPLY, lifecycle by dates)
 
-Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 (`docs/product/business-rules.md`). Builds on 002 (scheduler, outbox, clock, `istdate`) per `/home/user/divya-002/specs/002-scheduler-tick/{plan,data-model}.md` and `contracts/go-module-api.md` (002's `plan.md` is still the empty template, so the binding API is `go-module-api.md`). Feeds 009 (GMP history) and 026 (worker import).
+Rules: BR-IPO-01, BR-IPO-02, BR-IPO-03 (`docs/product/business-rules.md`). Builds on 002 (scheduler, outbox, clock, `istdate`) per `/home/user/swastik-002/specs/002-scheduler-tick/{plan,data-model}.md` and `contracts/go-module-api.md` (002's `plan.md` is still the empty template, so the binding API is `go-module-api.md`). Feeds 009 (GMP history) and 026 (worker import).
 
 Research limits: this session could only reach the web search tool. `taxguru.in` and `ipomarket.in` could not be fetched (host blocked), so SEBI/exchange claims rest on search snippets and the repo's own `research-report.md`. Claims marked **[verify]** must be checked against the ICDR text or exchange circulars before they become hard validation. Nothing here needs a new library: no external dependency is required for 008 (Go, pgx, sqlc, Huma and TanStack are already in the stack, so no versions to pin).
 
@@ -87,7 +87,7 @@ SME issues list on NSE Emerge or BSE SME, are exchange-reviewed, have no QIB quo
 
 Layered rejection, strongest first:
 
-1. **Explicit input**: the create/update body has a required `segment` enum with values `NSE_MAINBOARD`, `BSE_MAINBOARD`, `NSE_EMERGE`, `BSE_SME`. Only the first two (or an `exchanges` set drawn from `NSE`,`BSE` plus `board` = `MAINBOARD`) are accepted; the SME values are listed in the schema on purpose and return 422 with a dedicated problem type (`urn:divya:problem:sme-not-allowed`, RFC 9457), so BR-IPO-01 has a named test. The DB also has `CHECK (board = 'MAINBOARD')` and `CHECK (exchanges <@ ARRAY['NSE','BSE'])` as defence in depth; no SME value can be stored.
+1. **Explicit input**: the create/update body has a required `segment` enum with values `NSE_MAINBOARD`, `BSE_MAINBOARD`, `NSE_EMERGE`, `BSE_SME`. Only the first two (or an `exchanges` set drawn from `NSE`,`BSE` plus `board` = `MAINBOARD`) are accepted; the SME values are listed in the schema on purpose and return 422 with a dedicated problem type (`urn:swastik:problem:sme-not-allowed`, RFC 9457), so BR-IPO-01 has a named test. The DB also has `CHECK (board = 'MAINBOARD')` and `CHECK (exchanges <@ ARRAY['NSE','BSE'])` as defence in depth; no SME value can be stored.
 2. **Import (026)**: the importer must map provider "type"/"segment" to this enum and drop (log and count) anything not mainboard; unknown segment means skip, never default to mainboard.
 3. **Soft heuristics (warnings, not rejections)**: lot value at cap above a configurable limit (suggest ₹20,000 as a starting warning level, owner to confirm, Q5), issue name containing "SME"/"Emerge", or a listing venue text matching Emerge/SME. A heuristic must never auto-accept; it only prompts the admin.
 
@@ -135,9 +135,9 @@ Rejected alternatives:
 
 ## 4. Existing code to reuse
 
-- Golden reference module: `/home/user/divya-008/apps/api/internal/health/` (`health.go` service, `handler.go` Huma `Register(api, svc)`, `health_test.go`); copy the shape per `.claude/rules/api.md`.
+- Golden reference module: `/home/user/swastik-008/apps/api/internal/health/` (`health.go` service, `handler.go` Huma `Register(api, svc)`, `health_test.go`); copy the shape per `.claude/rules/api.md`.
 - Platform: `apps/api/internal/platform/{config,db,dbtest,httpx}`; migration style `apps/api/migrations/00001_platform.sql` (uuidv7 keys, `orgs` FK, `audit_log`, `forbid_mutation()`); sqlc config `apps/api/sqlc.yaml`, queries in `apps/api/queries/`. Next migration number: 002 uses `00002_scheduler_outbox.sql`, so 008 should take `00003_ipos.sql` (confirm at merge to avoid collisions).
-- From 002 (not merged yet; read-only reference at `/home/user/divya-002/specs/002-scheduler-tick/contracts/go-module-api.md`): `scheduler.Service.Register/Schedule/Reschedule/Cancel/CancelSubject`, `db.TxRunner.InTx/MustTx`, `audit.Write`, `clock.Func`/`clock.Fake`, `istdate.Date/AddWeekdays/At`. 008 must wait for 002 (modules.md dependency) and import only these exported interfaces (depguard).
+- From 002 (not merged yet; read-only reference at `/home/user/swastik-002/specs/002-scheduler-tick/contracts/go-module-api.md`): `scheduler.Service.Register/Schedule/Reschedule/Cancel/CancelSubject`, `db.TxRunner.InTx/MustTx`, `audit.Write`, `clock.Func`/`clock.Fake`, `istdate.Date/AddWeekdays/At`. 008 must wait for 002 (modules.md dependency) and import only these exported interfaces (depguard).
 - Frontend: `apps/admin` (TanStack Router/Query), `packages/domain` for ₹/IST formatting and enums (add `IpoStatus`, `ApplyFlag`), `packages/api-client` regenerated from OpenAPI.
 
 ## 5. Open questions for the owner (do not guess)
@@ -151,7 +151,7 @@ Rejected alternatives:
 
 ## 6. Sources
 
-- Repo: `docs/product/business-rules.md` (BR-IPO-01..03, BR-SET-08), `docs/product/product-blueprint.md` sections 2.1, 2.2, 6, `docs/product/research-report.md` (IPO data sources), `.specify/memory/constitution.md`, `/home/user/divya-002/specs/002-scheduler-tick/{data-model.md,contracts/go-module-api.md}`.
+- Repo: `docs/product/business-rules.md` (BR-IPO-01..03, BR-SET-08), `docs/product/product-blueprint.md` sections 2.1, 2.2, 6, `docs/product/research-report.md` (IPO data sources), `.specify/memory/constitution.md`, `/home/user/swastik-002/specs/002-scheduler-tick/{data-model.md,contracts/go-module-api.md}`.
 - T+3: [Business Standard](https://www.business-standard.com/amp/markets/news/sebi-reduces-timeline-for-listing-shares-to-t-3-from-t-6-from-december-1-123080900726_1.html), [IIFL](https://www.indiainfoline.com/news/markets/sebi-shortens-the-listing-period-from-t6-to-t3-and-makes-it-mandatory-starting-on-december-1), [TaxGuru](https://taxguru.in/sebi/sebi-reduces-listing-timeline-public-issue-shares-t6-days-t3-days.html), [Union Bank ASBA guideline PDF](https://www.unionbankofindia.co.in/pdf/New%20SEBI%20Guidlines-7.pdf), [SEBI UPI/ASBA circular via MSEI](https://www.msei.in/SX-Content/Company-Circulars/2021/June/SEBI-02-Jun-2021-STREAMLINING-THE-PROCESS-OF-IPOS-WITH-UPI-IN-ASBA-AND-REDRESSAL-OF-INVESTOR-GRIEVANCES..pdf).
 - Quotas and price band ad: [finowings](https://www.finowings.com/trending/sebi-new-ipo-rules-investors/), [JSA ICDR amendments March 2025](https://www.jsalaw.com/wp-content/uploads/2025/03/JSA-Prism-Capital-Markets-and-Securities-ICDR-Amendments.March-2025.Final_.pdf), [Stocktwits on 35% retail quota](https://stocktwits.com/news-articles/markets/equity/sebi-drops-proposal-to-cut-retail-quota-in-large-ipos-keeps-35-percent-limit/chsgXBxRdgL), [SEBI board papers Jan 2022](https://www.sebi.gov.in/sebi_data/meetingfiles/jan-2022/1642414722087_1.pdf).
 - SME vs mainboard: [IPOMarket](https://www.ipomarket.in/news/mainboard-vs-sme-ipo-differences), [NSE Emerge brochure](https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE%20Emerge%20Brochure_1.pdf), [Moneylife](https://www.moneylife.in/article/sebi-proposes-sweeping-overhaul-of-sme-ipo-framework/81956.html), [Kotak SME IPO guide](https://www.kotaksecurities.com/investing-guide/ipos/how-to-apply-sme-ipo).
@@ -177,7 +177,7 @@ The approved spec (defaults D-01…D-10) closed every question in §5. The plan 
 
 ### R-03 Signals to dependent features are in-process, in-transaction listeners
 
-- **Decision**: `internal/ipos` exports three listener interfaces (`DatesChangedListener`, `EligibilityChangedListener`, `StatusChangedListener`). Dependents (010/011, 012, 013, 018, 019) register at wiring time in `cmd/divya`. They are called synchronously with the caller's transaction in `ctx`, in registration order. Any error or panic rolls back the whole change. Recorded as ADR 0008.
+- **Decision**: `internal/ipos` exports three listener interfaces (`DatesChangedListener`, `EligibilityChangedListener`, `StatusChangedListener`). Dependents (010/011, 012, 013, 018, 019) register at wiring time in `cmd/swastik`. They are called synchronously with the caller's transaction in `ctx`, in registration order. Any error or panic rolls back the whole change. Recorded as ADR 0008.
 - **Why**: FR-024, FR-037 and FR-042 require "within the same all-or-nothing change". Dependency direction stays acyclic: dependents import `ipos`, never the reverse (depguard).
 - **Rejected**: outbox events. They are delivered after commit, so they are not all-or-nothing with the dependent's reaction, and 002 reserves the outbox for user-facing messages with quiet hours. Also rejected: `ipos` calling dependents directly (import cycle); dependents polling `ipos` (stale, untestable "same change").
 

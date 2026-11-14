@@ -39,7 +39,7 @@ The rules are enforced as follows:
 
 Dependents are told through three in-transaction listener interfaces: `DatesChanged`, `EligibilityChanged` and `StatusChanged` (ADR 0008). A listener failure rolls back the change. Every mutation writes exactly one `audit_log` row through 002's `audit.Write`. Errors are RFC 9457 with 003's stable `code`. Mutations accept `Idempotency-Key`, and edits are guarded by `version`.
 
-No new dependency. No outbox event. No UI (screens are 022/023/025). The only frontend changes are the regenerated `@divya/api-client` and IPO constants and error codes in `@divya/domain`.
+No new dependency. No outbox event. No UI (screens are 022/023/025). The only frontend changes are the regenerated `@swastik/api-client` and IPO constants and error codes in `@swastik/domain`.
 
 ## Technical Context
 
@@ -52,10 +52,10 @@ No new dependency. No outbox event. No UI (screens are 022/023/025). The only fr
 **Testing**:
 
 - `go test -race`: table tests, rapid properties, `dbtest.New(t)` integration with 002's `schedulertest` harness (fake clock plus real `Tick`), `humatest` handlers with 003's `authz.Install` and a fake verifier.
-- `cmd/divya` contract tests, oasdiff in CI.
+- `cmd/swastik` contract tests, oasdiff in CI.
 - vitest for `packages/domain`.
 
-**Target Platform**: Cloud Run (Mumbai), a single `divya serve` binary. Ticks come from Cloud Scheduler every 5 minutes (ADR 0003).
+**Target Platform**: Cloud Run (Mumbai), a single `swastik serve` binary. Ticks come from Cloud Scheduler every 5 minutes (ADR 0003).
 
 **Project Type**: modular-monolith web service (Go API). The TS packages are generated or constant-only.
 
@@ -98,10 +98,10 @@ Post-design re-check (after data-model and contracts): no violations. There is o
 | C-2 | Clock and dates | 002 `platform/clock`, `platform/istdate` | `Deps.Now clock.Func`; `istdate.Date.At(h, m)` for step instants; `istdate.AddWeekdays` for suggestions (FR-043); `istdate.ParseDate`. |
 | C-3 | Transactions | 002 `db.TxRunner` (`InTx` nested join, `Conn`, `MustTx`) | Every mutation is `InTx`. Listeners and `MarkSettled`/`RequireEligible` join the caller's transaction. |
 | C-4 | Audit | 002 `audit.Write(ctx, Entry{OrgID, Actor, Entity, EntityID, Action, Before, After})`, plus 003 C-4's additive `Entry.At` | `At` is set from the clock when available. Tests assert ordering by `id` (uuidv7) and the `after.scheduled_for` contents, so they do not depend on `At` landing. |
-| C-5 | AuthZ | 003 `platform/authz`: `Require(roles...)`, `MustPrincipal(ctx)`, `Principal{UserID, OrgID, SessionID uuid.UUID; Role}`, `Principal.AuditActor()`, `AssertDeclared` | Org and actor always come from the principal and never from the request. Admin operation ids are appended to `cmd/divya/testdata/admin-operations.txt` (003 contract walk). |
-| C-6 | Errors | 003 P-10 `httpx.Problem(status, code, detail)`, `ErrorModel.code`, `type = urn:divya:problem:<code>`, `Value` stripped | IPO codes are namespaced `ipo.*` (contracts/error-codes.md). The brief's `sme-not-allowed`, `date-order` and `publish-incomplete` become `ipo.sme_not_allowed`, `ipo.date_order` and `ipo.publish_incomplete` to match 003's code style. |
+| C-5 | AuthZ | 003 `platform/authz`: `Require(roles...)`, `MustPrincipal(ctx)`, `Principal{UserID, OrgID, SessionID uuid.UUID; Role}`, `Principal.AuditActor()`, `AssertDeclared` | Org and actor always come from the principal and never from the request. Admin operation ids are appended to `cmd/swastik/testdata/admin-operations.txt` (003 contract walk). |
+| C-6 | Errors | 003 P-10 `httpx.Problem(status, code, detail)`, `ErrorModel.code`, `type = urn:swastik:problem:<code>`, `Value` stripped | IPO codes are namespaced `ipo.*` (contracts/error-codes.md). The brief's `sme-not-allowed`, `date-order` and `publish-incomplete` become `ipo.sme_not_allowed`, `ipo.date_order` and `ipo.publish_incomplete` to match 003's code style. |
 | C-7 | Migration number | 002 = `00002`, 003 = `00003` (003 P-18) | 008 = `00004_ipos.sql`. goose rejects an older unapplied version once a newer one is applied, so **008 merges after 003**. If 003 slips past 008, 008 waits; it does not renumber. |
-| C-8 | Shared files | `cmd/divya/main.go`, `.golangci.yml`, `queries/` (002/003 also edit) | 008 adds new files and appends small blocks: one wiring block, one depguard rule and a `platform-is-a-leaf` entry. It rebases onto `stage` before its PR. |
+| C-8 | Shared files | `cmd/swastik/main.go`, `.golangci.yml`, `queries/` (002/003 also edit) | 008 adds new files and appends small blocks: one wiring block, one depguard rule and a `platform-is-a-leaf` entry. It rebases onto `stage` before its PR. |
 
 **Merge order**: 002 Phase A → 003 → 008. Phase A of 008 below needs only 002 Phase A, so it can be built and tested while 003 is in review. The 008 PR as a whole merges after 003 (C-7, and the HTTP layer needs `authz`). 002 Phase B is not required.
 
@@ -126,7 +126,7 @@ Post-design re-check (after data-model and contracts): no violations. There is o
 ## Module placement and dependencies
 
 ```text
-cmd/divya ──> internal/ipos ──> internal/scheduler (002: Schedule/Cancel/CancelSubject/Register types)
+cmd/swastik ──> internal/ipos ──> internal/scheduler (002: Schedule/Cancel/CancelSubject/Register types)
                            ──> internal/platform/{db, db/dbgen, audit, clock, istdate, authz (003), httpx (003), inr (new)}
           ──> ipos.RegisterJobs(sch, ipoSvc); ipos.Register(api, ipoSvc)   (after authz.Install, before AssertDeclared)
 future 009/010/011/012/013/018/019/026 ──> internal/ipos (Get, RequireEligible, MarkSettled, On*Changed listeners)
@@ -137,7 +137,7 @@ depguard additions to `apps/api/.golangci.yml`, applied on top of 002 and 003:
 
 ```yaml
 platform-is-a-leaf:            # append
-  deny: [ { pkg: "github.com/NandanMaheta/divya/apps/api/internal/ipos", desc: platform packages must not import business modules } ]
+  deny: [ { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/ipos", desc: platform packages must not import business modules } ]
 ipos-boundaries:
   list-mode: strict
   files: ["**/internal/ipos/**", "!$test"]
@@ -146,14 +146,14 @@ ipos-boundaries:
     - github.com/danielgtaylor/huma/v2
     - github.com/google/uuid
     - github.com/jackc/pgx/v5            # narrowed by the next rule
-    - github.com/NandanMaheta/divya/apps/api/internal/platform
-    - github.com/NandanMaheta/divya/apps/api/internal/scheduler
+    - github.com/NandanMaheta/swastik/apps/api/internal/platform
+    - github.com/NandanMaheta/swastik/apps/api/internal/scheduler
 ipos-pgx-only-in-store:
   files: ["**/internal/ipos/**", "!**/internal/ipos/store.go", "!$test"]
   deny: [ { pkg: "github.com/jackc/pgx/v5", desc: pgx types stay in store.go (go-module-pattern) } ]
 scheduler-does-not-know-owners:
   files: ["**/internal/scheduler/**", "**/internal/outbox/**"]
-  deny: [ { pkg: "github.com/NandanMaheta/divya/apps/api/internal/ipos", desc: owners depend on the scheduler, never the reverse } ]
+  deny: [ { pkg: "github.com/NandanMaheta/swastik/apps/api/internal/ipos", desc: owners depend on the scheduler, never the reverse } ]
 ```
 
 The implementer proves each rule with a deliberate violation that fails `golangci-lint run ./...` and is then reverted (same practice as 002). Convention, checked by review: `internal/ipos` calls only `queries/ipos.sql` queries plus 002's audit writer.
@@ -196,7 +196,7 @@ Notes:
 - Go 1.22+ `ServeMux` precedence routes the literal `/v1/admin/ipos/date-suggestions` before `/{ipoId}`. A handler test pins this.
 - The cursor is opaque: base64url of `{open_date|null, id}`. A malformed cursor gives 422 `validation_failed`. `limit` defaults to 50, maximum 200.
 - Admin lists order by `open_date DESC NULLS FIRST, id DESC` (FR-009). The client list uses the same order.
-- Steps after the code lands: `go run ./cmd/divya openapi > packages/api-client/openapi.yaml`, then `pnpm --filter @divya/api-client generate`. Commit both. oasdiff must be non-breaking.
+- Steps after the code lands: `go run ./cmd/swastik openapi > packages/api-client/openapi.yaml`, then `pnpm --filter @swastik/api-client generate`. Commit both. oasdiff must be non-breaking.
 
 ## Scheduler jobs and outbox events
 
@@ -270,8 +270,8 @@ Validation is pure (`validate.go`) so it can be unit- and property-tested. The s
 | Integration (signals) | `ipos/signals_test.go` | `TestSignals_BR_IPO_03_DatesChangedOncePerEdit` (old and new of all six; none on create or non-date edit); `TestSignals_BR_IPO_03_DatesChangedFailureRollsBack` (US5.5: old dates, old step `run_at`, no audit, error); `TestSignals_BR_IPO_02_EligibilityChanged` (publish APPLY → true; DNA publish → none; flag flip → false; note-only → none; unpublish → false); `TestSignals_BR_IPO_02_FailureRollsBackPublish` (US3.10, both error and panic); `TestSignals_BR_IPO_03_StatusChangedExactlyOnce` (step, override, MarkSettled; no-op none; listener sees the new row inside the transaction); `TestSignals_BR_IPO_03_StepListenerFailureRetries` (job retried by 002, status unchanged until success); `TestSignals_RejectedErrorMapsTo409` | BR-IPO-02/03; FR-024/037/042; US4.11 |
 | Integration (eligibility) | `ipos/eligible_test.go` | `TestRequireEligible_BR_IPO_02` (draft, DNA, APPLY); requires a transaction (`db.ErrNoTx`); a concurrent unpublish waits for the FOR SHARE holder | BR-IPO-02; FR-023 |
 | Handler (humatest) | `ipos/handler_test.go` | `authz.Install` with a fake verifier (admin and client principals). Status codes and `code` for each error in error-codes.md; `segments` mapping; `Idempotency-Key` replay statuses (201 → 200, 204 → 204); `TestClient_BR_IPO_02_OnlyPublished` (US7.1 exactly 3 of 5; US7.2 status filter); `TestClient_BR_IPO_02_DraftLooksUnknown` (US7.3: byte-identical 404 bodies for draft and random id); `TestClient_FR051_NoAdminFields` (US7.4, JSON key set assertion); `TestClient_UnpublishHidesNextRead` (US7.5); `TestAdminOps_FR050_ClientForbidden` (US7.6, every admin op → 403, nothing written); `TestSuggest_US8_4_NoSideEffects`; date-suggestions route precedence; warning payload and Indian-formatted `detail` | BR-IPO-02; FR-050/051/061; SC-004, SC-007 |
-| Contract | `cmd/divya/contract_test.go` (003's walk) and a 008 addition `cmd/divya/ipos_contract_test.go` | 003's walk automatically covers 401/403 for all 12 operations (US7.7, SC-007) once the admin ids are in `testdata/admin-operations.txt`. 008 asserts: the 12 operation ids exist with exact security; every non-GET has an `Idempotency-Key` header parameter; `ClientIPO` properties exclude `source`, `source_ref`, `last_synced_at`, `status_source`, `version`, `published`; `segments` items have no enum (R-05); generated `openapi.yaml` is committed and current; oasdiff non-breaking (CI) | V; FR-050/051/061 |
-| Contract (TS) | `packages/domain/src/ipo.test.ts` | `IPO_STATUSES` order matches `IPOStatus` from `@divya/api-client` schema types (compile-time `satisfies`); every `ipo.*` code in error-codes.md exists in `ipoErrorCodes` | V |
+| Contract | `cmd/swastik/contract_test.go` (003's walk) and a 008 addition `cmd/swastik/ipos_contract_test.go` | 003's walk automatically covers 401/403 for all 12 operations (US7.7, SC-007) once the admin ids are in `testdata/admin-operations.txt`. 008 asserts: the 12 operation ids exist with exact security; every non-GET has an `Idempotency-Key` header parameter; `ClientIPO` properties exclude `source`, `source_ref`, `last_synced_at`, `status_source`, `version`, `published`; `segments` items have no enum (R-05); generated `openapi.yaml` is committed and current; oasdiff non-breaking (CI) | V; FR-050/051/061 |
+| Contract (TS) | `packages/domain/src/ipo.test.ts` | `IPO_STATUSES` order matches `IPOStatus` from `@swastik/api-client` schema types (compile-time `satisfies`); every `ipo.*` code in error-codes.md exists in `ipoErrorCodes` | V |
 | Component / E2E | none | No screens in 008 (022/023/025 own them). 023 and 025 Playwright/Maestro flows will cover IPO pages | n/a |
 | Performance | `ipos/perf_test.go` (integration, `-short` skip) | `TestList_SC008_Budget`: 500 seeded IPOs; 200 admin and 200 client list/detail calls through humatest plus a real DB; local p95 < 50 ms (headroom for the 200 ms Mumbai budget); `EXPLAIN` uses `ipos_published_list_idx` / `ipos_admin_list_idx` | SC-008, VII |
 | Golden | existing suites | `go test -race ./...` incl. GS-01…GS-04; unchanged | GS-01…04 |
@@ -364,9 +364,9 @@ apps/api/
 │   ├── handler.go        # Register(api, svc): 12 operations
 │   ├── ipostest/         # NewService(harness), RecordingListener, FailingListener, ExampleIPO
 │   └── *_test.go         # per the test table
-├── cmd/divya/main.go                       # wiring: ipos.NewService, RegisterJobs, Register
-├── cmd/divya/ipos_contract_test.go         # new
-├── cmd/divya/testdata/admin-operations.txt # + 10 admin operation ids (003 file)
+├── cmd/swastik/main.go                       # wiring: ipos.NewService, RegisterJobs, Register
+├── cmd/swastik/ipos_contract_test.go         # new
+├── cmd/swastik/testdata/admin-operations.txt # + 10 admin operation ids (003 file)
 └── .golangci.yml                           # depguard rules above
 packages/api-client/openapi.yaml, src/schema.ts   # regenerated
 packages/domain/src/ipo.ts, ipo.test.ts, index.ts # statuses, flags, segments, ipoErrorCodes

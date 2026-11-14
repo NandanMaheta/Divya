@@ -9,11 +9,11 @@ Who uses it:
 - 018 (due dates)
 - 019 (payments → SETTLED)
 - 026 (import)
-- `cmd/divya` (wiring)
+- `cmd/swastik` (wiring)
 
 No module reads or writes the `ipos` table directly (constitution IV). The exported names and signatures below are binding; unexported helpers are not. Ids are `uuid.UUID` and dates are `istdate.Date` (002). No pgx or HTTP types appear.
 
-## Construction and wiring (`cmd/divya` only)
+## Construction and wiring (`cmd/swastik` only)
 
 ```go
 type Scheduler interface { // satisfied by *scheduler.Service (002)

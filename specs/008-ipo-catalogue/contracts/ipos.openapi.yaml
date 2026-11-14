@@ -1,8 +1,8 @@
 # Expected additive OpenAPI 3.1 diff produced by apps/api/internal/ipos/handler.go (008).
-# The generated document (go run ./cmd/divya openapi) is the source of truth; this file is the review contract.
+# The generated document (go run ./cmd/swastik openapi) is the source of truth; this file is the review contract.
 # Security schemes, ErrorModel.code and the 401/403 behaviour come from 003 (authz.Install, httpx.InstallErrors).
 openapi: 3.1.0
-info: { title: Divya API (008 IPO catalogue diff), version: "008" }
+info: { title: Swastik API (008 IPO catalogue diff), version: "008" }
 tags:
   - name: IPOs
 paths:

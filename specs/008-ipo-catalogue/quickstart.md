@@ -57,18 +57,18 @@ The downtime catch-up writes three audit rows in order. Overrides, reschedules, 
 ## 4. Contract
 
 ```bash
-cd apps/api && go run ./cmd/divya openapi > ../../packages/api-client/openapi.yaml
-pnpm --filter @divya/api-client generate && pnpm turbo run typecheck test
+cd apps/api && go run ./cmd/swastik openapi > ../../packages/api-client/openapi.yaml
+pnpm --filter @swastik/api-client generate && pnpm turbo run typecheck test
 git diff --stat packages/api-client             # only additive IPO paths/schemas
 ```
 
-CI runs oasdiff. It must report no breaking change. The `cmd/divya` contract test asserts the following:
+CI runs oasdiff. It must report no breaking change. The `cmd/swastik` contract test asserts the following:
 
 - Every `ipos-*` operation declares security: admin operations use `bearer [admin]` and `ipos-list`/`ipos-get` use `bearer []`.
 - Every mutation has the `Idempotency-Key` header.
 - `ClientIPO` has no `source`, `source_ref`, `last_synced_at`, `status_source` or `version`.
 
-## 5. Manual smoke (local, after `make db-up && make migrate`, with an admin token from 003's `divya admin create` + sign-in)
+## 5. Manual smoke (local, after `make db-up && make migrate`, with an admin token from 003's `swastik admin create` + sign-in)
 
 1. `POST /v1/admin/ipos` with `{"name":"Acme Ltd","segments":["NSE_MAINBOARD","BSE_MAINBOARD"]}` returns 201, `status: UPCOMING`, `published: false`, `apply_flag: null`, `source: manual`.
 2. The same call with `"segments":["NSE_EMERGE"]` returns 422 `ipo.sme_not_allowed`.

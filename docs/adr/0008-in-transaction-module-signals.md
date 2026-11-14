@@ -14,7 +14,7 @@ The outbox (002) is delivered after commit, at least once, and is meant for user
 ## Decision
 
 1. The **owning module** (here `internal/ipos`) exports one small listener interface per signal (for example `StatusChangedListener{ OnIPOStatusChanged(ctx, StatusChanged) error }`), plain event structs (ids, old/new values, actor, time), and `On<Signal>(listener)` registration methods.
-2. **Dependent modules** implement the interfaces. `cmd/divya` registers them at wiring time, before the server starts. Dependents import the owner; the owner never imports dependents (depguard). There are no import cycles.
+2. **Dependent modules** implement the interfaces. `cmd/swastik` registers them at wiring time, before the server starts. Dependents import the owner; the owner never imports dependents (depguard). There are no import cycles.
 3. The owner calls listeners **synchronously, in registration order, inside its transaction** (`ctx` carries the tx; 002 `db.TxRunner` nested calls join), after its own writes, steps and audit entry.
 4. A listener's error or panic **rolls back the whole change**. A listener can return a typed rejection with a stable problem code, which the owner surfaces as 409. Any other error surfaces as 500.
 5. Listeners write only their own module's tables, schedule or cancel only their own jobs (002), and may add outbox messages. They must not call mutations of the emitting module (no re-entrancy).

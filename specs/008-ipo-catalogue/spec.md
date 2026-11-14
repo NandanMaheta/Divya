@@ -32,7 +32,7 @@ None are blocking. The conductor defaults and derived defaults below answer ever
 - **D-04 Overrides.** The admin can move the status forward or backward, and every manual change needs a reason. A backward override never re-fires steps whose time has already passed. Steps whose time is still in the future fire as normal and move the lifecycle forward from the new state. *(Conductor default; settles research Q4. Requiring a reason for every manual change, not only SETTLED, is derived from research §1.3.)*
 - **D-05 Validation.** These are hard blocks: any non-mainboard segment (BR-IPO-01) and wrong date order. One check is only a soft warning: a minimum application value (1 lot at the upper price) outside ₹10,000 to ₹20,000. *(Conductor default; settles research Q5.)*
 - **D-06 Date suggestions.** When a close date T is entered, the system suggests allotment T+1, refund and demat credit T+2, and listing T+3. It counts weekdays only and does not know about exchange holidays. These are suggestions only and are never saved automatically. The admin's dates win. *(Conductor default; research §1.2.)*
-- **D-07 Lifecycle runs for drafts too.** Status follows the dates whether or not the IPO is published, because it describes the market and not Divya's offer. Publishing only controls client visibility and eligibility. *(Derived from D-01 and D-02 so that publishing late never needs a separate catch-up.)*
+- **D-07 Lifecycle runs for drafts too.** Status follows the dates whether or not the IPO is published, because it describes the market and not Swastik's offer. Publishing only controls client visibility and eligibility. *(Derived from D-01 and D-02 so that publishing late never needs a separate catch-up.)*
 - **D-08 Deleting.** A draft that was never published can be deleted. An IPO that has ever been published cannot be deleted, because later features reference it. It can only be unpublished. *(Derived; protects history per constitution II.)*
 - **D-09 No "withdrawn" status.** If an issuer withdraws or postpones an IPO indefinitely, the admin unpublishes it or sets DO NOT APPLY with a note. The six statuses of BR-IPO-03 stay as they are. *(Derived; BR-IPO-03 lists exactly six statuses.)*
 - **D-10 Note is client-visible.** The optional flag note is shown to clients next to the flag. Do not put private remarks in it. *(Derived from blueprint §2.1.)*
@@ -88,7 +88,7 @@ The admin records a new mainboard IPO as soon as it is announced, with whatever 
 
 ### User Story 2 - SME and other non-mainboard IPOs are rejected (Priority: P1)
 
-Divya handles only mainboard IPOs. An SME IPO must never enter the system, whether typed in by hand or (later) imported.
+Swastik handles only mainboard IPOs. An SME IPO must never enter the system, whether typed in by hand or (later) imported.
 
 **Why this priority**: BR-IPO-01 and the constitution's out-of-scope list. An SME record would let deals, tasks and money flows start for an excluded product.
 
@@ -375,7 +375,7 @@ The admin needs to find IPOs quickly by status, publication, flag and month, and
 ## Notes for the architect (plan-level, not requirements)
 
 - Migration number: the next free one after 00003, i.e. 00004.
-- Scheduler API: read-only reference `/home/user/divya-002/specs/002-scheduler-tick/contracts/go-module-api.md` (keyed Schedule / Cancel / CancelSubject inside the caller's transaction; state-change jobs without expiry).
+- Scheduler API: read-only reference `/home/user/swastik-002/specs/002-scheduler-tick/contracts/go-module-api.md` (keyed Schedule / Cancel / CancelSubject inside the caller's transaction; state-change jobs without expiry).
 - Expose the "dates changed" signal as a `DatesChanged` hook (plus eligibility-changed and status-changed hooks) that 010/011, 012, 013, 018 and 019 register for, called in-transaction.
 - Research §1.3 to §1.4 holds the recommended step-handler shape, SME defence in depth and the rejected alternatives.
 

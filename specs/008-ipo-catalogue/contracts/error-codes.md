@@ -1,6 +1,6 @@
 # Problem codes and warnings: 008 IPO catalogue (FR-061)
 
-The format is 003's (plan P-10, `specs/003-auth-core/contracts/error-codes.md`). Responses are RFC 9457 `application/problem+json`. `code` is stable and language-neutral, and `type` is `urn:divya:problem:<code>`. `errors[]` holds `{location, message}` and never `value`. `title` and `detail` are English, for developers. Amounts in `detail` use Indian formatting (`internal/platform/inr`) and times are IST.
+The format is 003's (plan P-10, `specs/003-auth-core/contracts/error-codes.md`). Responses are RFC 9457 `application/problem+json`. `code` is stable and language-neutral, and `type` is `urn:swastik:problem:<code>`. `errors[]` holds `{location, message}` and never `value`. `title` and `detail` are English, for developers. Amounts in `detail` use Indian formatting (`internal/platform/inr`) and times are IST.
 
 Domain errors are built with 003's `httpx.Problem(status, code, detail)`. The field list is added as `errors[].location` (`body.<field>`). The codes are mirrored in `packages/domain/src/ipo.ts` for UI translation (022/023/025). Adding a code is non-breaking; renaming or removing one is breaking.
 
