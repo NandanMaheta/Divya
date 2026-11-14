@@ -235,12 +235,13 @@
 
 ## Phase 5 - Scheduler module
 
-- [ ] T040 **test-engineer**: schedulertest harness: NewHarness(t) (one dbtest container, org, fake clock, outbox + scheduler services, outboxtest.Sender), RunTicks(from, to, step), Reset() truncating the four tables, helpers to seed jobs and read rows.
+- [x] T040 **test-engineer**: schedulertest harness: NewHarness(t) (one dbtest container, org, fake clock, outbox + scheduler services, outboxtest.Sender), RunTicks(from, to, step), Reset() truncating the four tables, helpers to seed jobs and read rows.
   - Depends on: T031
   - Rules: none (mechanism) | Refs: plan: Fixtures; FR-032
   - Files (1, ~160 lines): `apps/api/internal/scheduler/schedulertest/harness.go`
   - Done command (red): `cd apps/api && gofmt -l internal/scheduler/schedulertest/ | (! grep .)`
   - Note: Compiles after T045; full use is exercised by T041-T044.
+  - Note (test-engineer): harness.go is a non-test package, so `go build ./internal/scheduler/...` (T045's done command) compiles it. T045 must therefore provide, besides the types listed in its description, compiling stubs for everything the harness and tests call: `New(txr db.TxRunner, ob *outbox.Service, now clock.Func, log *slog.Logger, instance string, opts Options)`, `DefaultOptions()`, `Handler`, `KindOptions{MaxAttempts, Recurring}`, `JobSpec`, `Job`, `Register`, `Schedule`, `Tick`, `TickSummary` (TickID, StartedAt, FinishedAt, Jobs{Run,Failed,Dead,Expired}, Messages{Sent,Failed,Dead,Expired}, BudgetExhausted; JSON per internal-tick.openapi.yaml) and `RetentionKind`, `(*Service).RetentionHandler()`, `RetentionOptions()` (T052 replaces the stubs). The full list of assumed names is at the top of harness.go. `Harness.Run(name, fn)` gives each scenario a clean database state; `Harness.Handle(kind, fn)` registers a swappable trampoline handler.
 - [ ] T041 **test-engineer**: Schedule API tests: upsert latest wins, rollback leaves no job, ErrNoTx, ErrUnknownKind, done key makes a new row, reschedule/cancel/CancelSubject commit vs rollback, into the past, no-op on missing key, reschedule while running ends pending at the new time.
   - Depends on: T040, T022
   - Rules: BR-IPO-03 | Refs: US1.9, 1.10, 5.1-5.7; FR-008, FR-009, FR-013

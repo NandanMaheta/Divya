@@ -562,14 +562,17 @@
     "T040": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && gofmt -l internal/scheduler/schedulertest/ | (! grep .)",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T031"
       ],
       "rules": [],
       "title": "schedulertest harness",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/scheduler/schedulertest/harness.go"
+      ]
     },
     "T041": {
       "owner": "test-engineer",
