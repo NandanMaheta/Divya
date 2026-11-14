@@ -39,6 +39,8 @@ linters:
               desc: platform packages must not import business modules
             - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/outbox"
               desc: platform packages must not import business modules
+            - pkg: "github.com/NandanMaheta/swastik/apps/api/internal/auth"
+              desc: platform packages must not import business modules
         outbox-does-not-know-scheduler:
           files: ["**/internal/outbox/**"]
           deny:
@@ -49,6 +51,28 @@ linters:
           deny:
             - pkg: "github.com/coreos/go-oidc/v3"
               desc: OIDC verification lives in platform/tickauth
+        jose-only-in-auth-and-tickauth:
+          files: ["$all", "!**/internal/auth/**", "!**/internal/platform/tickauth/**"]
+          deny:
+            - pkg: "github.com/go-jose/go-jose/v4"
+              desc: access tokens are issued and verified only in internal/auth (tickauth uses it via go-oidc and in tests)
+        password-and-otp-primitives-in-auth:
+          files: ["$all", "!**/internal/auth/**"]
+          deny:
+            - pkg: "golang.org/x/crypto/argon2"
+              desc: password hashing lives only in internal/auth
+            - pkg: "github.com/pquerna/otp"
+              desc: TOTP lives only in internal/auth
+        # pgx types live only in internal/auth/store_pg*.go. Tests and the authtest sub-package
+        # (test support that opens pools) are allowed.
+        pgx-only-in-store-pg:
+          files:
+            - "**/internal/auth/*.go"
+            - "!**/internal/auth/store_pg*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: "github.com/jackc/pgx/v5"
+              desc: pgx types live only in internal/auth/store_pg*.go
         no-legacy-libs:
           deny:
             - pkg: "github.com/pkg/errors"
@@ -78,7 +102,7 @@ linters:
   exclusions:
     rules:
       - path: _test\.go
-        linters: [gosec, wrapcheck, noctx]
+        linters: [gosec, wrapcheck, noctx, prealloc, contextcheck, unparam]
       - path: cmd/
         linters: [wrapcheck]
       # Real clock and request timing are the only places allowed to read the machine clock.

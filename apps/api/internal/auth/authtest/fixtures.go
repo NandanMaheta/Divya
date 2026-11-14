@@ -81,7 +81,7 @@ func (e *Env) Exec(t *testing.T, sql string, args ...any) {
 // Keyring is a fixed two-key AES-256-GCM ring (active key 2, key 1 still opens old envelopes).
 func Keyring(t testing.TB) *crypto.Keyring {
 	t.Helper()
-	k, err := crypto.NewKeyring(2, map[uint16][]byte{1: fill(32, 0x11), 2: fill(32, 0x22)})
+	k, err := crypto.NewKeyring(2, map[uint16][]byte{1: fill(0x11), 2: fill(0x22)})
 	if err != nil {
 		t.Fatalf("authtest: keyring: %v", err)
 	}
@@ -91,7 +91,7 @@ func Keyring(t testing.TB) *crypto.Keyring {
 // BlindIndexer is a fixed-key blind indexer.
 func BlindIndexer(t testing.TB) crypto.BlindIndexer {
 	t.Helper()
-	b, err := crypto.NewBlindIndexer(fill(32, 0x33))
+	b, err := crypto.NewBlindIndexer(fill(0x33))
 	if err != nil {
 		t.Fatalf("authtest: blind indexer: %v", err)
 	}
@@ -101,15 +101,16 @@ func BlindIndexer(t testing.TB) crypto.BlindIndexer {
 // SigningKeys is a fixed ring of two Ed25519 keys; "k2" is active, "k1" still verifies.
 func SigningKeys(t testing.TB) *auth.SigningKeys {
 	t.Helper()
-	s, err := auth.NewSigningKeys("k2", map[string][]byte{"k1": fill(32, 0x44), "k2": fill(32, 0x55)})
+	s, err := auth.NewSigningKeys("k2", map[string][]byte{"k1": fill(0x44), "k2": fill(0x55)})
 	if err != nil {
 		t.Fatalf("authtest: signing keys: %v", err)
 	}
 	return s
 }
 
-func fill(n int, b byte) []byte {
-	out := make([]byte, n)
+// fill returns a 32-byte key of one repeated byte.
+func fill(b byte) []byte {
+	out := make([]byte, 32)
 	for i := range out {
 		out[i] = b
 	}

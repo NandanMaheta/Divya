@@ -2,7 +2,7 @@
 SELECT 1::int AS ok;
 
 -- name: InsertAuditLog :exec
-INSERT INTO audit_log (org_id, actor_id, actor_kind, entity, entity_id, action, before, after)
+INSERT INTO audit_log (org_id, actor_id, actor_kind, entity, entity_id, action, before, after, created_at)
 VALUES (
     @org_id,
     sqlc.narg('actor_id'),
@@ -11,5 +11,6 @@ VALUES (
     sqlc.narg('entity_id'),
     @action,
     sqlc.narg('before')::jsonb,
-    sqlc.narg('after')::jsonb
+    sqlc.narg('after')::jsonb,
+    COALESCE(sqlc.narg('created_at')::timestamptz, now())
 );

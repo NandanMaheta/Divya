@@ -18,6 +18,8 @@ type Querier interface {
 	AdminRetryJob(ctx context.Context, arg AdminRetryJobParams) (ScheduledJob, error)
 	// Retry: fresh attempts; available_at is computed by the caller so quiet hours still apply.
 	AdminRetryMessage(ctx context.Context, arg AdminRetryMessageParams) (OutboxMessage, error)
+	// Replay guard: only a strictly greater step is accepted, atomically.
+	AdvanceMFAStep(ctx context.Context, arg AdvanceMFAStepParams) (int64, error)
 	// Cancel: pending becomes cancelled; a running job is only flagged, its in-flight run decides.
 	CancelJobByKey(ctx context.Context, arg CancelJobByKeyParams) (int64, error)
 	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
@@ -29,10 +31,20 @@ type Querier interface {
 	// Complete runs inside the handler's transaction and is fenced by the lock token: zero rows
 	// means the lease was lost and the caller rolls the whole transaction back.
 	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
+	ConfirmPendingMFASecret(ctx context.Context, arg ConfirmPendingMFASecretParams) (int64, error)
+	// Single use and valid iff now < expires_at: exactly one concurrent caller gets a row.
+	ConsumeChallenge(ctx context.Context, arg ConsumeChallengeParams) (int64, error)
 	CountJobsByState(ctx context.Context, orgID uuid.UUID) (CountJobsByStateRow, error)
 	CountMessagesByState(ctx context.Context, orgID uuid.UUID) (CountMessagesByStateRow, error)
+	CountUsableRecoveryCodes(ctx context.Context, userID uuid.UUID) (int32, error)
+	DeleteThrottle(ctx context.Context, arg DeleteThrottleParams) error
+	// The first end stands: an already ended session is left alone (zero rows).
+	EndSession(ctx context.Context, arg EndSessionParams) (int64, error)
+	// An all-zero except id matches no session, so it ends every not-ended session of the user.
+	EndUserSessions(ctx context.Context, arg EndUserSessionsParams) ([]uuid.UUID, error)
 	// Recurring kinds always have one active row per org; this self-heals after a dead or lost row.
 	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
+	EnsureThrottle(ctx context.Context, arg EnsureThrottleParams) error
 	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
 	ExpireDueJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
 	// Expiry sweep: a message past its expiry is never handed to a sender (FR-028). Bounded per tick.
@@ -45,19 +57,41 @@ type Querier interface {
 	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
 	// tick_runs is global, not per org: the retention job purges it only for the first org.
 	FirstOrgID(ctx context.Context) (uuid.UUID, error)
+	// ---- admin MFA ----
+	GetAdminMFA(ctx context.Context, userID uuid.UUID) (AdminMfa, error)
+	GetChallengeByHash(ctx context.Context, tokenHash []byte) (MfaChallenge, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
 	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
 	GetMessageForOrg(ctx context.Context, arg GetMessageForOrgParams) (OutboxMessage, error)
 	// No row means the default window (21:30-08:00 IST).
 	GetQuietHours(ctx context.Context, orgID uuid.UUID) (GetQuietHoursRow, error)
+	GetRefreshTokenByHash(ctx context.Context, tokenHash []byte) (RefreshToken, error)
+	GetRefreshTokenByID(ctx context.Context, id uuid.UUID) (RefreshToken, error)
+	GetSessionByID(ctx context.Context, id uuid.UUID) (DeviceSession, error)
+	// The per-request principal query (plan P-02): raw columns, the caller decides liveness.
+	GetSessionPrincipal(ctx context.Context, sessionID uuid.UUID) (GetSessionPrincipalRow, error)
+	// ---- throttles ----
+	GetThrottle(ctx context.Context, arg GetThrottleParams) (GetThrottleRow, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	GetUserByMobile(ctx context.Context, mobile pgtype.Text) (User, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// ---- MFA challenges ----
+	InsertChallenge(ctx context.Context, arg InsertChallengeParams) (MfaChallenge, error)
 	// Outbox queries (feature 002). Every instant is a parameter taken from the injected clock.
 	// Add: a repeated (org, topic, dedupe_key) is ignored whatever the first row's status (FR-024).
 	// Zero rows affected means duplicate.
 	InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error)
+	InsertRecoveryCodes(ctx context.Context, arg InsertRecoveryCodesParams) (int64, error)
+	// ---- refresh tokens ----
+	InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (RefreshToken, error)
+	// ---- device sessions ----
+	InsertSession(ctx context.Context, arg InsertSessionParams) (DeviceSession, error)
 	// Scheduler status, admin and retention queries (feature 002).
 	InsertTickRun(ctx context.Context, arg InsertTickRunParams) (uuid.UUID, error)
+	// ---- users ----
+	InsertUser(ctx context.Context, arg InsertUserParams) (User, error)
 	// The most recent tick, whatever its outcome (FR-021).
 	LastTickRun(ctx context.Context) (TickRun, error)
 	// Retrying and dead jobs of one org, newest last attempt first, keyset-paginated (FR-019).
@@ -67,9 +101,27 @@ type Querier interface {
 	// Retrying and dead messages of one org, newest last attempt first, keyset-paginated (FR-019).
 	// state: empty for both, retrying or dead; topic: empty for every topic.
 	ListFailedMessages(ctx context.Context, arg ListFailedMessagesParams) ([]OutboxMessage, error)
+	// Auth core queries (feature 003). Design: specs/003-auth-core/data-model.md.
+	// Every instant is a parameter (@now) taken from the injected clock; no behavioural query reads
+	// the database clock, and there is no string-built SQL. Lock order: users, device_sessions,
+	// refresh_tokens, admin_mfa, mfa_recovery_codes, mfa_challenges, auth_throttles.
+	// ---- organisation ----
+	// Two rows are enough to tell "none", "one" and "many" apart.
+	ListFirstTwoOrgIDs(ctx context.Context) ([]uuid.UUID, error)
+	// Live: not ended and strictly before both expiry instants.
+	ListLiveSessionsByUser(ctx context.Context, arg ListLiveSessionsByUserParams) ([]DeviceSession, error)
 	// Scheduler queries (feature 002). Every instant is a parameter taken from the injected clock;
 	// nothing here calls now() (FR-032). Rows are claimed one at a time with FOR UPDATE SKIP LOCKED.
 	ListOrgIDs(ctx context.Context) ([]uuid.UUID, error)
+	LockAdminMFA(ctx context.Context, userID uuid.UUID) (AdminMfa, error)
+	// Every admin of the org, any status, ordered by id: the last-admin guard (lock order step 1).
+	LockAdminsByOrg(ctx context.Context, orgID uuid.UUID) ([]User, error)
+	LockRefreshTokenByID(ctx context.Context, id uuid.UUID) (RefreshToken, error)
+	LockSessionByID(ctx context.Context, id uuid.UUID) (DeviceSession, error)
+	LockThrottle(ctx context.Context, arg LockThrottleParams) (LockThrottleRow, error)
+	LockUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	// The first stamp is kept: an already verified contact changes nothing (zero rows).
+	MarkEmailVerified(ctx context.Context, arg MarkEmailVerifiedParams) (int64, error)
 	// A job whose lease expired more often than it has attempts left is dead without running again.
 	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
 	MarkJobsAlerted(ctx context.Context, arg MarkJobsAlertedParams) error
@@ -78,26 +130,54 @@ type Querier interface {
 	// Fenced by the lock token: zero rows means another claimant took over and this mark must not win.
 	MarkMessageSent(ctx context.Context, arg MarkMessageSentParams) (int64, error)
 	MarkMessagesAlerted(ctx context.Context, arg MarkMessagesAlertedParams) error
+	MarkMobileVerified(ctx context.Context, arg MarkMobileVerifiedParams) (int64, error)
+	// Rotation step 1: only an unused token can be marked used (no rows: unknown or already used).
+	MarkRefreshTokenUsed(ctx context.Context, arg MarkRefreshTokenUsedParams) (MarkRefreshTokenUsedRow, error)
 	Ping(ctx context.Context) (int32, error)
+	// The cap counts whole families (sessions), never half a family: replaced_by links tokens of
+	// one session, so deleting a family completely cannot break the self-referencing foreign key.
+	// device_sessions rows themselves are kept (device history).
+	PurgeDeadFamilyTokens(ctx context.Context, arg PurgeDeadFamilyTokensParams) (int64, error)
+	PurgeExpiredChallenges(ctx context.Context, arg PurgeExpiredChallengesParams) (int64, error)
 	// Retention (FR-035): finished jobs older than the cutoff; dead jobs are kept until an admin acts.
 	PurgeFinishedJobs(ctx context.Context, arg PurgeFinishedJobsParams) (int64, error)
 	// Retention (FR-035): finished messages older than the cutoff; dead messages are kept until an admin acts.
 	PurgeFinishedMessages(ctx context.Context, arg PurgeFinishedMessagesParams) (int64, error)
+	// ---- housekeeping (plan P-20): one single-table DELETE at a time, bounded ----
+	PurgeStaleThrottles(ctx context.Context, arg PurgeStaleThrottlesParams) (int64, error)
 	PurgeTickRuns(ctx context.Context, cutoff pgtype.Timestamptz) (int64, error)
 	// Recover jobs whose run crashed (status running, lease over) before any claim. Precedence:
 	// cancel requested -> cancelled; expired -> expired; rerun -> pending again at its run_at with a
 	// fresh attempt budget. Other stale rows are left for ClaimJob to take over. Bounded per tick.
 	RecoverStaleJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Compare and set: a rehash never overwrites a password changed in the meantime and is not a
+	// password change (password_changed_at stays).
+	RehashUserPassword(ctx context.Context, arg RehashUserPasswordParams) (int64, error)
+	ReplaceUserEmail(ctx context.Context, arg ReplaceUserEmailParams) (int64, error)
+	ReplaceUserMobile(ctx context.Context, arg ReplaceUserMobileParams) (int64, error)
 	// Reschedule never creates a row. A running job is flagged to run again at the new time.
 	RescheduleJob(ctx context.Context, arg RescheduleJobParams) (int64, error)
+	// ---- recovery codes ----
+	// Revokes every unrevoked code and reports how many of them were still usable.
+	RevokeRecoveryCodes(ctx context.Context, arg RevokeRecoveryCodesParams) (int32, error)
 	// Dead jobs not yet included in an alert. Locked, so a concurrent sweep skips them.
 	SelectUnalertedDeadJobs(ctx context.Context) ([]SelectUnalertedDeadJobsRow, error)
 	// Dead messages not yet included in an alert. Locked, so a concurrent sweep skips them.
 	SelectUnalertedDeadMessages(ctx context.Context) ([]SelectUnalertedDeadMessagesRow, error)
+	// Rotation step 3: link the used token to its successor.
+	SetRefreshTokenReplacedBy(ctx context.Context, arg SetRefreshTokenReplacedByParams) (int64, error)
+	SetUserLastSignIn(ctx context.Context, arg SetUserLastSignInParams) (int64, error)
+	SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (int64, error)
+	SetUserStatus(ctx context.Context, arg SetUserStatusParams) (int64, error)
+	TouchSession(ctx context.Context, arg TouchSessionParams) (int64, error)
 	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
 	// the latest values; a running row is flagged to run again at the new time when it finishes.
 	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)
+	// Creates the row or overwrites the pending secret; a confirmed secret is never touched.
+	UpsertPendingMFASecret(ctx context.Context, arg UpsertPendingMFASecretParams) error
 	UpsertQuietHours(ctx context.Context, arg UpsertQuietHoursParams) error
+	UpsertThrottle(ctx context.Context, arg UpsertThrottleParams) error
+	UseRecoveryCode(ctx context.Context, arg UseRecoveryCodeParams) (int64, error)
 	// Only pending messages are withdrawn; a message being sent is at-least-once and not stopped.
 	WithdrawByKey(ctx context.Context, arg WithdrawByKeyParams) (int64, error)
 	WithdrawBySubject(ctx context.Context, arg WithdrawBySubjectParams) (int64, error)

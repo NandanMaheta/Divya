@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db"
 	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db/dbgen"
@@ -34,8 +35,7 @@ type Entry struct {
 	EntityID      uuid.UUID
 	Action        string
 	Before, After any
-	// At is the row's created_at; the zero value keeps the column default. Compile skeleton
-	// (S08): not yet written by Write.
+	// At is the row's created_at; the zero value keeps the column default.
 	At time.Time
 }
 
@@ -68,6 +68,7 @@ func Write(ctx context.Context, e Entry) error {
 		Action:    e.Action,
 		Before:    before,
 		After:     after,
+		CreatedAt: createdAt(e.At),
 	})
 	if err != nil {
 		return fmt.Errorf("audit: write %s: %w", e.Action, err)
@@ -84,4 +85,12 @@ func encode(v any) ([]byte, error) {
 		return nil, fmt.Errorf("marshal: %w", err)
 	}
 	return b, nil
+}
+
+// createdAt maps the zero time to SQL NULL so the column default applies.
+func createdAt(t time.Time) pgtype.Timestamptz {
+	if t.IsZero() {
+		return pgtype.Timestamptz{}
+	}
+	return db.Timestamptz(t)
 }

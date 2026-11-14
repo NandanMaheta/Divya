@@ -47,8 +47,11 @@ type Principal struct {
 	Role                     Role
 }
 
-// AuditActor is the principal as an audit actor. Compile skeleton (S08): no logic yet.
-func (p Principal) AuditActor() audit.Actor { return audit.Actor{} }
+// AuditActor is the principal as an audit actor: the signed-in user, with the role as actor kind
+// (RoleAdmin and RoleClient equal audit.KindAdmin and audit.KindClient).
+func (p Principal) AuditActor() audit.Actor {
+	return audit.Actor{ID: p.UserID, Kind: string(p.Role)}
+}
 
 // Verifier turns a bearer token into a Principal. Any error means 401 auth.unauthenticated.
 type Verifier interface {

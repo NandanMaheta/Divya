@@ -9,10 +9,11 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const insertAuditLog = `-- name: InsertAuditLog :exec
-INSERT INTO audit_log (org_id, actor_id, actor_kind, entity, entity_id, action, before, after)
+INSERT INTO audit_log (org_id, actor_id, actor_kind, entity, entity_id, action, before, after, created_at)
 VALUES (
     $1,
     $2,
@@ -21,19 +22,21 @@ VALUES (
     $5,
     $6,
     $7::jsonb,
-    $8::jsonb
+    $8::jsonb,
+    COALESCE($9::timestamptz, now())
 )
 `
 
 type InsertAuditLogParams struct {
-	OrgID     uuid.UUID     `json:"org_id"`
-	ActorID   uuid.NullUUID `json:"actor_id"`
-	ActorKind string        `json:"actor_kind"`
-	Entity    string        `json:"entity"`
-	EntityID  uuid.NullUUID `json:"entity_id"`
-	Action    string        `json:"action"`
-	Before    []byte        `json:"before"`
-	After     []byte        `json:"after"`
+	OrgID     uuid.UUID          `json:"org_id"`
+	ActorID   uuid.NullUUID      `json:"actor_id"`
+	ActorKind string             `json:"actor_kind"`
+	Entity    string             `json:"entity"`
+	EntityID  uuid.NullUUID      `json:"entity_id"`
+	Action    string             `json:"action"`
+	Before    []byte             `json:"before"`
+	After     []byte             `json:"after"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error {
@@ -46,6 +49,7 @@ func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) 
 		arg.Action,
 		arg.Before,
 		arg.After,
+		arg.CreatedAt,
 	)
 	return err
 }

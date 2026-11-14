@@ -9,6 +9,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AdminMfa struct {
+	UserID           uuid.UUID          `json:"user_id"`
+	OrgID            uuid.UUID          `json:"org_id"`
+	SecretEnc        []byte             `json:"secret_enc"`
+	PendingSecretEnc []byte             `json:"pending_secret_enc"`
+	PendingCreatedAt pgtype.Timestamptz `json:"pending_created_at"`
+	LastUsedStep     int64              `json:"last_used_step"`
+	EnrolledAt       pgtype.Timestamptz `json:"enrolled_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
 type AuditLog struct {
 	ID        uuid.UUID          `json:"id"`
 	OrgID     uuid.UUID          `json:"org_id"`
@@ -20,6 +31,58 @@ type AuditLog struct {
 	Before    []byte             `json:"before"`
 	After     []byte             `json:"after"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type AuthThrottle struct {
+	OrgID       uuid.UUID            `json:"org_id"`
+	Scope       string               `json:"scope"`
+	Subject     []byte               `json:"subject"`
+	Failures    []pgtype.Timestamptz `json:"failures"`
+	LockedUntil pgtype.Timestamptz   `json:"locked_until"`
+	UpdatedAt   pgtype.Timestamptz   `json:"updated_at"`
+}
+
+type DeviceSession struct {
+	ID                uuid.UUID          `json:"id"`
+	OrgID             uuid.UUID          `json:"org_id"`
+	UserID            uuid.UUID          `json:"user_id"`
+	DeviceID          uuid.UUID          `json:"device_id"`
+	DeviceName        string             `json:"device_name"`
+	Platform          string             `json:"platform"`
+	ClientType        string             `json:"client_type"`
+	MfaMethod         pgtype.Text        `json:"mfa_method"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	LastActiveAt      pgtype.Timestamptz `json:"last_active_at"`
+	IdleExpiresAt     pgtype.Timestamptz `json:"idle_expires_at"`
+	AbsoluteExpiresAt pgtype.Timestamptz `json:"absolute_expires_at"`
+	EndedAt           pgtype.Timestamptz `json:"ended_at"`
+	EndReason         pgtype.Text        `json:"end_reason"`
+}
+
+type MfaChallenge struct {
+	ID         uuid.UUID          `json:"id"`
+	OrgID      uuid.UUID          `json:"org_id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	TokenHash  []byte             `json:"token_hash"`
+	Purpose    string             `json:"purpose"`
+	DeviceID   uuid.UUID          `json:"device_id"`
+	DeviceName string             `json:"device_name"`
+	Platform   string             `json:"platform"`
+	ClientType string             `json:"client_type"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	ConsumedAt pgtype.Timestamptz `json:"consumed_at"`
+}
+
+type MfaRecoveryCode struct {
+	ID        uuid.UUID          `json:"id"`
+	OrgID     uuid.UUID          `json:"org_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	BatchID   uuid.UUID          `json:"batch_id"`
+	CodeHash  []byte             `json:"code_hash"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
 }
 
 type Org struct {
@@ -61,6 +124,16 @@ type QuietHour struct {
 	StartMinute int16              `json:"start_minute"`
 	EndMinute   int16              `json:"end_minute"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type RefreshToken struct {
+	ID         uuid.UUID          `json:"id"`
+	OrgID      uuid.UUID          `json:"org_id"`
+	SessionID  uuid.UUID          `json:"session_id"`
+	TokenHash  []byte             `json:"token_hash"`
+	IssuedAt   pgtype.Timestamptz `json:"issued_at"`
+	UsedAt     pgtype.Timestamptz `json:"used_at"`
+	ReplacedBy uuid.NullUUID      `json:"replaced_by"`
 }
 
 type ScheduledJob struct {
@@ -105,4 +178,22 @@ type TickRun struct {
 	MsgsDead        int32              `json:"msgs_dead"`
 	MsgsExpired     int32              `json:"msgs_expired"`
 	BudgetExhausted bool               `json:"budget_exhausted"`
+}
+
+type User struct {
+	ID                   uuid.UUID          `json:"id"`
+	OrgID                uuid.UUID          `json:"org_id"`
+	Role                 string             `json:"role"`
+	Status               string             `json:"status"`
+	StatusBeforeDisabled pgtype.Text        `json:"status_before_disabled"`
+	Name                 string             `json:"name"`
+	Email                string             `json:"email"`
+	Mobile               pgtype.Text        `json:"mobile"`
+	EmailVerifiedAt      pgtype.Timestamptz `json:"email_verified_at"`
+	MobileVerifiedAt     pgtype.Timestamptz `json:"mobile_verified_at"`
+	PasswordHash         string             `json:"password_hash"`
+	PasswordChangedAt    pgtype.Timestamptz `json:"password_changed_at"`
+	LastSignInAt         pgtype.Timestamptz `json:"last_sign_in_at"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }

@@ -149,7 +149,7 @@
       "owner": "test-engineer",
       "title": "Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).",
       "done_command": "cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "S07"
       ],
@@ -175,7 +175,7 @@
       "owner": "backend-dev",
       "title": "golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.",
       "done_command": "cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestAuditExt' ./internal/platform/... && golangci-lint run ./internal/platform/... && bash ../../scripts/check-lint-boundaries.sh",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "S08"
       ],

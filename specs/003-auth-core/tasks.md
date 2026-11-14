@@ -32,10 +32,10 @@ Legend: `[P]` parallel-safe (flat `internal/auth` package: develop as separate w
   - Depends on: S06 | Rules: none (mechanism) | Expected: green | Replaces: T033,T034
   - Done command: `cd apps/api && go test -race -run 'TestSchema' ./internal/auth/ && go test -race ./internal/platform/db/...`
   - Note: Done; owner approval + security-reviewer (auth schema) are REQUIRED at PR review.
-- [ ] S08 **test-engineer**: Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).
+- [x] S08 **test-engineer**: Tests for 002 extensions and store: lint-boundary cases (scripts/check-lint-boundaries.sh), audit Entry.At / Nil-to-NULL and Principal.AuditActor, authtest fixtures package, store integration tests (users/org, sessions/refresh, mfa/throttles, concurrent CreateUser, lock order).
   - Depends on: S07, 002-merged | Rules: none (mechanism) | Expected: red | Replaces: T035,T037,T042-T045
   - Done command: `cd apps/api && go test -race -run 'TestStore|TestAuditExt|TestAuthtest' ./internal/auth/... ./internal/platform/audit/... && bash ../../scripts/check-lint-boundaries.sh`
-- [ ] S09 **backend-dev**: golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.
+- [x] S09 **backend-dev**: golangci depguard rules (P-19), audit extension (Entry.At, Nil to NULL, InsertAuditLog created_at), queries/auth.sql (all parts, @now params), sqlc generate+vet, Principal.AuditActor.
   - Depends on: S08, 002-merged | Rules: none (mechanism) | Expected: green | Replaces: T036,T038,T039-T041
   - Done command: `cd apps/api && sqlc generate && sqlc vet && go test -race -run 'TestAuditExt' ./internal/platform/... && golangci-lint run ./internal/platform/... && bash ../../scripts/check-lint-boundaries.sh`
   - Note: Generated dbgen not counted toward size.
