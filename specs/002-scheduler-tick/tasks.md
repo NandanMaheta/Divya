@@ -159,7 +159,7 @@
   - Rules: none (mechanism) | Refs: FR-020
   - Files (2, ~80 lines): `apps/api/queries/platform.sql`, `apps/api/internal/platform/audit/audit.go`
   - Done command (green): `cd apps/api && sqlc vet && sqlc generate && go test -race ./internal/platform/audit/...`
-- [ ] T027 **backend-dev**: queries/scheduler.sql (scheduling and execution): UpsertJob, RescheduleJob, CancelJobByKey, CancelJobsBySubject, ExpireDueJobs, ClaimJob (SKIP LOCKED, lease, token), CompleteJob, FailJob, MarkJobDead, EnsureRecurringJob. All time as $now/$lease parameters.
+- [x] T027 **backend-dev**: queries/scheduler.sql (scheduling and execution): UpsertJob, RescheduleJob, CancelJobByKey, CancelJobsBySubject, ExpireDueJobs, ClaimJob (SKIP LOCKED, lease, token), CompleteJob, FailJob, MarkJobDead, EnsureRecurringJob. All time as $now/$lease parameters.
   - Depends on: T022
   - Rules: BR-IPO-03 | Refs: data-model 1; FR-009-FR-016, FR-032
   - Files (1, ~190 lines): `apps/api/queries/scheduler.sql`

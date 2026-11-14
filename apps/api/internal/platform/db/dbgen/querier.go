@@ -6,11 +6,39 @@ package dbgen
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	// Cancel: pending becomes cancelled; a running job is only flagged, its in-flight run decides.
+	CancelJobByKey(ctx context.Context, arg CancelJobByKeyParams) (int64, error)
+	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
+	// Claim one due job (or one whose lease ran out) under a fresh lease and fencing token.
+	ClaimJob(ctx context.Context, arg ClaimJobParams) (ScheduledJob, error)
+	// Complete runs inside the handler's transaction and is fenced by the lock token: zero rows
+	// means the lease was lost and the caller rolls the whole transaction back.
+	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
+	// Recurring kinds always have one active row per org; this self-heals after a dead or lost row.
+	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
+	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
+	ExpireDueJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Fail: back to pending after a backoff, dead when attempts are used up, cancelled when a cancel
+	// was requested during the run, pending again at the new time when it was rescheduled meanwhile.
+	FailJob(ctx context.Context, arg FailJobParams) (FailJobRow, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// Scheduler queries (feature 002). Every instant is a parameter taken from the injected clock;
+	// nothing here calls now() (FR-032). Rows are claimed one at a time with FOR UPDATE SKIP LOCKED.
+	ListOrgIDs(ctx context.Context) ([]uuid.UUID, error)
+	// A job whose lease expired more often than it has attempts left is dead without running again.
+	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
 	Ping(ctx context.Context) (int32, error)
+	// Reschedule never creates a row. A running job is flagged to run again at the new time.
+	RescheduleJob(ctx context.Context, arg RescheduleJobParams) (int64, error)
+	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
+	// the latest values; a running row is flagged to run again at the new time when it finishes.
+	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)
 }
 
 var _ Querier = (*Queries)(nil)
