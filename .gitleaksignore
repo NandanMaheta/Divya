@@ -1,0 +1,7 @@
+# Reviewed false positives (fingerprint = commit:file:rule:line). Add entries only after checking the value is not a real secret.
+# Fake JWT-shaped string used to test log redaction (issuer google, email sched@example.com, signature "sig").
+9336572c7ab7ea04c10c0c376524737cb119fabf:apps/api/internal/platform/retry/errtext_test.go:jwt:32
+# Quickstart example sending the literal token "wrong" to show a 401.
+3d16288837615de47ca1e6657f0292077a06be50:specs/002-scheduler-tick/quickstart.md:curl-auth-header:62
+# Task description text, no credential.
+3cf35dc6147f265f2ef3a732a1170e800e0c4e37:specs/002-scheduler-tick/tasks.md:generic-api-key:240

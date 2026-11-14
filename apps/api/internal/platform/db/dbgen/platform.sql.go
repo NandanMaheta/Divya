@@ -7,7 +7,48 @@ package dbgen
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
+
+const insertAuditLog = `-- name: InsertAuditLog :exec
+INSERT INTO audit_log (org_id, actor_id, actor_kind, entity, entity_id, action, before, after)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7::jsonb,
+    $8::jsonb
+)
+`
+
+type InsertAuditLogParams struct {
+	OrgID     uuid.UUID     `json:"org_id"`
+	ActorID   uuid.NullUUID `json:"actor_id"`
+	ActorKind string        `json:"actor_kind"`
+	Entity    string        `json:"entity"`
+	EntityID  uuid.NullUUID `json:"entity_id"`
+	Action    string        `json:"action"`
+	Before    []byte        `json:"before"`
+	After     []byte        `json:"after"`
+}
+
+func (q *Queries) InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error {
+	_, err := q.db.Exec(ctx, insertAuditLog,
+		arg.OrgID,
+		arg.ActorID,
+		arg.ActorKind,
+		arg.Entity,
+		arg.EntityID,
+		arg.Action,
+		arg.Before,
+		arg.After,
+	)
+	return err
+}
 
 const ping = `-- name: Ping :one
 SELECT 1::int AS ok
