@@ -35,3 +35,16 @@ jobs:
             go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
             gremlins unleash --threshold-efficacy 85 ./internal/settlement ./internal/ledger
           else echo "No money packages yet."; fi
+  scheduler-soak:
+    # SC-001: 30 simulated days, 100 clients, 10 IPOs, random duplicate/overlapping/skipped ticks and
+    # crashes. The seed changes every night; a failure log prints it so the run can be replayed
+    # with SWASTIK_SOAK_SEED=<n>. Needs Docker (testcontainers), which ubuntu-latest provides.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with: { go-version-file: apps/api/go.mod, cache-dependency-path: apps/api/go.sum }
+      - name: Scheduler soak (SC-001)
+        working-directory: apps/api
+        run: SWASTIK_SOAK=full SWASTIK_SOAK_SEED=${{ github.run_id }} go test -race -run TestSoak_SC_001 -timeout 20m -v ./internal/scheduler/...

@@ -27,3 +27,6 @@ apps/client/ios/
 
 # Claude Code agent scratch worktrees (runtime only)
 .claude/worktrees/
+
+# rapid failure files
+apps/api/internal/scheduler/testdata/rapid/

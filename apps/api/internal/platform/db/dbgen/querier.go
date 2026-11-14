@@ -6,10 +6,101 @@ package dbgen
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	AdminCancelJob(ctx context.Context, arg AdminCancelJobParams) (ScheduledJob, error)
+	// Cancel keeps the dedupe key reserved: the row stays, as withdrawn.
+	AdminCancelMessage(ctx context.Context, arg AdminCancelMessageParams) (OutboxMessage, error)
+	AdminRetryJob(ctx context.Context, arg AdminRetryJobParams) (ScheduledJob, error)
+	// Retry: fresh attempts; available_at is computed by the caller so quiet hours still apply.
+	AdminRetryMessage(ctx context.Context, arg AdminRetryMessageParams) (OutboxMessage, error)
+	// Cancel: pending becomes cancelled; a running job is only flagged, its in-flight run decides.
+	CancelJobByKey(ctx context.Context, arg CancelJobByKeyParams) (int64, error)
+	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
+	// Claim one job (or one whose lease ran out) under a fresh lease and fencing token.
+	ClaimJob(ctx context.Context, arg ClaimJobParams) (ScheduledJob, error)
+	// Claim one available message (or one whose send lease ran out), oldest id first, so messages
+	// of one recipient are relayed in the order they were recorded (FR-030).
+	ClaimMessage(ctx context.Context, arg ClaimMessageParams) (OutboxMessage, error)
+	// Complete runs inside the handler's transaction and is fenced by the lock token: zero rows
+	// means the lease was lost and the caller rolls the whole transaction back.
+	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
+	CountJobsByState(ctx context.Context, orgID uuid.UUID) (CountJobsByStateRow, error)
+	CountMessagesByState(ctx context.Context, orgID uuid.UUID) (CountMessagesByStateRow, error)
+	// Recurring kinds always have one active row per org; this self-heals after a dead or lost row.
+	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
+	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
+	ExpireDueJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Expiry sweep: a message past its expiry is never handed to a sender (FR-028). Bounded per tick.
+	ExpireDueMessages(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Fail: back to pending after a backoff, dead when attempts are used up, cancelled when a cancel
+	// was requested during the run, pending again at the new time when it was rescheduled meanwhile.
+	FailJob(ctx context.Context, arg FailJobParams) (FailJobRow, error)
+	// Back to pending at available_at (already moved out of quiet hours), or dead when attempts are used up.
+	FailMessage(ctx context.Context, arg FailMessageParams) (FailMessageRow, error)
+	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
+	// tick_runs is global, not per org: the retention job purges it only for the first org.
+	FirstOrgID(ctx context.Context) (uuid.UUID, error)
+	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
+	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
+	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
+	GetMessageForOrg(ctx context.Context, arg GetMessageForOrgParams) (OutboxMessage, error)
+	// No row means the default window (21:30-08:00 IST).
+	GetQuietHours(ctx context.Context, orgID uuid.UUID) (GetQuietHoursRow, error)
+	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// Outbox queries (feature 002). Every instant is a parameter taken from the injected clock.
+	// Add: a repeated (org, topic, dedupe_key) is ignored whatever the first row's status (FR-024).
+	// Zero rows affected means duplicate.
+	InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error)
+	// Scheduler status, admin and retention queries (feature 002).
+	InsertTickRun(ctx context.Context, arg InsertTickRunParams) (uuid.UUID, error)
+	// The most recent tick, whatever its outcome (FR-021).
+	LastTickRun(ctx context.Context) (TickRun, error)
+	// Retrying and dead jobs of one org, newest last attempt first, keyset-paginated (FR-019).
+	// state: empty for both, retrying or dead; kind: empty for every kind.
+	ListFailedJobs(ctx context.Context, arg ListFailedJobsParams) ([]ScheduledJob, error)
+	// Outbox admin and retention queries (feature 002).
+	// Retrying and dead messages of one org, newest last attempt first, keyset-paginated (FR-019).
+	// state: empty for both, retrying or dead; topic: empty for every topic.
+	ListFailedMessages(ctx context.Context, arg ListFailedMessagesParams) ([]OutboxMessage, error)
+	// Scheduler queries (feature 002). Every instant is a parameter taken from the injected clock;
+	// nothing here calls now() (FR-032). Rows are claimed one at a time with FOR UPDATE SKIP LOCKED.
+	ListOrgIDs(ctx context.Context) ([]uuid.UUID, error)
+	// A job whose lease expired more often than it has attempts left is dead without running again.
+	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
+	MarkJobsAlerted(ctx context.Context, arg MarkJobsAlertedParams) error
+	// A message whose lease expired more often than it has attempts left is dead without being sent again.
+	MarkMessageDead(ctx context.Context, arg MarkMessageDeadParams) (int64, error)
+	// Fenced by the lock token: zero rows means another claimant took over and this mark must not win.
+	MarkMessageSent(ctx context.Context, arg MarkMessageSentParams) (int64, error)
+	MarkMessagesAlerted(ctx context.Context, arg MarkMessagesAlertedParams) error
 	Ping(ctx context.Context) (int32, error)
+	// Retention (FR-035): finished jobs older than the cutoff; dead jobs are kept until an admin acts.
+	PurgeFinishedJobs(ctx context.Context, arg PurgeFinishedJobsParams) (int64, error)
+	// Retention (FR-035): finished messages older than the cutoff; dead messages are kept until an admin acts.
+	PurgeFinishedMessages(ctx context.Context, arg PurgeFinishedMessagesParams) (int64, error)
+	PurgeTickRuns(ctx context.Context, cutoff pgtype.Timestamptz) (int64, error)
+	// Recover jobs whose run crashed (status running, lease over) before any claim. Precedence:
+	// cancel requested -> cancelled; expired -> expired; rerun -> pending again at its run_at with a
+	// fresh attempt budget. Other stale rows are left for ClaimJob to take over. Bounded per tick.
+	RecoverStaleJobs(ctx context.Context, now pgtype.Timestamptz) (int64, error)
+	// Reschedule never creates a row. A running job is flagged to run again at the new time.
+	RescheduleJob(ctx context.Context, arg RescheduleJobParams) (int64, error)
+	// Dead jobs not yet included in an alert. Locked, so a concurrent sweep skips them.
+	SelectUnalertedDeadJobs(ctx context.Context) ([]SelectUnalertedDeadJobsRow, error)
+	// Dead messages not yet included in an alert. Locked, so a concurrent sweep skips them.
+	SelectUnalertedDeadMessages(ctx context.Context) ([]SelectUnalertedDeadMessagesRow, error)
+	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
+	// the latest values; a running row is flagged to run again at the new time when it finishes.
+	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)
+	UpsertQuietHours(ctx context.Context, arg UpsertQuietHoursParams) error
+	// Only pending messages are withdrawn; a message being sent is at-least-once and not stopped.
+	WithdrawByKey(ctx context.Context, arg WithdrawByKeyParams) (int64, error)
+	WithdrawBySubject(ctx context.Context, arg WithdrawBySubjectParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)
