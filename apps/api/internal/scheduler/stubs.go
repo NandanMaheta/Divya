@@ -16,8 +16,6 @@ import (
 
 var errTodo = errors.New("scheduler: not implemented")
 
-func (s *Service) Tick(context.Context) (TickSummary, error) { return TickSummary{}, errTodo }
-
 type Status struct{}
 
 func (s *Service) Status(context.Context, uuid.UUID) (Status, error) { return Status{}, errTodo }
@@ -43,13 +41,9 @@ func (s *Service) CancelJob(context.Context, audit.Actor, uuid.UUID, uuid.UUID, 
 	return FailedJob{}, errTodo
 }
 
-type Ticker interface {
-	Tick(ctx context.Context) (TickSummary, error)
-}
-
 func RegisterTick(huma.API, Ticker, tickauth.Authenticator) {}
 
 const RetentionKind = "scheduler.retention"
 
 func (s *Service) RetentionHandler() Handler { return func(context.Context, Job) error { return nil } }
-func RetentionOptions() KindOptions         { return KindOptions{} }
+func RetentionOptions() KindOptions          { return KindOptions{} }

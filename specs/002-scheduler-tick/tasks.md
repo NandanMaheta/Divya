@@ -275,12 +275,12 @@
   - Rules: BR-IPO-03 | Refs: FR-008, FR-009, FR-013; K3
   - Files (2, ~190 lines): `apps/api/internal/scheduler/store.go`, `apps/api/internal/scheduler/schedule.go`
   - Done command (green): `cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...`
-- [ ] T047 **backend-dev**: Implement scheduler run.go: execute one claimed job (handler timeout, panic recovery, InTx with fenced CompleteJob, FailJob with retry.Backoff and sanitised ErrorText, MarkJobDead, lease-expired-too-often dead, lost-lease rollback, cancel_requested).
+- [x] T047 **backend-dev**: Implement scheduler run.go: execute one claimed job (handler timeout, panic recovery, InTx with fenced CompleteJob, FailJob with retry.Backoff and sanitised ErrorText, MarkJobDead, lease-expired-too-often dead, lost-lease rollback, cancel_requested).
   - Depends on: T043, T044, T046, T012
   - Rules: BR-IPO-03 | Refs: FR-011, FR-012, FR-017, FR-018
   - Files (1, ~190 lines): `apps/api/internal/scheduler/run.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestTickFailure_|TestLease_' ./internal/scheduler/...`
-- [ ] T048 **backend-dev**: Implement scheduler tick.go: Tick orchestration (tick_runs row, EnsureRecurringJob, expiry sweep, claim loop with caps and budgets, outbox.Relay, FinishTickRun, error to 503 semantics, TickSummary, structured logging).
+- [x] T048 **backend-dev**: Implement scheduler tick.go: Tick orchestration (tick_runs row, EnsureRecurringJob, expiry sweep, claim loop with caps and budgets, outbox.Relay, FinishTickRun, error to 503 semantics, TickSummary, structured logging).
   - Depends on: T042, T047, T037, T028
   - Rules: BR-IPO-03 | Refs: FR-005, FR-006, FR-007, FR-010, FR-015, FR-016
   - Files (1, ~190 lines): `apps/api/internal/scheduler/tick.go`

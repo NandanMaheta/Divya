@@ -677,7 +677,7 @@
     "T047": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'TestTickFailure_|TestLease_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T043",
         "T044",
@@ -694,7 +694,7 @@
     "T048": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'TestTick_|TestTickFailure_|TestLease_|TestSchedule_' ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T042",
         "T047",

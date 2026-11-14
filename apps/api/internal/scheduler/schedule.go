@@ -31,7 +31,7 @@ func (s *Service) Schedule(ctx context.Context, spec JobSpec) error {
 	}
 	_, err = dbgen.New(tx).UpsertJob(ctx, dbgen.UpsertJobParams{
 		OrgID: spec.OrgID, Kind: spec.Kind, DedupeKey: spec.Key, Subject: spec.Subject, Payload: payload,
-		RunAt: db.Timestamptz(spec.RunAt), ExpiresAt: db.NullTimestamptz(spec.ExpiresAt),
+		RunAt: db.Timestamptz(spec.RunAt), ExpiresAt: db.NullTimestamptz(ceilMicro(spec.ExpiresAt)),
 		Recurring: reg.opts.Recurring != nil, MaxAttempts: s.maxAttemptsFor(reg), Now: db.Timestamptz(s.now()),
 	})
 	if err != nil {
@@ -89,4 +89,17 @@ func (s *Service) CancelSubject(ctx context.Context, org uuid.UUID, subject stri
 		return 0, fmt.Errorf("scheduler: cancel subject: %w", err)
 	}
 	return int(n), nil
+}
+
+// ceilMicro rounds an expiry up to the microsecond PostgreSQL stores, so work is never expired
+// earlier than the owning feature asked (a plain conversion would truncate).
+func ceilMicro(t *time.Time) *time.Time {
+	if t == nil {
+		return nil
+	}
+	r := t.Truncate(time.Microsecond)
+	if r.Before(*t) {
+		r = r.Add(time.Microsecond)
+	}
+	return &r
 }
