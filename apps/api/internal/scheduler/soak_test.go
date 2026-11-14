@@ -234,11 +234,11 @@ func TestSoak_SC_001(t *testing.T) {
 			}
 
 			concurrent := 1
-			switch {
-			case rng.chance(0.05):
+			switch roll := rng.intn(100); {
+			case roll < 5:
 				concurrent = 2 + rng.intn(3)
 				overlapped++
-			case rng.chance(0.05):
+			case roll < 10:
 				duplicated++
 				h.Tick() // the same tick delivered twice, one after the other
 			}

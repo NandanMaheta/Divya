@@ -90,7 +90,7 @@ func TestCatchUp_BR_IPO_03_BR_TASK_03_SixHourOutageWith500Jobs(t *testing.T) {
 		// Nothing runs while the ticks are down: the clock moves, no tick is made.
 		h.Clock.Set(resume)
 
-		var sums []scheduler.TickSummary
+		sums := make([]scheduler.TickSummary, 0, 3)
 		for i := range 3 { // SC-003: within 3 ticks (15 minutes) of ticks resuming
 			h.Clock.Set(resume.Add(time.Duration(i) * 5 * time.Minute))
 			sums = append(sums, h.Tick())
