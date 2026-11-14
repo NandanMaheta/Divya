@@ -113,7 +113,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Files (3, ~40 lines): `apps/api/internal/auth/commonpasswords/10k.txt`, `apps/api/internal/auth/commonpasswords/SOURCE.md`, `apps/api/internal/auth/commonpasswords/embed.go`
   - Done command (green): `cd apps/api && go test -race ./internal/auth/commonpasswords/...`
   - Note: 10k.txt (~10,000 data lines) is excluded from the size budget like generated code.
-- [ ] T018 [P] **test-engineer**: Tests for the password policy: rule order and codes (too_short <10, too_long >256 code points, matches_identifier by email and normalised mobile, too_common case-insensitive, unchanged), NFC equivalence of composed/decomposed Gujarati and Hindi, 64-code-point passphrase accepted, 257 rejected, counting by code points not bytes, 1234567890 and QWERTYUIOP rejected, no composition rules.
+- [x] T018 [P] **test-engineer**: Tests for the password policy: rule order and codes (too_short <10, too_long >256 code points, matches_identifier by email and normalised mobile, too_common case-insensitive, unchanged), NFC equivalence of composed/decomposed Gujarati and Hindi, 64-code-point passphrase accepted, 257 rejected, counting by code points not bytes, 1234567890 and QWERTYUIOP rejected, no composition rules.
   - Depends on: T001, T015
   - Rules: none (mechanism) | Refs: FR-011, D-07, US-7 s3-6
   - Files (1, ~150 lines): `apps/api/internal/auth/password_policy_test.go`

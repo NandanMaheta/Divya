@@ -226,7 +226,7 @@
     "T018": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestPolicy' ./internal/auth/",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T001",
         "T015"
@@ -234,7 +234,10 @@
       "rules": [],
       "title": "Tests for the password policy: rule order and codes (too_short <10, too_long >256 code points, matches_identifier by email and normalised mo",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/auth/password_policy_test.go"
+      ]
     },
     "T019": {
       "owner": "backend-dev",
