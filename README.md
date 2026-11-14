@@ -1,23 +1,18 @@
 # Swastik
 
-Swastik is a small internal app that makes IPO investing in the Indian stock market easier to manage for a group of people.
+Swastik is an internal app that automates the everyday work of applying for IPOs in the Indian stock market.
 
-New IPOs open almost every week, and a lot of work goes into each one. Someone has to decide which IPOs are worth applying for, tell everyone, remind them to apply before the deadline, check who got shares, work out each person's share of the profit, and keep track of who has paid whom. Usually this happens over WhatsApp and spreadsheets. Swastik puts all of it in one place and automates most of it.
+With 20+ IPOs launching in the Indian market, keeping track of all of them by hand gets messy. The person running things has to decide which IPOs to apply for, tell everyone, share the UPI ID to apply with, remind people before the deadline, check who got shares, work out the profit share, and keep track of who has paid. This app does all of that in one place.
 
 ## What it does
 
-- **Apply or skip:** for every new IPO, the admin marks it **Apply** or **Do not apply**, and everyone sees that straight away.
-- **Reminders:** clients get an "apply" task for each of their family accounts, with reminders until they mark it done.
-- **Allotment and listing:** the admin records who got shares and the listing price, and the app works out the profit share for each person.
-- **Payments:** clients see what they owe or will receive, mark it paid, and the admin confirms.
-- **Reports:** earnings by month, quarter or financial year, for the admin and for each client.
+- Marks every IPO as **Apply** or **Do not apply**, so clients know straight away what to do.
+- Gives each client a simple "apply" task for every family account, with the UPI ID to use and reminders until it's done.
+- Records who got shares and the listing price, and works out each person's profit share automatically.
+- Shows each client what they owe or will receive, and keeps track of payments.
+- Has reports by month, quarter or year, for the admin and for each client.
 
-There are two parts:
-
-- a **web admin panel** for the person running it;
-- a **mobile app** for clients (Android, plus a web version for iPhone).
-
-It's private and invite-only. It doesn't place IPO applications or move money; it only helps people organise and keep track.
+It has a web admin panel for the person running it and a mobile app for clients (Android, plus a web version for iPhone). It's private and invite-only.
 
 ## Tech used
 
@@ -55,4 +50,4 @@ pnpm --filter @swastik/client start    # mobile app (press w to open in the brow
 
 ---
 
-Built by Nandan Maheta, with the code written mostly by AI (Claude Code).
+Built by Nandan Maheta. The code is almost entirely AI-generated (Claude Code).
