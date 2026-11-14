@@ -42,8 +42,3 @@ func (s *Service) CancelJob(context.Context, audit.Actor, uuid.UUID, uuid.UUID, 
 }
 
 func RegisterTick(huma.API, Ticker, tickauth.Authenticator) {}
-
-const RetentionKind = "scheduler.retention"
-
-func (s *Service) RetentionHandler() Handler { return func(context.Context, Job) error { return nil } }
-func RetentionOptions() KindOptions          { return KindOptions{} }

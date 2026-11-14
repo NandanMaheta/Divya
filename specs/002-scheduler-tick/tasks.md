@@ -301,7 +301,7 @@
   - Rules: none (mechanism) | Refs: FR-035; FR-015
   - Files (1, ~110 lines): `apps/api/internal/scheduler/retention_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestRetention_ ./internal/scheduler/...`
-- [ ] T052 **backend-dev**: Implement scheduler retention.go: RetentionHandler and KindOptions.Recurring using istdate.NextDailyAt; purge queries.
+- [x] T052 **backend-dev**: Implement scheduler retention.go: RetentionHandler and KindOptions.Recurring using istdate.NextDailyAt; purge queries.
   - Depends on: T051, T048
   - Rules: none (mechanism) | Refs: FR-035
   - Files (1, ~90 lines): `apps/api/internal/scheduler/retention.go`
