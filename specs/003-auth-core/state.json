@@ -44,12 +44,15 @@
     "T004": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/authz/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for platform/authz with a fake Verifier on humatest: nil Security answers 500 platform.security_undeclared (documented and hidden ops)",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/authz/authz_test.go"
+      ]
     },
     "T005": {
       "owner": "backend-dev",
