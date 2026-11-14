@@ -69,12 +69,15 @@
     "T006": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestErrors' ./internal/platform/httpx/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for httpx errors: every problem carries code and type urn:swastik:problem:<code>, default codes per status, ErrorDetail.Value always d",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/httpx/errors_test.go"
+      ]
     },
     "T007": {
       "owner": "backend-dev",

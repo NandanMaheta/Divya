@@ -52,7 +52,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: go-capabilities 1; plan P-09
   - Files (1, ~180 lines): `apps/api/internal/platform/authz/authz.go`
   - Done command (green): `cd apps/api && go test -race ./internal/platform/authz/...`
-- [ ] T006 [P] **test-engineer**: Tests for httpx errors: every problem carries code and type urn:swastik:problem:<code>, default codes per status, ErrorDetail.Value always dropped (malformed JSON containing a password is not echoed; validation errors do not echo field values), httpx.Problem helper, InstallErrors idempotent, schema name stays ErrorModel.
+- [x] T006 [P] **test-engineer**: Tests for httpx errors: every problem carries code and type urn:swastik:problem:<code>, default codes per status, ErrorDetail.Value always dropped (malformed JSON containing a password is not echoed; validation errors do not echo field values), httpx.Problem helper, InstallErrors idempotent, schema name stays ErrorModel.
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-091, FR-093; plan P-10
   - Files (1, ~130 lines): `apps/api/internal/platform/httpx/errors_test.go`
