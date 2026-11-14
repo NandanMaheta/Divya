@@ -32,7 +32,7 @@ Starts now.
 
 Everything here compiles against the standard library, the approved modules and packages that exist on this branch. Pairs in different packages are fully parallel. Pairs inside the flat package internal/auth are parallel only as pairs: a red test file there breaks compilation of the whole package test binary, so each pair is developed in its own worktree and merged test+implementation together; done commands use -run so a finished pair stays green regardless of other red pairs once merged in order.
 
-- [ ] T002 [P] **test-engineer**: Tests for platform/crypto: Seal/Open round trip, envelope layout 0x01|key_id|nonce|ct, wrong AAD and tampered bytes rejected, unknown key id, rotation (old id still opens, KeyID reports it), key length errors; BlindIndexer purpose separation and determinism; NewToken prefix, 32 random bytes, Digest = SHA-256.
+- [x] T002 [P] **test-engineer**: Tests for platform/crypto: Seal/Open round trip, envelope layout 0x01|key_id|nonce|ct, wrong AAD and tampered bytes rejected, unknown key id, rotation (old id still opens, KeyID reports it), key length errors; BlindIndexer purpose separation and determinism; NewToken prefix, 32 random bytes, Digest = SHA-256.
   - Depends on: none
   - Rules: none (mechanism) | Refs: FR-091; plan P-05, P-07, go-capabilities 5
   - Files (3, ~170 lines): `apps/api/internal/platform/crypto/aead_test.go`, `apps/api/internal/platform/crypto/blindindex_test.go`, `apps/api/internal/platform/crypto/token_test.go`

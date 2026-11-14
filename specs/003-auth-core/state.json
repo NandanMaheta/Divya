@@ -17,12 +17,17 @@
     "T002": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/crypto/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for platform/crypto: Seal/Open round trip, envelope layout 0x01|key_id|nonce|ct, wrong AAD and tampered bytes rejected, unknown key id",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/crypto/aead_test.go",
+        "apps/api/internal/platform/crypto/blindindex_test.go",
+        "apps/api/internal/platform/crypto/token_test.go"
+      ]
     },
     "T003": {
       "owner": "backend-dev",
