@@ -309,14 +309,17 @@
     "T023": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run Tx ./internal/platform/db/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T022"
       ],
       "rules": [],
       "title": "Tests for TxRunner",
       "expect": "red",
-      "parallel": false
+      "parallel": false,
+      "protected_tests": [
+        "apps/api/internal/platform/db/tx_test.go"
+      ]
     },
     "T024": {
       "owner": "backend-dev",

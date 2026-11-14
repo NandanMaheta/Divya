@@ -138,7 +138,7 @@
   - Files (2, ~190 lines): `apps/api/migrations/00002_scheduler_outbox.sql`, `apps/api/sqlc.yaml`
   - Done command (green): `cd apps/api && sqlc vet && sqlc generate && go build ./... && go test -race ./internal/platform/db/...`
   - Note: Generated dbgen files are excluded from the size budget.
-- [ ] T023 **test-engineer**: Tests for TxRunner: InTx commit, rollback on error and panic, nested InTx joins the outer transaction, Conn falls back to pool, MustTx without tx returns ErrNoTx.
+- [x] T023 **test-engineer**: Tests for TxRunner: InTx commit, rollback on error and panic, nested InTx joins the outer transaction, Conn falls back to pool, MustTx without tx returns ErrNoTx.
   - Depends on: T022
   - Rules: none (mechanism) | Refs: FR-008, FR-023; US1.10
   - Files (1, ~110 lines): `apps/api/internal/platform/db/tx_test.go`
