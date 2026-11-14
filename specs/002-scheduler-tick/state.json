@@ -517,7 +517,7 @@
     "T037": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_Relay|TestQuietHours' ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T033",
         "T036",
@@ -549,7 +549,7 @@
     "T039": {
       "owner": "backend-dev",
       "done_command": "cd apps/api && go test -race ./internal/outbox/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T038",
         "T037"

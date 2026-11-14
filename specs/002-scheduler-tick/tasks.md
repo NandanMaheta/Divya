@@ -217,7 +217,7 @@
   - Rules: BR-TASK-03 | Refs: FR-023, FR-024, FR-027; K9
   - Files (2, ~190 lines): `apps/api/internal/outbox/service.go`, `apps/api/internal/outbox/store.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestOutbox_BR_TASK_03_(Add|Dedupe|Withdraw|Channel)' ./internal/outbox/...`
-- [ ] T037 **backend-dev**: Implement outbox/relay.go: Relay with expiry sweep, one-row claims, Send outside a transaction with timeout, fenced MarkMessageSent, FailMessage with backoff and quiet-hours deferral, dead after max attempts, RelayBudget/RelaySummary.
+- [x] T037 **backend-dev**: Implement outbox/relay.go: Relay with expiry sweep, one-row claims, Send outside a transaction with timeout, fenced MarkMessageSent, FailMessage with backoff and quiet-hours deferral, dead after max attempts, RelayBudget/RelaySummary.
   - Depends on: T033, T036, T012, T030
   - Rules: BR-TASK-03 | Refs: FR-017, FR-025, FR-026, FR-028
   - Files (1, ~190 lines): `apps/api/internal/outbox/relay.go`
@@ -227,7 +227,7 @@
   - Rules: none (mechanism) | Refs: US6.4-6.9; FR-019, FR-020; SC-007
   - Files (1, ~190 lines): `apps/api/internal/outbox/admin_test.go`
   - Done command (red): `cd apps/api && go test -race -run Admin ./internal/outbox/...`
-- [ ] T039 **backend-dev**: Implement outbox/admin.go: ListFailedMessages, RetryMessage, CancelMessage (audit in same tx), CountDead, SweepDead.
+- [x] T039 **backend-dev**: Implement outbox/admin.go: ListFailedMessages, RetryMessage, CancelMessage (audit in same tx), CountDead, SweepDead.
   - Depends on: T038, T037
   - Rules: none (mechanism) | Refs: FR-019, FR-020
   - Files (1, ~170 lines): `apps/api/internal/outbox/admin.go`
