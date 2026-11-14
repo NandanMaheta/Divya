@@ -323,7 +323,7 @@
   - Files (1, ~150 lines): `apps/api/internal/scheduler/handler_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestHandler_ ./internal/scheduler/...`
   - Note (test-engineer): needs `scheduler.Ticker` (interface `Tick(ctx) (TickSummary, error)`, satisfied by `*Service`) and `RegisterTick(api huma.API, t Ticker, auth tickauth.Authenticator)`. Tests build the API with `httpx.NewAPI()` (humago, as in production) and `humatest.Wrap`, because `httpx.ExtendWriteDeadline` unwraps a humago context; the handler must not fail when the recorder cannot extend the deadline. Logs are captured through `slog.Default()`. TickSummary.Jobs/Messages are set field by field, so named or anonymous struct types both work. Runs without Docker (no DB) but shares the package compile unit, so it is red until T045 stubs the whole surface.
-- [ ] T056 **backend-dev**: Implement scheduler handler.go: RegisterTick(api, ticker, authenticator) with Hidden:true, auth before any DB work, 90 s write deadline, RFC 9457 errors, log reason only.
+- [x] T056 **backend-dev**: Implement scheduler handler.go: RegisterTick(api, ticker, authenticator) with Hidden:true, auth before any DB work, 90 s write deadline, RFC 9457 errors, log reason only.
   - Depends on: T055, T018, T020, T048
   - Rules: none (mechanism) | Refs: FR-001, FR-002, FR-004, FR-007
   - Files (1, ~130 lines): `apps/api/internal/scheduler/handler.go`
