@@ -1,61 +1,46 @@
 ---
 
 name: ship-feature
-description: Conductor for one Swastik feature from docs/product/modules.md — research, spec, owner approval, plan, tasks, test-first implementation by parallel agents, review, QA and PR. Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
+description: Conductor for one Swastik feature from docs/product/modules.md using delivery pipeline v2 (risk tiers, one-page brief, slices with a compile skeleton, batched test and code passes, review, PR). Resumable from specs/<feature>/state.json. Use when asked to build, continue or ship a feature by number (e.g. "/ship-feature 016").
 ---
 
-# Ship one feature
+# Ship one feature (pipeline v2)
 
-You are the conductor. You coordinate agents; you do not write production code yourself. Keep the owner's involvement to the gates marked **OWNER**.
+Canonical rules: `docs/engineering/delivery-pipeline.md`. You coordinate; you do not write production code. Keep prompts short: point agents at files instead of restating them. Keep your own messages short.
 
 ## 0. Load state
 
-1. Find the feature row `<NNN>` in `docs/product/modules.md`. Refuse if a dependency is not `done`.
-2. If `specs/<NNN>-*/state.json` exists, resume from its `phase` in its worktree. Otherwise create the branch and worktree from `stage` (see `docs/engineering/git-workflow.md`):
-   `git fetch origin && git worktree add ../swastik-<NNN> -b feat/<NNN>-<short-desc> origin/stage`
-   Use the same `<NNN>-<short-desc>` for the spec folder `specs/<NNN>-<short-desc>/` and set `.specify/feature.json` to it (Spec Kit resolves features from that file, not the branch name). Run all agents for this feature inside `../swastik-<NNN>`.
+1. Read the feature row (incl. **Tier**) in `docs/product/modules.md`. Refuse if a dependency is not `done` (unless only its _build_ depends on it — specs and plans may run ahead).
+2. Resume from `specs/<NNN>-*/state.json` if it exists. Otherwise create the worktree from `stage`: `git fetch origin && git worktree add ../<repo>-<NNN> -b feat/<NNN>-<short-desc> origin/stage`, and set `.specify/feature.json` to `specs/<NNN>-<short-desc>`.
 
-## 1. Research → `researcher`
+## 1. Specify
 
-Produce `research.md`. Skip only for trivial UI-only features.
+- **Tier A:** `researcher` (only if new external tech) → `spec-writer` (Opus) writes `spec.md` (≤150 lines) → **OWNER approves** → `architect` (Opus) writes `plan.md` (≤200 lines), contracts and `brief.md`.
+- **Tier B:** `architect` (Opus) writes `spec.md` + `plan.md` + `brief.md` in **one run** → **OWNER approves once**.
+- Owner questions are batched; answers are recorded in the spec's "Owner approval" section.
+- New runtime dependencies or ADRs always need owner approval.
 
-## 2. Specify → `spec-writer`
+## 2. Slice
 
-`/speckit-specify` + `/speckit-clarify`. If the spec has "Questions for the owner", send them (Notification) and stop with phase `awaiting-owner`.
+`planner` writes `tasks.md` and `state.json` with **8–20 slices**: slice 1 = compile skeleton (exported types and signatures returning `errNotImplemented`), then test-first pairs ordered by dependency, last = gate (`go mod tidy` clean, full suite, lint, BR traceability, modules.md status). Then `architect` runs `/speckit-analyze` only for Tier A.
 
-## 3. **OWNER gate A — spec approval**
+## 3. Build (batched passes)
 
-Show the 10-line summary and the path to `spec.md`. Wait for "approved" (or edits). Record approval time in `state.json`.
+1. **Test pass:** one `test-engineer` run writes tests for all ready slices (Sonnet; effort high for Tier A, medium for Tier B) → each RED for the right reason → listed as `protected_tests`.
+2. **Code pass:** one developer run (`backend-dev`/`admin-dev`/`mobile-dev`/`data-dev`, same model rules) implements the skeleton and all ready slices → each slice's done command green → full affected suite once.
+3. Large features may use two test/code passes. Parallel slices in different packages may use separate worktrees and run concurrently.
+4. After 3 failed attempts on one slice: stop and report to the owner.
+5. **Pipelining:** while the code pass runs, the next feature's test pass may start in its own worktree.
 
-## 4. Plan → `architect`, then tasks → `planner`, then analyze → `architect`
+## 4. Review
 
-`/speckit-plan` → `/speckit-tasks` → `/speckit-analyze`. Fix critical findings before continuing. If the plan adds an ADR, a runtime dependency, or changes ledger/auth schema, stop for owner approval.
+`reviewer` (fresh context, reads brief + diff; checks test-before-code order in `git log`). Tier A, or any feature touching endpoints/auth/PII: also `security-reviewer`. Findings become fix slices (max 2 rounds, then escalate).
 
-## 5. Build loop (repeat per task, respecting dependencies; run `[P]` tasks in parallel)
+## 5. PR and close
 
-For each task in order:
+1. `release` (Haiku) opens the PR into `stage` with evidence. Tier A PRs need the owner's approval; Tier B may auto-merge when green.
+2. After merge: regenerate `docs/engineering/codemap.md` (`scripts/gen-codemap.sh`), update `docs/engineering/handover.md`, mark the feature `done` in modules.md, remove the worktree.
 
-1. `test-engineer` writes failing tests (protected) → evidence of failure.
-2. Owner agent (`backend-dev` / `data-dev` / `admin-dev` / `mobile-dev` / `designer`) implements until the done command passes (Stop hook enforces it).
-3. Update `state.json` task status. After 3 failed attempts on one task: stop and report to the owner.
-   Run parallel tasks as background subagents in worktrees; merge their branches back into the feature branch in dependency order and re-run affected tests after each merge.
+## Metrics (every agent run)
 
-## 6. Verify
-
-On the feature branch run: Go `go test -race ./...` + `golangci-lint run`, worker checks, `pnpm turbo run typecheck test build`, `pnpm lint`, `scripts/check-br-traceability.sh`. All must pass.
-
-## 7. Review → `reviewer` + `security-reviewer` (in parallel, fresh context)
-
-If CHANGES: turn findings into fix tasks and loop through step 5 (max 2 rounds, then escalate to the owner).
-
-## 8. PR → `release`
-
-Open the PR **into `stage`** with evidence. CI runs. When green and a preview exists, run `qa-web` and/or `qa-mobile`. Fix any bugs found via step 5.
-
-## 9. **OWNER gate B — UAT / approval**
-
-Post the UAT checklist (`uat-checklist` skill) on the PR. Money/auth/migration PRs need the owner's approval; others auto-merge when green.
-
-## 10. Close out
-
-After the PR merges into `stage` (auto-deploys to staging): remove the worktree, mark the feature `done` in `docs/product/modules.md`, set `state.json` phase `done`, and summarise for the owner in ≤8 lines: what shipped, evidence, anything deferred.
+Append to `state.json` → `metrics`: `{"agent", "model", "tokens", "minutes", "slices"}` from the task notification. At review add `review_findings`; after CI add `ci_failures`. Targets: ≤ 0.7M tokens and ≤ 1.5 h per standard feature with no drop in quality signals.

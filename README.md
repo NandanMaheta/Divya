@@ -11,6 +11,7 @@ Built by **[Nandan Maheta](https://github.com/NandanMaheta)**. It's an AI-native
 ## 1. The problem
 
 An operator funds IPO applications for a circle of clients, many of whom manage several family demat accounts. Today the operator does it all by hand:
+
 - WhatsApp messages: "apply for X before 5 pm";
 - chasing who applied;
 - checking allotments one PAN at a time;
@@ -33,17 +34,17 @@ Admin adds IPO ──► marks APPLY / DO NOT APPLY ──► publishes deals
 
 **Deals and settlement.** I = issue price × shares; G = listing gain = (listing price − issue price) × shares.
 
-| Deal | Not allotted | Allotted with profit | Allotted at a loss |
-|---|---|---|---|
-| **Profit share p%** (default) | nothing either way | client returns **I + G − p·G** | client returns **I + G** (operator bears the loss) |
-| **Fixed ₹F** (+ ₹40 brokerage B) | operator pays client **F** | client returns **I + G − F − B** | client returns **I + G − F** |
+| Deal                             | Not allotted               | Allotted with profit             | Allotted at a loss                                 |
+| -------------------------------- | -------------------------- | -------------------------------- | -------------------------------------------------- |
+| **Profit share p%** (default)    | nothing either way         | client returns **I + G − p·G**   | client returns **I + G** (operator bears the loss) |
+| **Fixed ₹F** (+ ₹40 brokerage B) | operator pays client **F** | client returns **I + G − F − B** | client returns **I + G − F**                       |
 
 Example: investment ₹15,000, profit ₹3,000. A 30% share means the client returns **₹17,100**; a fixed ₹500 deal means **₹17,460**. All rules live in [`docs/product/business-rules.md`](docs/product/business-rules.md) and are enforced by named tests ("golden scenarios").
 
 **Two apps:**
 
-| Admin web panel (operator) | Client app (Android + iPhone web app) |
-|---|---|
+| Admin web panel (operator)                                                                                                                              | Client app (Android + iPhone web app)                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Today dashboard, approvals queue, IPOs, deals and live fixed-price quotes, task board, allotment, settlements, clients, FY / quarter reports, audit log | Sign-up with email + SMS OTP, festival greetings, IPO list, deals, tasks with reminders, allotment, payments, earnings reports, up to 10 family accounts |
 
 ## 3. Architecture
@@ -68,6 +69,7 @@ Example: investment ₹15,000, profit ₹3,000. A 30% share means the client ret
 ```
 
 Key design decisions (see [`docs/adr/`](docs/adr/)):
+
 - **Modular monolith in Go:** one binary, hard module boundaries enforced by lint, easy to split later.
 - **Money in integer paise, double-entry ledger:** append-only; corrections are reversals; every change is audited.
 - **Tick-driven scheduler:** one 5-minute tick drives every reminder and deadline, so it runs on scale-to-zero hosting at about ₹0 a month.
@@ -76,18 +78,18 @@ Key design decisions (see [`docs/adr/`](docs/adr/)):
 
 ## 4. Tech stack
 
-| Area | Technology |
-|---|---|
-| API | **Go 1.27**, Huma v2 (OpenAPI 3.1, RFC 9457 errors), pgx v5, sqlc, goose |
-| Database | **PostgreSQL 18** on Supabase (Mumbai), integer-paise ledger, append-only audit |
-| Worker | **Python 3.13**, FastAPI, uv, Ruff, pyright (strict) |
-| Admin web | **React 19**, Vite, TanStack Router / Query / Table, Tailwind CSS v4 |
-| Client app | **Expo SDK 58**, React Native 0.88, Expo Router (Android + PWA) |
-| Shared | pnpm + Turborepo monorepo, TypeScript 7, Biome 2, generated API client, design tokens |
-| Auth | Argon2id, EdDSA JWT + rotating device-bound refresh tokens, admin TOTP 2FA |
-| Testing | Go tests + testcontainers (real Postgres) + property tests (rapid) + mutation tests; Vitest; pytest; Playwright; Maestro |
-| Infra (~₹0/month) | Google Cloud Run + Cloud Scheduler (Mumbai), Supabase, Cloudflare (DNS, Pages, Access, R2), Firebase, Resend, Sentry |
-| CI/CD | GitHub Actions: lint, tests, contract and secret checks; OIDC deploys (no stored cloud keys) |
+| Area              | Technology                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| API               | **Go 1.27**, Huma v2 (OpenAPI 3.1, RFC 9457 errors), pgx v5, sqlc, goose                                                 |
+| Database          | **PostgreSQL 18** on Supabase (Mumbai), integer-paise ledger, append-only audit                                          |
+| Worker            | **Python 3.13**, FastAPI, uv, Ruff, pyright (strict)                                                                     |
+| Admin web         | **React 19**, Vite, TanStack Router / Query / Table, Tailwind CSS v4                                                     |
+| Client app        | **Expo SDK 58**, React Native 0.88, Expo Router (Android + PWA)                                                          |
+| Shared            | pnpm + Turborepo monorepo, TypeScript 7, Biome 2, generated API client, design tokens                                    |
+| Auth              | Argon2id, EdDSA JWT + rotating device-bound refresh tokens, admin TOTP 2FA                                               |
+| Testing           | Go tests + testcontainers (real Postgres) + property tests (rapid) + mutation tests; Vitest; pytest; Playwright; Maestro |
+| Infra (~₹0/month) | Google Cloud Run + Cloud Scheduler (Mumbai), Supabase, Cloudflare (DNS, Pages, Access, R2), Firebase, Resend, Sentry     |
+| CI/CD             | GitHub Actions: lint, tests, contract and secret checks; OIDC deploys (no stored cloud keys)                             |
 
 ## 5. AI-native delivery workflow
 
@@ -148,11 +150,11 @@ make test && make lint                 # all tests and linters
 
 ## 9. Status
 
-| Stage | State |
-|---|---|
-| Foundation: monorepo, CI/CD, agent pipeline, design direction | ✅ Done |
-| 002 Scheduler · 003 Sign-in · 008 IPO catalogue | 🛠 In progress |
-| MVP: 27 features (see [`docs/product/modules.md`](docs/product/modules.md)) | ⏳ Planned |
+| Stage                                                                       | State         |
+| --------------------------------------------------------------------------- | ------------- |
+| Foundation: monorepo, CI/CD, agent pipeline, design direction               | ✅ Done       |
+| 002 Scheduler · 003 Sign-in · 008 IPO catalogue                             | 🛠 In progress |
+| MVP: 27 features (see [`docs/product/modules.md`](docs/product/modules.md)) | ⏳ Planned    |
 
 ## 10. Key documents
 
