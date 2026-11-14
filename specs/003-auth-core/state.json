@@ -94,12 +94,16 @@
     "T008": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run 'TestCORS|TestClientIP' ./internal/platform/httpx/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [],
       "rules": [],
       "title": "Tests for httpx CORS and ClientIP: exact-origin allowlist (never *, never pattern), Allow-Credentials true, Vary: Origin, preflight allows X",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/httpx/cors_test.go",
+        "apps/api/internal/platform/httpx/clientip_test.go"
+      ]
     },
     "T009": {
       "owner": "backend-dev",

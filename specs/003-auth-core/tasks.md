@@ -62,7 +62,7 @@ Everything here compiles against the standard library, the approved modules and 
   - Rules: none (mechanism) | Refs: plan P-10
   - Files (1, ~110 lines): `apps/api/internal/platform/httpx/errors.go`
   - Done command (green): `cd apps/api && go test -race -run 'TestErrors' ./internal/platform/httpx/...`
-- [ ] T008 [P] **test-engineer**: Tests for httpx CORS and ClientIP: exact-origin allowlist (never *, never pattern), Allow-Credentials true, Vary: Origin, preflight allows X-Swastik-CSRF; ClientIP with hops=0 (RemoteAddr), hops=1,2 (X-Forwarded-For entry at len-hops), spoofed leading values ignored, malformed header.
+- [x] T008 [P] **test-engineer**: Tests for httpx CORS and ClientIP: exact-origin allowlist (never *, never pattern), Allow-Credentials true, Vary: Origin, preflight allows X-Swastik-CSRF; ClientIP with hops=0 (RemoteAddr), hops=1,2 (X-Forwarded-For entry at len-hops), spoofed leading values ignored, malformed header.
   - Depends on: none
   - Rules: none (mechanism) | Refs: plan P-04, P-17
   - Files (2, ~150 lines): `apps/api/internal/platform/httpx/cors_test.go`, `apps/api/internal/platform/httpx/clientip_test.go`
