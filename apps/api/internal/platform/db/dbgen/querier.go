@@ -12,6 +12,8 @@ import (
 )
 
 type Querier interface {
+	AdminCancelJob(ctx context.Context, arg AdminCancelJobParams) (ScheduledJob, error)
+	AdminRetryJob(ctx context.Context, arg AdminRetryJobParams) (ScheduledJob, error)
 	// Cancel: pending becomes cancelled; a running job is only flagged, its in-flight run decides.
 	CancelJobByKey(ctx context.Context, arg CancelJobByKeyParams) (int64, error)
 	CancelJobsBySubject(ctx context.Context, arg CancelJobsBySubjectParams) (int64, error)
@@ -20,6 +22,7 @@ type Querier interface {
 	// Complete runs inside the handler's transaction and is fenced by the lock token: zero rows
 	// means the lease was lost and the caller rolls the whole transaction back.
 	CompleteJob(ctx context.Context, arg CompleteJobParams) (int64, error)
+	CountJobsByState(ctx context.Context, orgID uuid.UUID) (CountJobsByStateRow, error)
 	// Recurring kinds always have one active row per org; this self-heals after a dead or lost row.
 	EnsureRecurringJob(ctx context.Context, arg EnsureRecurringJobParams) error
 	// Expiry sweep: time-sensitive work whose expiry has passed is never run (FR-014). Bounded per tick.
@@ -27,15 +30,31 @@ type Querier interface {
 	// Fail: back to pending after a backoff, dead when attempts are used up, cancelled when a cancel
 	// was requested during the run, pending again at the new time when it was rescheduled meanwhile.
 	FailJob(ctx context.Context, arg FailJobParams) (FailJobRow, error)
+	FinishTickRun(ctx context.Context, arg FinishTickRunParams) error
+	// The row is locked so a retry or cancel decides on a state nobody changes meanwhile.
+	GetJobForOrg(ctx context.Context, arg GetJobForOrgParams) (ScheduledJob, error)
 	InsertAuditLog(ctx context.Context, arg InsertAuditLogParams) error
+	// Scheduler status, admin and retention queries (feature 002).
+	InsertTickRun(ctx context.Context, arg InsertTickRunParams) (uuid.UUID, error)
+	// The most recent tick, whatever its outcome (FR-021).
+	LastTickRun(ctx context.Context) (TickRun, error)
+	// Retrying and dead jobs of one org, newest last attempt first, keyset-paginated (FR-019).
+	// state: empty for both, retrying or dead; kind: empty for every kind.
+	ListFailedJobs(ctx context.Context, arg ListFailedJobsParams) ([]ScheduledJob, error)
 	// Scheduler queries (feature 002). Every instant is a parameter taken from the injected clock;
 	// nothing here calls now() (FR-032). Rows are claimed one at a time with FOR UPDATE SKIP LOCKED.
 	ListOrgIDs(ctx context.Context) ([]uuid.UUID, error)
 	// A job whose lease expired more often than it has attempts left is dead without running again.
 	MarkJobDead(ctx context.Context, arg MarkJobDeadParams) (int64, error)
+	MarkJobsAlerted(ctx context.Context, arg MarkJobsAlertedParams) error
 	Ping(ctx context.Context) (int32, error)
+	// Retention (FR-035): finished jobs older than the cutoff; dead jobs are kept until an admin acts.
+	PurgeFinishedJobs(ctx context.Context, arg PurgeFinishedJobsParams) (int64, error)
+	PurgeTickRuns(ctx context.Context, cutoff pgtype.Timestamptz) (int64, error)
 	// Reschedule never creates a row. A running job is flagged to run again at the new time.
 	RescheduleJob(ctx context.Context, arg RescheduleJobParams) (int64, error)
+	// Dead jobs not yet included in an alert. Locked, so a concurrent sweep skips them.
+	SelectUnalertedDeadJobs(ctx context.Context) ([]SelectUnalertedDeadJobsRow, error)
 	// Schedule: one active (pending or running) job per (org, kind, dedupe_key). A pending row takes
 	// the latest values; a running row is flagged to run again at the new time when it finishes.
 	UpsertJob(ctx context.Context, arg UpsertJobParams) (uuid.UUID, error)

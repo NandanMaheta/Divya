@@ -164,7 +164,7 @@
   - Rules: BR-IPO-03 | Refs: data-model 1; FR-009-FR-016, FR-032
   - Files (1, ~190 lines): `apps/api/queries/scheduler.sql`
   - Done command (green): `cd apps/api && sqlc vet && sqlc generate && go build ./...`
-- [ ] T028 **backend-dev**: queries/scheduler_admin.sql: InsertTickRun, FinishTickRun, LastTickRun, ListFailedJobs, CountJobsByState, GetJobForOrg, AdminRetryJob, AdminCancelJob, SelectUnalertedDeadJobs, MarkJobsAlerted, PurgeFinishedJobs, PurgeTickRuns.
+- [x] T028 **backend-dev**: queries/scheduler_admin.sql: InsertTickRun, FinishTickRun, LastTickRun, ListFailedJobs, CountJobsByState, GetJobForOrg, AdminRetryJob, AdminCancelJob, SelectUnalertedDeadJobs, MarkJobsAlerted, PurgeFinishedJobs, PurgeTickRuns.
   - Depends on: T027
   - Rules: none (mechanism) | Refs: data-model 1, 4; FR-006, FR-019-FR-021, FR-035
   - Files (1, ~170 lines): `apps/api/queries/scheduler_admin.sql`
