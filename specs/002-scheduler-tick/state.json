@@ -336,14 +336,17 @@
     "T025": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race ./internal/platform/audit/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T022"
       ],
       "rules": [],
       "title": "Tests for audit.Write",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/platform/audit/audit_test.go"
+      ]
     },
     "T026": {
       "owner": "backend-dev",

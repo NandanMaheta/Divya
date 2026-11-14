@@ -148,7 +148,7 @@
   - Rules: none (mechanism) | Refs: FR-008; K9
   - Files (1, ~90 lines): `apps/api/internal/platform/db/tx.go`
   - Done command (green): `cd apps/api && go test -race -run Tx ./internal/platform/db/...`
-- [ ] T025 [P] **test-engineer**: Tests for audit.Write: row written inside a transaction with actor, entity, before/after JSON; without a transaction returns ErrNoTx; rolled back with the caller.
+- [x] T025 [P] **test-engineer**: Tests for audit.Write: row written inside a transaction with actor, entity, before/after JSON; without a transaction returns ErrNoTx; rolled back with the caller.
   - Depends on: T022
   - Rules: none (mechanism) | Refs: FR-020; constitution II
   - Files (1, ~90 lines): `apps/api/internal/platform/audit/audit_test.go`
