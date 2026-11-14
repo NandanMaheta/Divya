@@ -1,15 +1,15 @@
-name: divya
+name: swastik
 services:
   postgres:
     image: postgres:18-alpine
     environment:
-      POSTGRES_USER: divya
-      POSTGRES_PASSWORD: divya
-      POSTGRES_DB: divya
+      POSTGRES_USER: swastik
+      POSTGRES_PASSWORD: swastik
+      POSTGRES_DB: swastik
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U divya"]
+      test: ["CMD-SHELL", "pg_isready -U swastik"]
       interval: 2s
       retries: 30
 volumes:

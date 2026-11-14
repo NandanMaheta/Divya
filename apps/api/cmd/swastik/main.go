@@ -1,4 +1,4 @@
-// Command divya runs the Divya API ("serve") or applies migrations ("migrate up|down|status").
+// Command swastik runs the Swastik API ("serve") or applies migrations ("migrate up|down|status").
 package main
 
 import (
@@ -14,11 +14,11 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/NandanMaheta/divya/apps/api/internal/health"
-	"github.com/NandanMaheta/divya/apps/api/internal/platform/config"
-	"github.com/NandanMaheta/divya/apps/api/internal/platform/db"
-	"github.com/NandanMaheta/divya/apps/api/internal/platform/httpx"
-	"github.com/NandanMaheta/divya/apps/api/migrations"
+	"github.com/NandanMaheta/swastik/apps/api/internal/health"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/config"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/db"
+	"github.com/NandanMaheta/swastik/apps/api/internal/platform/httpx"
+	"github.com/NandanMaheta/swastik/apps/api/migrations"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 
 func run(log *slog.Logger, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: divya serve | divya migrate up|down|status | divya openapi")
+		return errors.New("usage: swastik serve | swastik migrate up|down|status | swastik openapi")
 	}
 	if args[0] == "openapi" {
 		// Prints the OpenAPI 3.1 spec without needing a database; used to generate the TS client.

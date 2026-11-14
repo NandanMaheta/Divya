@@ -1,6 +1,6 @@
 # Git workflow
 
-How code moves from an idea to production in Divya. This applies to people and to AI agents alike.
+How code moves from an idea to production in Swastik. This applies to people and to AI agents alike.
 
 ## Branches at a glance
 
@@ -57,16 +57,16 @@ For an urgent production bug: branch `hotfix/<issue>-<desc>` from `main` → PR 
 When several agents (or you and an agent) work at once, give each work branch its own folder with `git worktree` instead of switching branches in one folder:
 
 ```bash
-# from the main checkout (e.g. ~/code/divya)
+# from the main checkout (e.g. ~/code/swastik)
 git fetch origin
-git worktree add ../divya-016 -b feat/016-settlement-engine origin/stage
-git worktree add ../divya-41  -b fix/41-otp-resend-timer   origin/stage
+git worktree add ../swastik-016 -b feat/016-settlement-engine origin/stage
+git worktree add ../swastik-41  -b fix/41-otp-resend-timer   origin/stage
 git worktree list
 # when the branch is merged:
-git worktree remove ../divya-016 && git branch -d feat/016-settlement-engine
+git worktree remove ../swastik-016 && git branch -d feat/016-settlement-engine
 ```
 
-- Folder name: `divya-<id>` (`divya-016`, `divya-41`), so it's obvious which branch lives where.
+- Folder name: `swastik-<id>` (`swastik-016`, `swastik-41`), so it's obvious which branch lives where.
 - Never check out the same branch in two worktrees.
 - Each worktree has its own `node_modules` and build output; run `pnpm install` in it once.
 - Claude Code subagents with `isolation: worktree` do this automatically. The conductor (`/ship-feature`) creates one worktree per feature and merges task branches back into it.

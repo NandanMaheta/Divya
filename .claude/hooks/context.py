@@ -2,11 +2,14 @@
 
 import subprocess
 
-from lib import ROOT, active_states
+import os
 
-branch = subprocess.run(["git", "branch", "--show-current"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-lines = [f"Divya repo · branch: {branch or '(detached)'}"]
-for path, state in active_states():
+from lib import active_states, repo_root
+
+root = repo_root(os.getcwd())
+branch = subprocess.run(["git", "branch", "--show-current"], cwd=root, capture_output=True, text=True).stdout.strip()
+lines = [f"Swastik repo · branch: {branch or '(detached)'}"]
+for path, state in active_states(root):
     if state.get("phase") != "done":
         todo = [t for t, v in state.get("tasks", {}).items() if v.get("status") != "done"]
         lines.append(f"In flight: {path.parent.name} · phase {state.get('phase')} · open tasks {len(todo)}")

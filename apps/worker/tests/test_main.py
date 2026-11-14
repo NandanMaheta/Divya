@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from divya_worker.main import app
+from swastik_worker.main import app
 
 
 def test_healthz() -> None:

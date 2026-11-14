@@ -14,4 +14,4 @@ COPY --from=build --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 USER app
 EXPOSE 8080
-CMD ["fastapi", "run", "src/divya_worker/main.py", "--port", "8080"]
+CMD ["fastapi", "run", "src/swastik_worker/main.py", "--port", "8080"]

@@ -1,21 +1,174 @@
-/* Tailwind v4 theme generated from tokens/src/index.ts (keep in sync). */
+/* Tailwind v4 theme generated from tokens/src/index.ts (keep in sync).
+ * Colour variables are semantic: the same name holds the light value here and the dark value in the
+ * dark-mode blocks below, so `bg-surface-base text-ink-900` is correct in both modes without `dark:`.
+ * Dark mode follows the system unless <html data-theme="light|dark"> forces one.
+ * Design direction and contrast ratios: docs/design/design-direction.md. */
 @theme {
-  --color-brand-50: #fff7ed;
-  --color-brand-500: #c2410c;
-  --color-brand-600: #9a3412;
-  --color-brand-900: #431407;
-  --color-ink-900: #111827;
-  --color-ink-600: #4b5563;
-  --color-ink-400: #9ca3af;
+  /* Brand (Jamun) */
+  --color-brand-50: #f5effa;
+  --color-brand-500: #6e3aa0;
+  --color-brand-600: #5b2a86;
+  --color-brand-900: #2e1245;
+  --color-on-brand: #ffffff;
+  --color-gold: #b07a1e;
+
+  /* Text */
+  --color-ink-900: #1c1917;
+  --color-ink-600: #57534e;
+  --color-ink-400: #6f6863;
+
+  /* Surfaces */
   --color-surface-base: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-surface-dark: #0b0f17;
-  --color-tone-amber: #d97706;
-  --color-tone-blue: #2563eb;
-  --color-tone-green: #16a34a;
-  --color-tone-red: #dc2626;
-  --color-tone-grey: #6b7280;
+  --color-surface-muted: #faf8f5;
+  --color-surface-sunken: #f2efea;
+  --color-surface-dark: #141210;
+
+  /* Lines */
+  --color-line-subtle: #e4e0da;
+  --color-line-strong: #8a837c;
+
+  /* Status tones: amber = to do, blue = waiting, green = done/allotted, red = missed/overdue, grey = not allotted */
+  --color-tone-amber: #a14f00;
+  --color-tone-blue: #1d5fc2;
+  --color-tone-green: #1a7034;
+  --color-tone-red: #b42318;
+  --color-tone-grey: #5c5853;
+  --color-tone-amber-soft: #fdf1dc;
+  --color-tone-blue-soft: #e6effc;
+  --color-tone-green-soft: #e3f4e8;
+  --color-tone-red-soft: #fce8e6;
+  --color-tone-grey-soft: #efedea;
+
+  --color-scrim: rgba(20, 18, 16, 0.5);
+
+  /* Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Typography */
+  --font-sans:
+    "Noto Sans", "Noto Sans Devanagari", "Noto Sans Gujarati", system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+
+  --text-amount: 2.5rem;
+  --text-amount--line-height: 3rem;
+  --text-amount--font-weight: 700;
+  --text-amount--letter-spacing: -0.03125rem;
+  --text-display: 2rem;
+  --text-display--line-height: 2.5rem;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.015625rem;
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+  --text-title--font-weight: 600;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.75rem;
+  --text-heading--font-weight: 600;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.625rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-label: 1rem;
+  --text-label--line-height: 1.375rem;
+  --text-label--font-weight: 600;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+  --text-caption--font-weight: 500;
+  --text-caption--letter-spacing: 0.00625rem;
+
+  /* Elevation (light mode; in dark mode separate layers by surface colour + line-subtle, not shadow) */
+  --shadow-card: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --shadow-sheet: 0 4px 12px rgba(28, 25, 23, 0.1);
+  --shadow-modal: 0 12px 32px rgba(28, 25, 23, 0.16);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+}
+
+/* Spacing: Tailwind's default 4px step (p-1 = 4px … p-16 = 64px) already matches `space` in index.ts. */
+
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-brand-50: #2a1a3a;
+    --color-brand-500: #b48ce0;
+    --color-brand-600: #c4a3e8;
+    --color-brand-900: #e9dcf7;
+    --color-on-brand: #2e1245;
+    --color-gold: #d9a441;
+    --color-ink-900: #f5f2ee;
+    --color-ink-600: #c9c3bc;
+    --color-ink-400: #a39c94;
+    --color-surface-base: #1f1c19;
+    --color-surface-muted: #141210;
+    --color-surface-sunken: #2a2622;
+    --color-surface-dark: #141210;
+    --color-line-subtle: #34302b;
+    --color-line-strong: #7a736c;
+    --color-tone-amber: #f2b755;
+    --color-tone-blue: #8db8f5;
+    --color-tone-green: #7fcf95;
+    --color-tone-red: #f59a90;
+    --color-tone-grey: #a39c94;
+    --color-tone-amber-soft: #3a2a10;
+    --color-tone-blue-soft: #14263f;
+    --color-tone-green-soft: #123321;
+    --color-tone-red-soft: #3d1714;
+    --color-tone-grey-soft: #2a2622;
+    --color-scrim: rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-brand-50: #2a1a3a;
+  --color-brand-500: #b48ce0;
+  --color-brand-600: #c4a3e8;
+  --color-brand-900: #e9dcf7;
+  --color-on-brand: #2e1245;
+  --color-gold: #d9a441;
+  --color-ink-900: #f5f2ee;
+  --color-ink-600: #c9c3bc;
+  --color-ink-400: #a39c94;
+  --color-surface-base: #1f1c19;
+  --color-surface-muted: #141210;
+  --color-surface-sunken: #2a2622;
+  --color-surface-dark: #141210;
+  --color-line-subtle: #34302b;
+  --color-line-strong: #7a736c;
+  --color-tone-amber: #f2b755;
+  --color-tone-blue: #8db8f5;
+  --color-tone-green: #7fcf95;
+  --color-tone-red: #f59a90;
+  --color-tone-grey: #a39c94;
+  --color-tone-amber-soft: #3a2a10;
+  --color-tone-blue-soft: #14263f;
+  --color-tone-green-soft: #123321;
+  --color-tone-red-soft: #3d1714;
+  --color-tone-grey-soft: #2a2622;
+  --color-scrim: rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
 }

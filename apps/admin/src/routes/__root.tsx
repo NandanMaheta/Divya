@@ -11,7 +11,7 @@ function RootLayout() {
   return (
     <div className="flex min-h-screen bg-surface-muted text-ink-900">
       <aside className="w-56 border-r border-ink-400/30 bg-surface-base p-4">
-        <p className="mb-6 text-lg font-semibold text-brand-600">Divya Admin</p>
+        <p className="mb-6 text-lg font-semibold text-brand-600">Swastik Admin</p>
         <nav className="flex flex-col gap-1">
           {nav.map((item) => (
             <Link
