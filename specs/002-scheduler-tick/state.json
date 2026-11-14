@@ -770,7 +770,7 @@
     "T053": {
       "owner": "test-engineer",
       "done_command": "cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...",
-      "status": "todo",
+      "status": "done",
       "depends_on": [
         "T040",
         "T022"
@@ -778,7 +778,10 @@
       "rules": [],
       "title": "Scheduler admin and status tests",
       "expect": "red",
-      "parallel": true
+      "parallel": true,
+      "protected_tests": [
+        "apps/api/internal/scheduler/admin_test.go"
+      ]
     },
     "T054": {
       "owner": "backend-dev",

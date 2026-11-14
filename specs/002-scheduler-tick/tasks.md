@@ -306,11 +306,12 @@
   - Rules: none (mechanism) | Refs: FR-035
   - Files (1, ~90 lines): `apps/api/internal/scheduler/retention.go`
   - Done command (green): `cd apps/api && go test -race -run TestRetention_ ./internal/scheduler/...`
-- [ ] T053 [P] **test-engineer**: Scheduler admin and status tests: ListFailedJobs fields and no secrets, RetryJob (fresh attempts + audit), CancelJob + audit, retry of expired still expires, other org invisible, non-dead conflict, Status last tick / overdue / dead counts.
+- [x] T053 [P] **test-engineer**: Scheduler admin and status tests: ListFailedJobs fields and no secrets, RetryJob (fresh attempts + audit), CancelJob + audit, retry of expired still expires, other org invisible, non-dead conflict, Status last tick / overdue / dead counts.
   - Depends on: T040, T022
   - Rules: none (mechanism) | Refs: US6.4-6.9; FR-019-FR-021; SC-007
   - Files (1, ~190 lines): `apps/api/internal/scheduler/admin_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestAdmin_ ./internal/scheduler/...`
+  - Note (test-engineer): assumptions are listed at the top of admin_test.go (FailedJob/Page/Status read through their JSON schemas; ErrConflict when retry would hit the active (org, kind, dedupe_key) unique index). Also holds the overdue status test moved from T042. Retry/cancel/expiry cases tick, so they need T048 as well.
 - [ ] T054 **backend-dev**: Implement scheduler admin.go: Status, ListFailedJobs, RetryJob, CancelJob (audit in same tx, org-scoped).
   - Depends on: T053, T048
   - Rules: none (mechanism) | Refs: FR-019, FR-020, FR-021
