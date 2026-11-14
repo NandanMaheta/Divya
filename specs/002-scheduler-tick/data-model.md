@@ -28,7 +28,7 @@ None of these tables is append-only: they are operational queues (owner decision
 | `locked_until` | timestamptz | yes | | lease end (FR-011) |
 | `lock_token` | uuid | yes | | fencing token set per claim |
 | `locked_by` | text | yes | | instance/hostname, diagnostics only |
-| `rerun` | boolean | no | false | set when `Schedule` hits a `running` row: the row goes back to `pending` at the new `run_at` when the run finishes (US5.5); a lease-expiry takeover consumes `rerun` (FR-010: the takeover is the rerun) |
+| `rerun` | boolean | no | false | set when `Schedule` hits a `running` row: the row goes back to `pending` at the new `run_at` when the run finishes (US5.5); a stale `running` row with `rerun` is recovered at the start of the next tick (see Recovery) |
 | `cancel_requested` | boolean | no | false | set when `Cancel` hits a `running` row: a failing run becomes `cancelled` instead of retrying |
 | `alerted_at` | timestamptz | yes | | when this dead row was included in an `admin.jobs_dead` alert; NULL = not yet alerted |
 | `finished_at` | timestamptz | yes | | set on `done`/`cancelled`/`expired`/`dead` |
@@ -69,7 +69,10 @@ State machine (derived state "retrying" = `pending AND attempts > 0`):
                                  └───────────── pending (run_at = now + backoff) ◄┘
                                      attempts >= max  → dead
                                      cancel_requested → cancelled
-   running with locked_until <= now ──► reclaimed by claim (attempts+1; if attempts > max → dead "lease expired")
+   running with locked_until <= now (recovery, tick start, before any claim), by precedence:
+        cancel_requested → cancelled · expires_at<=now → expired ·
+        rerun → pending (run_at unchanged, rerun=false, attempts=0, first_attempt_at=NULL)
+   other running with locked_until <= now ──► reclaimed by claim (attempts+1; if attempts > max → dead "lease expired")
    pending ── Cancel/CancelSubject ──► cancelled          running ── Cancel ──► cancel_requested = true
    dead ── admin retry ──► pending (attempts=0, run_at=now, alerted_at=NULL, first_attempt_at=NULL) + audit_log
    dead ── admin cancel ──► cancelled + audit_log
@@ -80,7 +83,8 @@ Rules:
 - **Schedule** = `INSERT … ON CONFLICT (org_id, kind, dedupe_key) WHERE status IN ('pending','running') DO UPDATE SET run_at, expires_at, payload, subject, rerun = (status = 'running'), cancel_requested = false, updated_at`. Pending rows simply take the latest values (FR-009, US1.9). A `done` row for the same key is outside the partial index, so a new pending row is created and the old one stays as history (US5.6). Must be called with a transaction in the context (FR-008, US1.10).
 - **Reschedule** updates `run_at` (and optionally `expires_at`) of the active row for a key; never creates (US5.7). On a running row it sets `rerun = true`.
 - **Cancel / CancelSubject**: pending → `cancelled`; running → `cancel_requested = true` (the in-flight run, which reads current data, decides its own no-op). Returns the number of rows affected; zero is not an error (US5.7).
-- **Claim** (one row per call): `WITH c AS (SELECT id FROM scheduled_jobs WHERE (status='pending' AND run_at <= $now) OR (status='running' AND locked_until <= $now) ORDER BY run_at, id LIMIT 1 FOR UPDATE SKIP LOCKED) UPDATE … SET status='running', attempts=attempts+1, first_attempt_at=COALESCE(first_attempt_at,$now), last_attempt_at=$now, locked_until=$now+$lease, lock_token=gen_random_uuid(), locked_by=$instance FROM c WHERE … RETURNING *`.
+- **Claim** (one row per call): `WITH c AS (SELECT id FROM scheduled_jobs WHERE (status='pending' AND run_at <= $now AND (expires_at IS NULL OR expires_at > $now)) OR (status='running' AND run_at <= $now AND locked_until <= $now) ORDER BY run_at, id LIMIT 1 FOR UPDATE SKIP LOCKED) UPDATE … SET status='running', attempts=attempts+1, first_attempt_at=COALESCE(first_attempt_at,$now), last_attempt_at=$now, locked_until=$now+$lease, lock_token=gen_random_uuid(), locked_by=$instance FROM c WHERE … RETURNING *`.
+- **Recovery** (`RecoverStaleJobs`, every tick before the expiry sweep and any claim): rows with `status='running' AND locked_until <= $now` and `cancel_requested`, `rerun` or `expires_at <= $now` are resolved without running: `cancel_requested` → `cancelled`; else `expires_at <= $now` → `expired` (both set `finished_at`); else `rerun` → `pending` with `rerun=false`, `attempts=0`, `first_attempt_at=NULL`, `run_at` unchanged. `rerun` and `cancel_requested` are cleared and `locked_until`, `lock_token`, `locked_by` are NULL afterwards. Bounded to 1,000 rows per tick. Other stale rows stay for Claim's takeover.
 - **Complete** runs inside the handler's transaction: `UPDATE … WHERE id=$id AND lock_token=$token AND status='running'`; zero rows means the lease was lost, and the whole transaction (handler effects included) is rolled back (US1.5, US1.6).
 - **Fail** (own short transaction, same fencing): `attempts < max_attempts` → `pending`, `run_at = now + backoff(attempts)`; else `dead`; `cancel_requested` → `cancelled`. `last_error` = sanitised text.
 - **Expire sweep** (start of jobs phase): `UPDATE … SET status='expired', finished_at=$now WHERE status='pending' AND expires_at <= $now` (bounded to 1,000 rows per tick).
