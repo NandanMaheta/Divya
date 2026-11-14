@@ -113,7 +113,7 @@ func TestLifecycle_BR_IPO_03_MissingAllotmentWaitsInClosed(t *testing.T) {
 	wantStatus(t, e, i.ID, StatusClosed)
 	d2 := draftOf(i)
 	d2.Dates.Allotment = dt(25)
-	e.update(i, d2)
+	e.update(e.currentID(i.ID), d2)
 	e.tickAt(25, 10, 0)
 	wantStatus(t, e, i.ID, StatusAllotmentOut)
 }

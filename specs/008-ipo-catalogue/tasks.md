@@ -61,7 +61,7 @@
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: FR-020..024, FR-037, FR-042; US3, US5.5; ADR 0008
   - Files (~610 lines): `apps/api/internal/ipos/service_publish_test.go`, `apps/api/internal/ipos/eligible_test.go`, `apps/api/internal/ipos/signals_test.go`, `apps/api/internal/ipos/signals_status_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestPublish_BR_IPO_02|TestSetFlag_BR_IPO_02|TestUnpublish_BR_IPO_02|TestRequireEligible_BR_IPO_02|TestSignals_' ./internal/ipos/`
-- [ ] S10 **backend-dev**: Service core: NewService, tx helper, audit helper, idempotency via audit, Get/List/ListPublished/GetPublished, cursor; signals.go (registration, fire order, panic recovery, RejectedError); ipostest implementation (NewService, RecordingListener, FailingListener, ExampleIPO).
+- [x] S10 **backend-dev**: Service core: NewService, tx helper, audit helper, idempotency via audit, Get/List/ListPublished/GetPublished, cursor; signals.go (registration, fire order, panic recovery, RejectedError); ipostest implementation (NewService, RecordingListener, FailingListener, ExampleIPO).
   - Depends on: S05, S07, S08, S09, 002-merged
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: FR-009, FR-051; ADR 0008; K-05, K-06
   - Files (~450 lines): `apps/api/internal/ipos/service.go`, `apps/api/internal/ipos/signals.go`, `apps/api/internal/ipos/ipostest/ipostest.go`
@@ -81,7 +81,7 @@
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: FR-007, FR-033, FR-035, FR-036, FR-060; US6; SC-005
   - Files (~480 lines): `apps/api/internal/ipos/override_test.go`, `apps/api/internal/ipos/override_race_test.go`, `apps/api/internal/ipos/idempotency_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestOverride_BR_IPO_03|TestMarkSettled_BR_IPO_03|TestIdempotency_FR007|TestAudit_SC005' ./internal/ipos/`
-- [ ] S14 **backend-dev**: Lifecycle handlers + RegisterJobs (four kinds), status_apply helper (StatusChanged), OverrideStatus/MarkSettled/Delete, close idempotency and audit gaps in owning files, wire ipos service and jobs in cmd/swastik/main.go (no HTTP; rebase on stage first).
+- [x] S14 **backend-dev**: Lifecycle handlers + RegisterJobs (four kinds), status_apply helper (StatusChanged), OverrideStatus/MarkSettled/Delete, close idempotency and audit gaps in owning files, wire ipos service and jobs in cmd/swastik/main.go (no HTTP; rebase on stage first).
   - Depends on: S11, S12, S13, 002-merged
   - Rules: BR-IPO-02, BR-IPO-03 | Refs: FR-031..037; K-03, K-10..12; C-8
   - Files (~480 lines): `apps/api/internal/ipos/lifecycle.go`, `apps/api/internal/ipos/status_apply.go`, `apps/api/internal/ipos/service_status.go`, `apps/api/cmd/swastik/main.go`

@@ -15,7 +15,9 @@ func (e *svcEnv) seedCatalogue() {
 	mk := func(name string, open *istdate.Date) Draft {
 		d := acme()
 		d.Name = name
-		d.Dates = Dates{Open: open}
+		cl := *open
+		cl.Day += 2 // close two days after open (FR-020)
+		d.Dates = Dates{Open: open, Close: &cl}
 		return d
 	}
 	// A: published APPLY OPEN, open 11 Nov

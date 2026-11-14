@@ -256,7 +256,7 @@
       "owner": "backend-dev",
       "title": "Service core: NewService, tx helper, audit helper, idempotency via audit, Get/List/ListPublished/GetPublished, cursor; signals.go (registration, fire order, panic recovery, RejectedError); ipostest implementation (NewService, RecordingListener, FailingListener, ExampleIPO).",
       "done_command": "cd apps/api && go test -race -run 'TestList_FR009|TestGet_|TestSignals_FireOrder' ./internal/ipos/ && go vet ./internal/ipos/...",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "S05",
         "S07",
@@ -277,8 +277,7 @@
         "apps/api/internal/ipos/ipostest/ipostest.go"
       ],
       "protected_tests": [],
-      "tests_written": true,
-      "blocker": "Implemented; blocked only by protected-test defects: service_read_test.go seedCatalogue publishes IPOs with no close date (FR-020 requires one) so TestList_FR009_* fail; lifecycle_test.go TestLifecycle_BR_IPO_03_MissingAllotmentWaitsInClosed calls e.update with a stale version after two step status changes (steps bump version, data-model s4). Test-engineer fix needed."
+      "tests_written": true
     },
     "S11": {
       "owner": "backend-dev",
@@ -365,7 +364,7 @@
       "owner": "backend-dev",
       "title": "Lifecycle handlers + RegisterJobs (four kinds), status_apply helper (StatusChanged), OverrideStatus/MarkSettled/Delete, close idempotency and audit gaps in owning files, wire ipos service and jobs in cmd/swastik/main.go (no HTTP; rebase on stage first).",
       "done_command": "cd apps/api && go test -race ./internal/ipos/... && go build ./... && go test -race -short ./cmd/...",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "S11",
         "S12",
@@ -385,8 +384,7 @@
         "apps/api/internal/ipos/service_status.go",
         "apps/api/cmd/swastik/main.go"
       ],
-      "protected_tests": [],
-      "blocker": "Implemented; blocked only by protected-test defects: service_read_test.go seedCatalogue publishes IPOs with no close date (FR-020 requires one) so TestList_FR009_* fail; lifecycle_test.go TestLifecycle_BR_IPO_03_MissingAllotmentWaitsInClosed calls e.update with a stale version after two step status changes (steps bump version, data-model s4). Test-engineer fix needed."
+      "protected_tests": []
     },
     "S15": {
       "owner": "test-engineer",
