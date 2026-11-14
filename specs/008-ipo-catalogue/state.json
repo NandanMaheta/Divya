@@ -161,7 +161,8 @@
         "apps/api/internal/ipos/validate_prop_test.go",
         "apps/api/internal/ipos/step_test.go",
         "apps/api/internal/ipos/step_prop_test.go"
-      ]
+      ],
+      "tests_written": true
     },
     "S07": {
       "owner": "backend-dev",
