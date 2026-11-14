@@ -248,11 +248,12 @@
   - Files (1, ~190 lines): `apps/api/internal/scheduler/schedule_test.go`
   - Done command (red): `cd apps/api && go test -race -run TestSchedule_BR_IPO_03 ./internal/scheduler/...`
   - Note (test-engineer): also owns `apps/api/internal/scheduler/helpers_test.go` (shared fixtures). All scheduler tests (T041-T044, T049, T051, T053, T055) are one compile unit with `schedulertest`, so every scheduler done command compiles only once T045 provides the full exported surface as compiling stubs: the harness list plus `Reschedule`, `Cancel`, `CancelSubject`, `Status`, `FailedFilter{State, Kind string; Limit int; Cursor string}`, `FailedJob`, `Page[T]{Items, NextCursor}`, `ListFailedJobs`, `RetryJob`, `CancelJob`, `Ticker` (interface with `Tick(ctx) (TickSummary, error)`) and `RegisterTick(api huma.API, t Ticker, auth tickauth.Authenticator)`. Several TestSchedule_ cases also tick (T048) to prove a job does or does not run; T046 alone gets the pure upsert/tx cases green, the rest go green with T048.
-- [ ] T042 [P] **test-engineer**: Tick tests (happy path): due jobs run once in oldest-first order, none before run_at, per-tick caps and budget, idle tick records a tick_runs row, recurring catch-up runs once, unknown kind fails, status overdue at 15 minutes.
+- [x] T042 [P] **test-engineer**: Tick tests (happy path): due jobs run once in oldest-first order, none before run_at, per-tick caps and budget, idle tick records a tick_runs row, recurring catch-up runs once, unknown kind fails, status overdue at 15 minutes.
   - Depends on: T040, T022
   - Rules: BR-IPO-03 | Refs: US1.1-1.3, 1.7, 1.8, 6.8, 7.6; FR-005, FR-006, FR-010, FR-015, FR-016, FR-021; TestTick_BR_IPO_03_LateNotSkipped
   - Files (1, ~190 lines): `apps/api/internal/scheduler/tick_test.go`
   - Done command (red): `cd apps/api && go test -race -run 'TestTick_' ./internal/scheduler/...`
+  - Note (test-engineer): the "status overdue at 15 minutes" case lives in `admin_test.go` as `TestAdmin_StatusIsOverdueMoreThan15MinutesAfterTheLastTick` (T053), because `Status` is implemented in T054 and T048's done command runs `TestTick_`. `TestTick_TheJobsPhase...`/caps/recurring cases need T048; the idle-tick case also needs the outbox relay (T037, done).
 - [ ] T043 [P] **test-engineer**: Tick failure tests: handler error retries with growing waits then dead, panic recovered with sanitised last_error, expiry skips effect while state-change jobs always run, last_error never carries secrets, completion atomic with handler effects.
   - Depends on: T040, T022
   - Rules: BR-IPO-03 | Refs: US6.1-6.3; FR-012, FR-014, FR-017, FR-018
