@@ -9,18 +9,19 @@
    "owner": "backend-dev",
    "title": "Compile skeleton: exported types and signatures returning errNotImplemented for internal/auth, platform/crypto, authz, httpx (errors, cors, clientip), ratelimit, config (auth, LoadDB), auth/commonpasswords, so every existing red test compiles. Includes Service/Store/Throttle/Deps type shapes from go-capabilities.",
    "done_command": "cd apps/api && go build ./... && go vet ./internal/auth/... ./internal/platform/...",
-   "status": "todo",
+   "status": "done",
    "depends_on": [],
    "rules": [],
    "expect": "green",
    "parallel": false,
-   "replaces": "T001 done (deps)"
+   "replaces": "T001 done (deps)",
+   "note": "Skeleton folded into the S02-S05 implementations (every red test compiles); Service/Store/Deps shapes arrive with S10 (blocked on 002). Principal.AuditActor waits for 002 audit.Actor (S09)."
   },
   "S02": {
    "owner": "backend-dev",
    "title": "Implement platform/crypto (Keyring AES-256-GCM envelope, BlindIndexer, NewToken, Digest), platform/ratelimit, and config/auth.go + config/db.go. Tests already written (protected).",
    "done_command": "cd apps/api && go test -race ./internal/platform/crypto/... ./internal/platform/ratelimit/... ./internal/platform/config/...",
-   "status": "todo",
+   "status": "done",
    "depends_on": [
     "S01"
    ],
@@ -42,7 +43,7 @@
    "owner": "backend-dev",
    "title": "Implement platform/authz (Role, Principal, Verifier, Install, Require, Public, ChallengeOnly, SelfAuthenticated, AssertDeclared) and httpx errors, CORS, ClientIP. Tests already written (protected).",
    "done_command": "cd apps/api && go test -race ./internal/platform/authz/... ./internal/platform/httpx/...",
-   "status": "todo",
+   "status": "done",
    "depends_on": [
     "S01"
    ],
@@ -62,7 +63,7 @@
    "owner": "backend-dev",
    "title": "Implement auth pure units A: normalize.go, commonpasswords list (10k.txt via proxy, SOURCE.md, embed.go), password_policy.go, hasher.go (Argon2id, PHC, semaphore, dummy verify), throttle_apply.go. Tests already written (protected). [P] with S05 as a pair in separate worktrees (flat package).",
    "done_command": "cd apps/api && go test -race ./internal/auth/commonpasswords/... && go test -race -run 'TestNormalize|TestKindOf|TestPolicy|TestHasher|TestLockout|TestThrottleApply' ./internal/auth/",
-   "status": "todo",
+   "status": "done",
    "depends_on": [
     "S01"
    ],
@@ -89,7 +90,7 @@
    "owner": "backend-dev",
    "title": "Implement auth pure units B: tokens.go (go-jose EdDSA, kid ring, P-02 verify order), totp.go (pquerna/otp, N-1..N+1, last_used_step), recovery.go. Tests already written (protected).",
    "done_command": "cd apps/api && go test -race -run 'TestTokens|TestTotp|TestRecovery' ./internal/auth/",
-   "status": "todo",
+   "status": "done",
    "depends_on": [
     "S01",
     "S02"
