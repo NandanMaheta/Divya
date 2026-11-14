@@ -1,5 +1,7 @@
 # Swastik: automated delivery blueprint (zero → MVP)
 
+> **Superseded in part by delivery pipeline v2** (`docs/engineering/delivery-pipeline.md`, 2026-11-14): risk tiers, one-page feature briefs, a generated code map, 8–20 slices per feature (compile skeleton first), batched test/code passes, shared-Postgres tests, per-role models and metrics in `state.json`. Where this document differs, v2 wins. Quality gates below are unchanged.
+
 Companion to `Product blueprint.md`. It defines how agents build Swastik with minimal human involvement. It covers:
 
 - understanding the business rules
@@ -131,7 +133,7 @@ M0 Platform (repo, CI, auth skeleton, DB, design tokens, app shells)
 | F7.5    | Due-date calculator                     |
 | F7.6    | Settlement API + admin/client views     |
 
-**Task level.** Rules for `/speckit-tasks` output, enforced by the planner's checklist:
+**Task level (v2: slices).** 8–20 slices per feature, compile skeleton first; see `docs/engineering/delivery-pipeline.md` §3. Rules for slices:
 
 - At most about 200 lines changed and at most 5 files per task.
 - Exactly one owner agent and one "done" command (e.g. `go test ./internal/settlement/...`).

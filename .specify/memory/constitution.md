@@ -35,8 +35,8 @@ Prefer the boring, standard solution; every new dependency needs a reason in the
 
 ## Development Workflow & Quality Gates
 
-1. Feature work follows Spec Kit: specify → clarify → **owner approves spec** → plan → analyze → tasks → test-first implement → independent review → PR. Bugs use the `bug` extension (reproduce → failing test → fix). Ideas use the `assess` extension before any spec.
-2. Tasks are small: ≤ ~200 changed lines, ≤ 5 files, one owner agent, one "done" command, rule IDs listed.
+1. Feature work follows **delivery pipeline v2** (`docs/engineering/delivery-pipeline.md`). Tier A (money, ledger, deals, auth, PII): research → spec → **owner approves** → plan + brief → slices → test pass → code pass → review + security review → PR. Tier B: combined spec + plan + brief → **owner approves** → slices → test pass → code pass → review → PR. Bugs use the `bug` extension (reproduce → failing test → fix). Ideas use the `assess` extension before any spec.
+2. Work is planned as 8–20 **slices** per feature (≤ ~400 changed lines each, one owner agent, one done command, rule IDs listed), the first being a compile skeleton. Agents work from the one-page feature brief and the generated code map, and keep documents within the pipeline length caps.
 3. A change is done only when its done command, the affected suites and the golden scenarios pass, with evidence (command + output) in the PR.
 4. Review is by a fresh-context reviewer against the spec plus a security reviewer; AI review is advisory, CI is the gate.
 5. PRs touching `internal/settlement`, `internal/ledger`, `internal/deals`, `internal/auth`, or migrations require the owner's approval; other green PRs may auto-merge.
@@ -47,4 +47,4 @@ Prefer the boring, standard solution; every new dependency needs a reason in the
 
 This constitution supersedes conflicting guidance in any other document. Amendments require an ADR in `docs/adr/`, owner approval, and a version bump below. Reviewers verify compliance on every PR; violations are blocking findings.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13 (git flow: stage/main)
+**Version**: 1.2.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13 (git flow: stage/main; pipeline v2: tiers, slices, briefs)

@@ -3,6 +3,7 @@
 import subprocess
 
 import os
+import subprocess as _sp
 
 from lib import active_states, repo_root
 
@@ -14,4 +15,7 @@ for path, state in active_states(root):
         todo = [t for t, v in state.get("tasks", {}).items() if v.get("status") != "done"]
         lines.append(f"In flight: {path.parent.name} · phase {state.get('phase')} · open tasks {len(todo)}")
 lines.append("Business rules: docs/product/business-rules.md · Build order: docs/product/modules.md")
+env = _sp.run(["bash", str(root / "scripts" / "dev-env.sh")], capture_output=True, text=True, timeout=60)
+lines.append(env.stdout.strip())
+lines.append("Pipeline v2: read the feature brief + docs/engineering/codemap.md first; docs/engineering/handover.md for status.")
 print("\n".join(lines))
