@@ -57,28 +57,10 @@ func RegisterJobs(r JobRegistrar, s *Service) { panic(errNotImplemented) }
 // Register adds the HTTP operations (admin + client).
 func Register(api huma.API, s *Service) { panic(errNotImplemented) }
 
-func (s *Service) RequireEligible(ctx context.Context, org, id uuid.UUID) (IPO, error) {
-	return IPO{}, errNotImplemented
-}
 func (s *Service) MarkSettled(ctx context.Context, org, id uuid.UUID) error {
 	return errNotImplemented
 }
 
-func (s *Service) Create(ctx context.Context, by audit.Actor, org uuid.UUID, in Draft, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
-func (s *Service) Update(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, in Draft, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
-func (s *Service) SetFlag(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, flag *ApplyFlag, note *string, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
-func (s *Service) Publish(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
-func (s *Service) Unpublish(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, idemKey string) (Result, error) {
-	return Result{}, errNotImplemented
-}
 func (s *Service) OverrideStatus(ctx context.Context, by audit.Actor, org, id uuid.UUID, version int32, to Status, reason string, idemKey string) (Result, error) {
 	return Result{}, errNotImplemented
 }
