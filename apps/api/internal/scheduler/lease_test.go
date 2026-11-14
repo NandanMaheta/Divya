@@ -282,3 +282,37 @@ func TestLease_BR_IPO_03_ClaimAndLeaseProperties(t *testing.T) {
 		}
 	})
 }
+
+// FR-010 / BR-IPO-03: a job rescheduled while running is never claimed before its new run_at, even
+// when its lease has expired (a stale claim is re-claimable only if locked_until <= now AND run_at <= now).
+func TestLease_BR_IPO_03_FR_010_RescheduledRunningJobWithExpiredLeaseWaitsForItsNewRunAt(t *testing.T) {
+	h := schedulertest.NewHarness(t)
+	h.Run("rescheduled_while_running", func(h *schedulertest.Harness) {
+		t := h.T
+		rec := recordKind(h, "sample.step")
+		h.Schedule(h.Spec("sample.step", "k", after(-time.Minute)))
+		if _, ok := h.ClaimOnly(); !ok { // crash: stays running
+			t.Fatal("nothing to claim")
+		}
+		newRunAt := after(10 * time.Minute)
+		inTx(t, h, func(ctx context.Context) error {
+			moved, err := h.Sched.Reschedule(ctx, h.Org, "sample.step", "k", newRunAt)
+			if err != nil || !moved {
+				t.Fatalf("Reschedule = %v, %v", moved, err)
+			}
+			return nil
+		})
+
+		for _, at := range []time.Duration{lease, 5 * time.Minute, 10*time.Minute - time.Nanosecond} {
+			h.Clock.Set(after(at)) // lease expired, but run_at is still in the future
+			if sum := h.Tick(); sum.Jobs.Run != 0 || rec.Count() != 0 {
+				t.Fatalf("at %v the job ran (summary %+v) before its new run_at (FR-010)", at, sum.Jobs)
+			}
+		}
+
+		h.Clock.Set(newRunAt)
+		if sum := h.Tick(); sum.Jobs.Run != 1 || rec.Count() != 1 {
+			t.Fatalf("summary %+v runs %d at the new run_at, want exactly one run", sum.Jobs, rec.Count())
+		}
+	})
+}

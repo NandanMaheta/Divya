@@ -47,7 +47,9 @@ type mjob struct {
 
 func (j *mjob) dueAt(now time.Time) bool {
 	if j.running {
-		return !j.leaseEnd.After(now) // the lease ran out: another claim may take over
+		// FR-010: a stale claim is taken over only once the lease ran out AND the job's (possibly
+		// rescheduled) run_at has arrived.
+		return !j.leaseEnd.After(now) && !j.runAt.After(now)
 	}
 	return !j.runAt.After(now) && (j.expiresAt == nil || j.expiresAt.After(now))
 }
@@ -243,7 +245,7 @@ func TestScheduler_BR_IPO_03_ModelProperties(t *testing.T) {
 				rt.Fatalf("the handler ran for %v, the model did not", m.calls)
 			}
 			// FR-006: nothing due and unexpired is left behind by a tick.
-			if n := h.Count("scheduled_jobs", `(status = 'pending' AND run_at <= $1 AND (expires_at IS NULL OR expires_at > $1)) OR (status = 'running' AND locked_until <= $1)`, now); n != 0 {
+			if n := h.Count("scheduled_jobs", `(status = 'pending' AND run_at <= $1 AND (expires_at IS NULL OR expires_at > $1)) OR (status = 'running' AND locked_until <= $1 AND run_at <= $1)`, now); n != 0 {
 				rt.Fatalf("%d due jobs left after a tick", n)
 			}
 		}
